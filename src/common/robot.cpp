@@ -4,20 +4,18 @@
 
 #include "common/robot.hpp"
 
-#include <utility>
-
-Robot::Robot(std::shared_ptr<LowState> low_state, int ms) {
-    _low_state = std::move(low_state);
+Robot::Robot(const std::shared_ptr<LowState> &low_state, int ms) {
+    _low_state = low_state;
     _ms = ms;
     init();
-    _robot_thread = std::thread([this] { run(_ms); });
+//    _robot_thread = std::thread([this] { run(_ms); });
     std::cout << "[Robot] Init Success!" << std::endl;
 }
 
-void Robot::begin() {
-    while (!_robot_thread.joinable()) {}
-    _robot_thread.join();
-}
+//void Robot::begin() {
+//    while (!_robot_thread.joinable()) {}
+//    _robot_thread.join();
+//}
 
 void Robot::init() {
     // pinocchio
@@ -63,23 +61,23 @@ void Robot::init() {
     }
 }
 
-[[noreturn]] void Robot::run(int ms) {
-    std::chrono::microseconds period(ms * 1000);
-    std::chrono::microseconds zero_us(0);
-    auto start_time = std::chrono::high_resolution_clock::now();
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto execute_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-    while (true) {
-        start_time = std::chrono::high_resolution_clock::now();
-        step();
-        end_time = std::chrono::high_resolution_clock::now();
-        execute_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-        auto sleep_time = period - execute_time;
-        if (sleep_time > zero_us) {
-            std::this_thread::sleep_for(sleep_time);
-        }
-    }
-}
+//[[noreturn]] void Robot::run(int ms) {
+//    std::chrono::microseconds period(ms * 1000);
+//    std::chrono::microseconds zero_us(0);
+//    auto start_time = std::chrono::high_resolution_clock::now();
+//    auto end_time = std::chrono::high_resolution_clock::now();
+//    auto execute_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+//    while (true) {
+//        start_time = std::chrono::high_resolution_clock::now();
+//        step();
+//        end_time = std::chrono::high_resolution_clock::now();
+//        execute_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+//        auto sleep_time = period - execute_time;
+//        if (sleep_time > zero_us) {
+//            std::this_thread::sleep_for(sleep_time);
+//        }
+//    }
+//}
 
 void Robot::step() {
     _q << Vec3::Zero(), _low_state->getQuaternion(), _low_state->getQ();

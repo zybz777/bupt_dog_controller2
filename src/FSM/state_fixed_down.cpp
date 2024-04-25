@@ -7,9 +7,9 @@
 #include <utility>
 #include "gait/enum_gait.hpp"
 
-State_FixedDown::State_FixedDown(std::shared_ptr<CtrlComponents> ctrl_comp) : FSMState(std::move(ctrl_comp),
-                                                                                       FSMStateName::FIXEDDOWN,
-                                                                                       "fixed down") {
+State_FixedDown::State_FixedDown(const std::shared_ptr<CtrlComponents> &ctrl_comp) : FSMState(ctrl_comp,
+                                                                                              FSMStateName::FIXEDDOWN,
+                                                                                              "fixed down") {
     _freq = 1000;
     _percent = 0;
     _duration = FIXEDDOWN_T;

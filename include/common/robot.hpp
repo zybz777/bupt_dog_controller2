@@ -24,10 +24,10 @@ const std::string foot_link[4] = {"FL_FOOT", "FR_FOOT", "HL_FOOT", "HR_FOOT"};
 
 class Robot {
 public:
-    Robot(std::shared_ptr<LowState> low_state, int ms);
+    Robot(const std::shared_ptr<LowState> &low_state, int ms);
 
-    void begin();
-
+//    void begin();
+    void step();
     // 关节数据
     const Vec12 &getQ() {
         return _low_state->getQ();
@@ -168,9 +168,7 @@ public:
 private:
     void init();
 
-    [[noreturn]] void run(int ms);
-
-    void step();
+//    [[noreturn]] void run(int ms);
 
     void forwardKinematics();
 
@@ -178,7 +176,7 @@ private:
 
     std::shared_ptr<LowState> _low_state;
     int _ms;
-    std::thread _robot_thread;
+//    std::thread _robot_thread;
     // pinocchio
     std::unique_ptr<pinocchio::Model> _robot_model;
     std::unique_ptr<pinocchio::Data> _robot_data;
@@ -212,7 +210,7 @@ private:
     lcm::LCM _lcm;
     // leg data
     std::string _foot_data_topic_name[4];
-    doglcm::LegData_t _foot_data[4];
+    doglcm::LegData_t _foot_data[4]{};
     std::unique_ptr<LPFilter> _foot_vel_inBody_filter[12];
 };
 

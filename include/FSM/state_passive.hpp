@@ -10,7 +10,7 @@
 
 class State_Passive : public FSMState {
 public:
-    State_Passive(std::shared_ptr<CtrlComponents> ctrl_comp);
+    explicit State_Passive(const std::shared_ptr<CtrlComponents> &ctrl_comp);
 
     void enter() override;
 

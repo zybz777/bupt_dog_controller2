@@ -10,7 +10,7 @@
 
 class State_FixedStand : public FSMState {
 public:
-    State_FixedStand(std::shared_ptr<CtrlComponents> ctrl_comp);
+    explicit State_FixedStand(const std::shared_ptr<CtrlComponents> &ctrl_comp);
 
     void enter() override;
 

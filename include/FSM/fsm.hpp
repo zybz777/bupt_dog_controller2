@@ -8,20 +8,21 @@
 #include "state_fixed_stand.hpp"
 #include "state_fixed_down.hpp"
 #include "state_passive.hpp"
+#include "state_trot.hpp"
 
 struct FSMStateList {
     // FSMState *invalid;
     std::shared_ptr<State_Passive> passive;
     std::shared_ptr<State_FixedStand> fixed_stand;
     std::shared_ptr<State_FixedDown> fixed_down;
-//    State_Trot *trotting;
+    std::shared_ptr<State_Trot> trotting;
 //    State_FreeStand *free_stand;
 //    State_Test *test;
 };
 
 class FSM {
 public:
-    FSM(std::shared_ptr<CtrlComponents> ctrl_comp, int ms);
+    FSM(const std::shared_ptr<CtrlComponents> &ctrl_comp, int ms);
 
     void begin();
 

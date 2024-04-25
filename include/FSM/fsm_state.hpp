@@ -13,10 +13,10 @@
 
 class FSMState {
 public:
-    FSMState(std::shared_ptr<CtrlComponents> ctrl_comp,
+    FSMState(const std::shared_ptr<CtrlComponents> &ctrl_comp,
              FSMStateName state_name,
              std::string state_name_string) {
-        _ctrl_comp = std::move(ctrl_comp);
+        _ctrl_comp = ctrl_comp;
         _state_name = state_name;
         _state_name_string = std::move(state_name_string);
     }

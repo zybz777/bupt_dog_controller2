@@ -6,8 +6,8 @@
 
 #include <utility>
 
-State_Passive::State_Passive(std::shared_ptr<CtrlComponents> ctrl_comp)
-        : FSMState(std::move(ctrl_comp),
+State_Passive::State_Passive(const std::shared_ptr<CtrlComponents> &ctrl_comp)
+        : FSMState(ctrl_comp,
                    FSMStateName::PASSIVE,
                    "passive") {}
 

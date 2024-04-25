@@ -44,7 +44,7 @@ public:
     }
 
     // user cmd
-    std::shared_ptr<doglcm::UserCmd_t> getUserCmd() {
+    const std::shared_ptr<doglcm::UserCmd_t> &getUserCmd() {
         return _user_cmd;
     }
 

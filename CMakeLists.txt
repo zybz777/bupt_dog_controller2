@@ -2,11 +2,16 @@ cmake_minimum_required(VERSION 3.28)
 project(bupt_dog_controller2)
 
 set(CMAKE_CXX_STANDARD 17)
+# 设置 仿真模式(ON)或实物模式(OFF)
+set(SIM_MODE ON)# 设置为 ON 或者 OFF
+# 设置 状态估计标定噪声(ON OFF)
+set(CALIBRATE_MODE OFF)
+
+set(hpipm-cpp_DIR "/usr/local/share/hpipm-cpp/cmake/hpipm-cpp-config.cmake")
 
 add_definitions(-DCONFIG_PATH="${CMAKE_SOURCE_DIR}/config/")
 add_definitions(-DROBOT_PATH="${CMAKE_SOURCE_DIR}/config/")
 
-set(hpipm-cpp_DIR "/usr/local/share/hpipm-cpp/cmake/hpipm-cpp-config.cmake")
 find_package(lcm REQUIRED)
 find_package(Eigen3 REQUIRED)
 #find_package(pinocchio REQUIRED)
@@ -47,7 +52,11 @@ add_executable(bupt_dog_controller2 main.cpp
         src/FSM/fsm.cpp
         include/FSM/fsm.hpp
         src/FSM/state_passive.cpp
-        include/FSM/state_passive.hpp)
+        include/FSM/state_passive.hpp
+        src/control/vmc/vmc_controller.cpp
+        include/control/vmc/vmc_controller.hpp
+        src/FSM/state_trot.cpp
+        include/FSM/state_trot.hpp)
 
 # 动态库路径
 link_directories(
@@ -64,3 +73,11 @@ target_link_libraries(bupt_dog_controller2
         hpipm-cpp::hpipm-cpp
         -lpthread
 )
+
+if (SIM_MODE)
+    add_compile_definitions(USE_SIM)
+endif ()
+
+if (CALIBRATE_MODE)
+    add_compile_definitions(USE_CALIBRATE)
+endif ()

@@ -7,12 +7,13 @@
 
 #include <utility>
 
-FSM::FSM(std::shared_ptr<CtrlComponents> ctrl_comp, int ms) {
+FSM::FSM(const std::shared_ptr<CtrlComponents> &ctrl_comp, int ms) {
     _ms = ms;
-    _ctrl_comp = std::move(ctrl_comp);
+    _ctrl_comp = ctrl_comp;
     _state_list.passive = std::make_shared<State_Passive>(_ctrl_comp);
     _state_list.fixed_stand = std::make_shared<State_FixedStand>(_ctrl_comp);
     _state_list.fixed_down = std::make_shared<State_FixedDown>(_ctrl_comp);
+    _state_list.trotting = std::make_shared<State_Trot>(_ctrl_comp);
     // init
     _current_state = _state_list.passive;
     _current_state->enter();
@@ -27,29 +28,21 @@ FSM::FSM(std::shared_ptr<CtrlComponents> ctrl_comp, int ms) {
     std::chrono::microseconds period(ms * 1000);
     std::chrono::microseconds zero_us(0);
     auto start_time = std::chrono::high_resolution_clock::now();
-    auto end_time = std::chrono::high_resolution_clock::now();
-    auto execute_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
     while (true) {
-        start_time = std::chrono::high_resolution_clock::now();
         step();
-        end_time = std::chrono::high_resolution_clock::now();
-        execute_time = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
-        auto sleep_time = period - execute_time;
-        if (sleep_time > zero_us) {
-            std::this_thread::sleep_for(sleep_time);
-        }
+        start_time += period;
+        std::this_thread::sleep_until(start_time);
     }
 }
 
 void FSM::step() {
-    _ctrl_comp->getGait()->step();
+    _ctrl_comp->step();
     switch (_mode) {
         case FSMMode::NORMAL:
             checkSafety();
             _current_state->step();
             _next_state_name = _current_state->checkChange();
-            if (_next_state_name != _current_state->_state_name) // 状态切换
-            {
+            if (_next_state_name != _current_state->_state_name) { // 状态切换
                 _mode = FSMMode::CHANGE;
                 _next_state = getNextState(_next_state_name);
                 std::cout << "Switched from [" << _current_state->_state_name_string
@@ -84,8 +77,8 @@ std::shared_ptr<FSMState> FSM::getNextState(FSMStateName state_name) const {
             return _state_list.fixed_stand;
         case FSMStateName::FIXEDDOWN:
             return _state_list.fixed_down;
-//        case FSMStateName::TROTTING:
-//            return _state_list.trotting;
+        case FSMStateName::TROTTING:
+            return _state_list.trotting;
 //        case FSMStateName::FREESTAND:
 //            return _state_list.free_stand;
 //        case FSMStateName::TEST:
