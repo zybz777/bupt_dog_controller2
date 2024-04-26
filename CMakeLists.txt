@@ -63,7 +63,8 @@ add_executable(bupt_dog_controller2 main.cpp
         src/control/mpc/mpc_controller.cpp
         include/control/mpc/mpc_controller.hpp
         src/FSM/state_free_stand.cpp
-        include/FSM/state_free_stand.hpp)
+        include/FSM/state_free_stand.hpp
+        include/utils/real_time.hpp)
 
 # 动态库路径
 link_directories(

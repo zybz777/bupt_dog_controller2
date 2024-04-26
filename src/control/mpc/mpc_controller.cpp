@@ -37,21 +37,21 @@ void MpcController::init() {
     _mpc_f_last.setZero();
     /*mpc 权重*/
 #ifdef USE_SIM
-    _L_diag << 0.6, 0.6, 1.0,
-            0.5, 0.5, 1.5,
-            0.6, 0.6, 1.0,
-            0.5, 0.5, 1.0; // simulink weight
-    _K = 5.0e-5;       // 1e-6
+    _L_diag << 0.8, 0.6, 1.0, // 角度
+            0.0, 0.0, 5.0,
+            0.5, 0.5, 1.0, // 角速度
+            1.0, 1.0, 1.0; // simulink weight
+    _K = 5.0e-6;       // 1e-6
 //    _S = 5.0e-8;
     _S = 0;
     // _K = 9.0e-4;                                                                 // 5.0e-5 初见成效 高度反弹一半
 #else
-    _L_diag << 0.6, 0.6, 1.0,
-            0.5, 0.5, 1.5,
-            0.6, 0.6, 1.0,
-            0.5, 0.5, 1.0; // simulink weight
-    _K = 5.0e-5;       // 1e-6
-    _S = 0.0;
+//    _L_diag << 0.6, 0.6, 1.0,
+//            0.5, 0.5, 1.5,
+//            0.6, 0.6, 1.0,
+//            0.5, 0.5, 1.0; // simulink weight
+//    _K = 5.0e-5;       // 1e-6
+//    _S = 0.0;
 #endif
     /*矩阵*/
     initMat();
@@ -148,6 +148,7 @@ void MpcController::step() {
 void MpcController::updateMat() {
     _R = _robot->getRotMat();
     _inv_Rw = invRotMatW(_robot->getRpy());
+//    _inv_Rw = rotMatRz(_robot->getRpy()[2]).transpose();
     _I_world = _R * _I_body * _R.transpose();
     Mat3 I_world_inv = _I_world.inverse();
     // A

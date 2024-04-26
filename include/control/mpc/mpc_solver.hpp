@@ -99,7 +99,7 @@ public:
     void setupQpSolver() {
         // solver setting 初始化
         solver_settings_.mode = hpipm::HpipmMode::Robust;
-        solver_settings_.iter_max = 70;
+        solver_settings_.iter_max = 100;
         solver_settings_.warm_start = 1;
         solver_settings_.alpha_min = 1e-12;
         solver_settings_.mu0 = 1e4;

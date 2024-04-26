@@ -20,19 +20,29 @@ void State_Trot::step() {
     Vec3 target_foot_vel, target_foot_pos, curr_foot_pos;
     Vec12 q = _ctrl_comp->getLowState()->getQ();
     Vec12 dq = _ctrl_comp->getLowState()->getDq();
+    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
+                   * _ctrl_comp->getMpcController()->getMpcOutput()
+                   + _ctrl_comp->getRobot()->getNoLinearTorque();
     for (int i = 0; i < 4; ++i) {
-        J_inv = _ctrl_comp->getRobot()->getFootJaco_inBody(i).inverse();
-        target_foot_vel = _ctrl_comp->getVmcController()->getCmdFootVel(i);
-        target_foot_pos = _ctrl_comp->getVmcController()->getCmdFootPos(i);
-        curr_foot_pos = _ctrl_comp->getRobot()->getFootPosition_inBody(i);
-        _cmd_q.segment<3>(3 * i) = q.segment<3>(3 * i) + J_inv * (target_foot_pos - curr_foot_pos);
-        _cmd_dq.segment<3>(3 * i) = J_inv * target_foot_vel;
-        _cmd_tau.segment<3>(3 * i) = _ctrl_comp->getRobot()->getLegNoLinearTorque().segment<3>(3 * i);
+        if (_ctrl_comp->getGait()->getContact(i) == SWING) {
+            J_inv = _ctrl_comp->getRobot()->getFootJaco_inBody(i).inverse();
+            target_foot_vel = _ctrl_comp->getVmcController()->getCmdFootVel(i);
+            target_foot_pos = _ctrl_comp->getVmcController()->getCmdFootPos(i);
+            curr_foot_pos = _ctrl_comp->getRobot()->getFootPosition_inBody(i);
+            _cmd_q.segment<3>(3 * i) = q.segment<3>(3 * i) + J_inv * (target_foot_pos - curr_foot_pos);
+            _cmd_dq.segment<3>(3 * i) = J_inv * target_foot_vel;
+            _cmd_tau.segment<3>(3 * i) = _ctrl_comp->getRobot()->getLegNoLinearTorque().segment<3>(3 * i);
 #ifdef USE_SIM
-        _ctrl_comp->getLowCmd()->setSimSwingGain(i);
+            _ctrl_comp->getLowCmd()->setSimSwingGain(i);
 #else
-        _ctrl_comp->getLowCmd()->setRealSwingGain(i);
+            _ctrl_comp->getLowCmd()->setRealSwingGain(i);
 #endif
+        } else {
+            _ctrl_comp->getLowCmd()->setZeroGain(i);
+            _cmd_q.segment<3>(3 * i) = q.segment<3>(3 * i);
+            _cmd_dq.segment<3>(3 * i).setZero();
+            _cmd_tau.segment<3>(3 * i) = cmd_tau.segment<3>(6 + 3 * i);
+        }
     }
     _ctrl_comp->getLowCmd()->setQ(_cmd_q);
     _ctrl_comp->getLowCmd()->setDq(_cmd_dq);

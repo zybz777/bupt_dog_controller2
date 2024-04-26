@@ -68,7 +68,6 @@ private:
     // lcm
     lcm::LCM _lcm;
     doglcm::LegData_t _legs[4]{};
-    doglcm::ImuData_t _imu{};
     std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
     // motor
     Vec12 _q = Vec12::Zero();
@@ -89,18 +88,16 @@ private:
     }
 
     void handleImuMsg(const lcm::ReceiveBuffer *rbuf, const std::string &chan, const doglcm::ImuData_t *msg) {
-        memcpy(&_imu, msg, sizeof(_imu));
         // rpy
         static double last_yaw = 0.0;
-        Vec3 tmp_rpy;
-        tmp_rpy << msg->rpy[0], msg->rpy[1], msg->rpy[2];
-        double delta_yaw = tmp_rpy[2] - last_yaw;
-        last_yaw = tmp_rpy[2];
+        double delta_yaw = msg->rpy[2] - last_yaw;
+        last_yaw = msg->rpy[2];
         if (delta_yaw > M_PI)
             delta_yaw -= 2.0 * M_PI;
         else if (delta_yaw < -M_PI)
             delta_yaw += 2.0 * M_PI;
-        _rpy << tmp_rpy[0], tmp_rpy[1], _rpy[2] + delta_yaw;
+        _rpy << msg->rpy[0], msg->rpy[1], _rpy[2] + delta_yaw;
+//        std::cout << delta_yaw << " " << msg->rpy[2] << " " << _rpy[2] << std::endl;
         // R
         _rot_mat = rotMatRzyx(_rpy);
         // angular_velocity
@@ -109,9 +106,9 @@ private:
         memcpy(_linear_accelerometer.data(), msg->linear_accelerometer, sizeof(_linear_accelerometer));
         _linear_accelerometer_in_world = _rot_mat * _linear_accelerometer;
         // quat x y z w
-        Eigen::Quaterniond quaternion = Eigen::AngleAxisd(tmp_rpy[2], Eigen::Vector3d::UnitZ()) *
-                                        Eigen::AngleAxisd(tmp_rpy[1], Eigen::Vector3d::UnitY()) *
-                                        Eigen::AngleAxisd(tmp_rpy[0], Eigen::Vector3d::UnitX());
+        Eigen::Quaterniond quaternion = Eigen::AngleAxisd(msg->rpy[2], Eigen::Vector3d::UnitZ()) *
+                                        Eigen::AngleAxisd(msg->rpy[1], Eigen::Vector3d::UnitY()) *
+                                        Eigen::AngleAxisd(msg->rpy[0], Eigen::Vector3d::UnitX());
         _quat << quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w();
     }
 

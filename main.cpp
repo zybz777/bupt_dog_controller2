@@ -1,8 +1,7 @@
 #include <iostream>
-#include "common/low_state.hpp"
-#include "common/robot.hpp"
 #include "common/ctrl_components.hpp"
 #include "FSM/fsm.hpp"
+#include "utils/real_time.hpp"
 
 int main() {
 #ifdef USE_SIM
@@ -15,7 +14,7 @@ int main() {
 #else
     std::cout << "#### CALIBRATE MODE OFF ####" << std::endl;
 #endif
-
+    setPriority();
     int ms = 1;
     auto ctrl_comp = std::make_shared<CtrlComponents>(ms);
     auto fsm = std::make_shared<FSM>(ctrl_comp, ms);
