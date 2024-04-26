@@ -9,6 +9,7 @@
 #include "state_fixed_down.hpp"
 #include "state_passive.hpp"
 #include "state_trot.hpp"
+#include "state_free_stand.hpp"
 
 struct FSMStateList {
     // FSMState *invalid;
@@ -16,6 +17,7 @@ struct FSMStateList {
     std::shared_ptr<State_FixedStand> fixed_stand;
     std::shared_ptr<State_FixedDown> fixed_down;
     std::shared_ptr<State_Trot> trotting;
+    std::shared_ptr<State_FreeStand> free_stand;
 //    State_FreeStand *free_stand;
 //    State_Test *test;
 };

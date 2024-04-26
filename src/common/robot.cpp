@@ -56,8 +56,10 @@ void Robot::init() {
     for (int i = 0; i < 4; ++i) {
         _foot_data_topic_name[i] = "leg" + std::to_string(i) + "/foot_data";
     }
-    for (auto &filter: _foot_vel_inBody_filter) {
-        filter = std::make_unique<LPFilter>(1e-3, 100);
+    // filter
+    for (int i = 0; i < 12; ++i) {
+        _foot_vel_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 20);
+        _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 20);
     }
 }
 
@@ -80,8 +82,10 @@ void Robot::init() {
 //}
 
 void Robot::step() {
-    _q << Vec3::Zero(), _low_state->getQuaternion(), _low_state->getQ();
-    _dq << Vec3::Zero(), _low_state->getAngularVelocity(), _low_state->getDq();
+    _q.segment<16>(3) << _low_state->getQuaternion(), _low_state->getQ();
+    _dq.segment<15>(3) << _low_state->getAngularVelocity(), _low_state->getDq();
+//    _q << Vec3::Zero(), _low_state->getQuaternion(), _low_state->getQ();
+//    _dq << Vec3::Zero(), _low_state->getAngularVelocity(), _low_state->getDq();
     forwardKinematics();
     inverseDynamics();
 }
@@ -97,7 +101,13 @@ void Robot::forwardKinematics() {
         // 世界坐标系下足端位置
         _foot_pos_inWorld.col(i) << _robot_data->oMf[_robot_model->getFrameId(foot_link[i])].translation();
         // 质心坐标系下足端位置
-        _foot_pos_inBody.col(i) << R.transpose() * (_foot_pos_inWorld.col(i) - com_pos_inWorld);
+        Vec3 foot_pos_inBody = R.transpose() * (_foot_pos_inWorld.col(i) - com_pos_inWorld);
+        _foot_pos_inBody_filter[3 * i + 0]->addValue(foot_pos_inBody[0]);
+        _foot_pos_inBody_filter[3 * i + 1]->addValue(foot_pos_inBody[1]);
+        _foot_pos_inBody_filter[3 * i + 2]->addValue(foot_pos_inBody[2]);
+        _foot_pos_inBody.col(i) << _foot_pos_inBody_filter[3 * i + 0]->getValue(),
+                _foot_pos_inBody_filter[3 * i + 1]->getValue(),
+                _foot_pos_inBody_filter[3 * i + 2]->getValue();
         // 足端雅可比矩阵
         J.setZero();
         pinocchio::computeFrameJacobian(*_robot_model, *_robot_data, _q, _robot_model->getFrameId(foot_link[i]),
@@ -107,12 +117,12 @@ void Robot::forwardKinematics() {
         // 质心坐标系下足端速度 =J*质心系关节速度
         Vec3 foot_vel_inBody = _foot_jaco_inBody[i] * _dq.segment<3>(6 + 3 * i);
         // _foot_vel_inBody.col(i) << _foot_jaco_inBody[i] * _dq.segment<3>(6 + 3 * i);
-        _foot_vel_inBody_filter[i + 0]->addValue(foot_vel_inBody[0]);
-        _foot_vel_inBody_filter[i + 1]->addValue(foot_vel_inBody[1]);
-        _foot_vel_inBody_filter[i + 2]->addValue(foot_vel_inBody[2]);
-        _foot_vel_inBody.col(i) << _foot_vel_inBody_filter[i + 0]->getValue(),
-                _foot_vel_inBody_filter[i + 1]->getValue(),
-                _foot_vel_inBody_filter[i + 2]->getValue();
+        _foot_vel_inBody_filter[3 * i + 0]->addValue(foot_vel_inBody[0]);
+        _foot_vel_inBody_filter[3 * i + 1]->addValue(foot_vel_inBody[1]);
+        _foot_vel_inBody_filter[3 * i + 2]->addValue(foot_vel_inBody[2]);
+        _foot_vel_inBody.col(i) << _foot_vel_inBody_filter[3 * i + 0]->getValue(),
+                _foot_vel_inBody_filter[3 * i + 1]->getValue(),
+                _foot_vel_inBody_filter[3 * i + 2]->getValue();
         // 足端雅可比矩阵导数
         dJ.setZero();
         pinocchio::getFrameJacobianTimeVariation(*_robot_model, *_robot_data, _robot_model->getFrameId(foot_link[i]),

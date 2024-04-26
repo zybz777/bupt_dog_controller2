@@ -12,6 +12,7 @@
 #include "gait/gait.hpp"
 #include "estimator.hpp"
 #include "control/vmc/vmc_controller.hpp"
+#include "control/mpc/mpc_controller.hpp"
 
 class CtrlComponents {
 public:
@@ -26,12 +27,13 @@ public:
         _gait = std::make_shared<Gait>(_user_cmd);
         // control
         _vmc = std::make_shared<VmcController>();
+        _mpc = std::make_shared<MpcController>(_robot, _gait, _estimator);
         std::cout << "[CtrlComponents] Init Success!" << std::endl;
     }
 
     void begin() {
         _low_state->begin();
-//        _robot->begin();
+        _mpc->begin();
         std::cout << "[CtrlComponents] begin!" << std::endl;
     }
 
@@ -57,7 +59,9 @@ public:
     const std::shared_ptr<Gait> &getGait() { return _gait; }
 
     // control
-    const std::shared_ptr<VmcController> &getVmcController() { return _vmc; };
+    const std::shared_ptr<VmcController> &getVmcController() { return _vmc; }
+
+    const std::shared_ptr<MpcController> &getMpcController() { return _mpc; }
 //    VmcController *getVmcController();
 
 //    MpcController *getMpcController();
@@ -78,6 +82,7 @@ private:
     std::shared_ptr<Gait> _gait;
     // control
     std::shared_ptr<VmcController> _vmc;
+    std::shared_ptr<MpcController> _mpc;
 //    VmcController *_vmc;
 //    WbcController *_wbc;
 //    MpcController *_mpc;

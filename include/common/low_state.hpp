@@ -38,53 +38,30 @@ public:
         std::cout << "[LowState] Init Success!" << std::endl;
     }
 
-    void begin() {
-        while (!_recv_thread.joinable()) {}
-        _recv_thread.join();
-    }
+    void begin() { _recv_thread.join(); }
 
     // user cmd
-    const std::shared_ptr<doglcm::UserCmd_t> &getUserCmd() {
-        return _user_cmd;
-    }
+    const std::shared_ptr<doglcm::UserCmd_t> &getUserCmd() { return _user_cmd; }
 
     // joint
-    const Vec12 &getQ() {
-        return _q;
-    }
+    const Vec12 &getQ() { return _q; }
 
-    const Vec12 &getDq() {
-        return _dq;
-    }
+    const Vec12 &getDq() { return _dq; }
 
-    const Vec12 &getTau() {
-        return _tau;
-    }
+    const Vec12 &getTau() { return _tau; }
 
     // imu
-    const Vec3 &getRpy() {
-        return _rpy;
-    }
+    const Vec3 &getRpy() { return _rpy; }
 
-    const RotMat &getRotMat() {
-        return _rot_mat;
-    }
+    const RotMat &getRotMat() { return _rot_mat; }
 
-    const Vec3 &getAngularVelocity() {
-        return _angular_velocity;
-    }
+    const Vec3 &getAngularVelocity() { return _angular_velocity; }
 
-    const Vec3 &getLinearAccelerometer() {
-        return _linear_accelerometer;
-    }
+    const Vec3 &getLinearAccelerometer() { return _linear_accelerometer; }
 
-    const Vec3 &getLinearAccelerometer_inWorld() {
-        return _linear_accelerometer_in_world;
-    }
+    const Vec3 &getLinearAccelerometer_inWorld() { return _linear_accelerometer_in_world; }
 
-    const Quat &getQuaternion() {
-        return _quat;
-    }
+    const Quat &getQuaternion() { return _quat; }
 
 private:
     std::thread _recv_thread;

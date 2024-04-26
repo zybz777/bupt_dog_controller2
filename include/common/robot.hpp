@@ -28,131 +28,77 @@ public:
 
 //    void begin();
     void step();
+
+    const shared_ptr<LowState> &getLowState() { return _low_state; };
+
     // 关节数据
-    const Vec12 &getQ() {
-        return _low_state->getQ();
-    }
+    const Vec12 &getQ() { return _low_state->getQ(); }
 
-    const Vec12 &getDq() {
-        return _low_state->getDq();
-    }
+    const Vec12 &getDq() { return _low_state->getDq(); }
 
-    const Vec12 &getTau() {
-        return _low_state->getTau();
-    }
+    const Vec12 &getTau() { return _low_state->getTau(); }
 
     // 浮动基下的关节数据
-    const VecX &getFloatBaseQ() {
-        return _q;
-    }
+    const VecX &getFloatBaseQ() { return _q; }
 
-    const VecX &getFloatBaseDq() {
-        return _dq;
-    }
+    const VecX &getFloatBaseDq() { return _dq; }
 
     // imu
-    const Vec3 &getRpy() {
-        return _low_state->getRpy();
-    }
+    const Vec3 &getRpy() { return _low_state->getRpy(); }
 
-    const RotMat &getRotMat() {
-        return _low_state->getRotMat();
-    }
+    const RotMat &getRotMat() { return _low_state->getRotMat(); }
 
-    const Vec3 &getAngularVelocity() {
-        return _low_state->getAngularVelocity();
-    }
+    const Vec3 &getAngularVelocity() { return _low_state->getAngularVelocity(); }
 
-    const Vec3 &getLinearAccelerometer() {
-        return _low_state->getLinearAccelerometer();
-    }
+    const Vec3 &getLinearAccelerometer() { return _low_state->getLinearAccelerometer(); }
 
-    const Vec3 &getLinearAccelerometer_inWorld() {
-        return _low_state->getLinearAccelerometer_inWorld();
-    }
+    const Vec3 &getLinearAccelerometer_inWorld() { return _low_state->getLinearAccelerometer_inWorld(); }
 
     // 足端运动学数据
-    Vec3 getFootPosition_inBody(int leg_id) {
-        return _foot_pos_inBody.col(leg_id);
-    }
+    Vec3 getFootPosition_inBody(int leg_id) { return _foot_pos_inBody.col(leg_id); }
 
-    Vec3 getFootVelocity_inBody(int leg_id) {
-        return _foot_vel_inBody.col(leg_id);
-    }
+    Vec3 getFootVelocity_inBody(int leg_id) { return _foot_vel_inBody.col(leg_id); }
 
-    const Vec34 &getFootPositions_inBody() {
-        return _foot_pos_inBody;
-    }
+    const Vec34 &getFootPositions_inBody() { return _foot_pos_inBody; }
 
-    const Vec34 &getFootVelocities_inBody() {
-        return _foot_vel_inBody;
-    }
+    const Vec34 &getFootVelocities_inBody() { return _foot_vel_inBody; }
 
-    Mat3 getFootJaco_inBody(int leg_id) {
-        return _foot_jaco_inBody[leg_id];
-    }
+    Mat3 getFootJaco_inBody(int leg_id) { return _foot_jaco_inBody[leg_id]; }
 
     // 动力学数据
-    const VecX &getNoLinearTorque() {
-        return _nle;
-    }
+    const VecX &getNoLinearTorque() { return _nle; }
 
-    Vec12 getLegNoLinearTorque() {
-        return _nle.segment<12>(6);
-    }
+    Vec12 getLegNoLinearTorque() { return _nle.segment<12>(6); }
 
-    const MatX &getMassMat() {
-        return _M;
-    }
+    const MatX &getMassMat() { return _M; }
 
 // WBC雅可比矩阵
-    const MatX &getJ_BodyOrientation() {
-        return _J_Body_Orientation;
-    }
+    const MatX &getJ_BodyOrientation() { return _J_Body_Orientation; }
 
-    const MatX &getJ_BodyPosition() {
-        return _J_Body_Position;
-    }
+    const MatX &getJ_BodyPosition() { return _J_Body_Position; }
 
-    const MatX &getJ_FeetPosition() {
-        return _J_Foot_Position;
-    }
+    const MatX &getJ_FeetPosition() { return _J_Foot_Position; }
 
-    const MatX &getDJ_BodyOrientation() {
-        return _dJ_Body_Orientation;
-    }
+    const MatX &getDJ_BodyOrientation() { return _dJ_Body_Orientation; }
 
-    const MatX &getDJ_BodyPosition() {
-        return _dJ_Body_Position;
-    }
+    const MatX &getDJ_BodyPosition() { return _dJ_Body_Position; }
 
-    const MatX &getDJ_FeetPosition() {
-        return _dJ_Foot_Position;
-    }
+    const MatX &getDJ_FeetPosition() { return _dJ_Foot_Position; }
 
     // 状态估计数据
-    const Vec3 &getComPosition_inWorld() {
-        return _com_pos_inWorld;
-    }
+    const Vec3 &getComPosition_inWorld() { return _com_pos_inWorld; }
 
-    const Vec3 &getComVelocity_inWorld() {
-        return _com_vel_inWorld;
-    }
+    const Vec3 &getComVelocity_inWorld() { return _com_vel_inWorld; }
 
-    const Vec3 &getComVelocity_inBody() {
-        return _com_vel_inBody;
-    }
+    const Vec3 &getComVelocity_inBody() { return _com_vel_inBody; }
 
-    const Vec3 &getComLpVelocity_inWorld() {
-        return _com_lp_vel_inWorld;
-    }
+    const Vec3 &getComLpVelocity_inWorld() { return _com_lp_vel_inWorld; }
 
-    const Vec3 &getComLpVelocity_inBody() {
-        return _com_lp_vel_inBody;
-    }
+    const Vec3 &getComLpVelocity_inBody() { return _com_lp_vel_inBody; }
 
     void setComPosition_inWorld(Vec3 pos) {
         _com_pos_inWorld = std::move(pos);
+        _q.segment<3>(0) << _com_pos_inWorld;
     }
 
     void setComVelocity_inWorld(Vec3 vel) {
@@ -163,6 +109,7 @@ public:
     void setComLpVelocity_inWorld(Vec3 lp_vel) {
         _com_lp_vel_inWorld = std::move(lp_vel);
         _com_lp_vel_inBody = getRotMat().transpose() * _com_lp_vel_inWorld;
+        _dq.segment<3>(0) << _com_lp_vel_inBody;
     }
 
 private:
@@ -212,6 +159,7 @@ private:
     std::string _foot_data_topic_name[4];
     doglcm::LegData_t _foot_data[4]{};
     std::unique_ptr<LPFilter> _foot_vel_inBody_filter[12];
+    std::unique_ptr<LPFilter> _foot_pos_inBody_filter[12];
 };
 
 

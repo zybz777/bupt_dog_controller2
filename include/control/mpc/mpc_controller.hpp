@@ -1,0 +1,90 @@
+//
+// Created by zyb on 24-4-26.
+//
+
+#ifndef BUPT_DOG_CONTROLLER2_MPC_CONTROLLER_HPP
+#define BUPT_DOG_CONTROLLER2_MPC_CONTROLLER_HPP
+
+
+#include "common/robot.hpp"
+#include "common/estimator.hpp"
+#include "gait/gait.hpp"
+#include "mrt_generator.hpp"
+#include "mpc_solver.hpp"
+#include "doglcm/MpcOutput_t.hpp"
+
+
+class MpcController {
+public:
+    MpcController(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+                  const std::shared_ptr<Estimator> &estimator);
+
+    void begin();
+
+    const Vec12 &getMpcOutput() { return _mpc_f; }
+
+    Vec3 getMpcOutput(int leg_id) { return _mpc_f.segment<3>(3 * leg_id); }
+
+    const std::shared_ptr<MrtGenerator> &getMrtGenerator() { return _mrt; }
+
+private:
+    void init();
+
+    void initMat();
+
+    void initSolver();
+
+    [[noreturn]] [[noreturn]] void run(int ms);
+
+    void step();
+
+    void updateMat();
+
+    void updateConstraint();
+
+    void solve();
+
+    void publishMpcOutput();
+
+    std::thread _mpc_thread;
+    std::shared_ptr<Robot> _robot;
+    std::shared_ptr<Gait> _gait;
+    std::shared_ptr<MrtGenerator> _mrt;
+    std::shared_ptr<Estimator> _estimator;
+    double _dt;
+    int _ms;
+    /*mpc solver*/
+    std::shared_ptr<MpcSolver> _solver;
+    /*机器人物理属性*/
+    Mat3 _I_body, _I_world;               // 惯性矩阵
+    double _M, _M_body, _M_leg;           // 质量
+    double _f_min = 10.0, _f_max = 100.0; // 摩擦力约束
+    Vec3 _body_com;                       // 质心位置
+    double _mu = 0.4;                     // 摩擦系数
+    /*mpc input*/
+    Vec12 _X;
+    /*mpc output*/
+    Vec12 _mpc_f;
+    Vec12 _mpc_f_last;
+    /*mpc 权重*/
+    Vec12 _L_diag; // 状态量x的权重
+    double _K = 1e-6; // 输入量u的权重
+    double _S = 0; // u-u_last的权重
+    /*离散矩阵*/
+    Mat12 _A_dt;
+    Mat12 _B_dt;
+    Vec12 _g_dt;
+    /*约束条件：摩擦锥 lg <= D u <= ug*/
+    vector<MatX> _D;
+    vector<VecX> _D_min, _D_max;
+    /*旋转矩阵*/
+    RotMat _R;
+    RotMat _inv_Rw;
+    // lcm
+    lcm::LCM _lcm;
+    std::string _mpc_topic_name;
+    doglcm::MpcOutput_t _mpc_output;
+};
+
+
+#endif //BUPT_DOG_CONTROLLER2_MPC_CONTROLLER_HPP

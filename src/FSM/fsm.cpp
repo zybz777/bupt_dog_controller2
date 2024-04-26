@@ -14,6 +14,7 @@ FSM::FSM(const std::shared_ptr<CtrlComponents> &ctrl_comp, int ms) {
     _state_list.fixed_stand = std::make_shared<State_FixedStand>(_ctrl_comp);
     _state_list.fixed_down = std::make_shared<State_FixedDown>(_ctrl_comp);
     _state_list.trotting = std::make_shared<State_Trot>(_ctrl_comp);
+    _state_list.free_stand = std::make_shared<State_FreeStand>(_ctrl_comp);
     // init
     _current_state = _state_list.passive;
     _current_state->enter();
@@ -79,8 +80,8 @@ std::shared_ptr<FSMState> FSM::getNextState(FSMStateName state_name) const {
             return _state_list.fixed_down;
         case FSMStateName::TROTTING:
             return _state_list.trotting;
-//        case FSMStateName::FREESTAND:
-//            return _state_list.free_stand;
+        case FSMStateName::FREESTAND:
+            return _state_list.free_stand;
 //        case FSMStateName::TEST:
 //            return _state_list.test;
         default:
@@ -141,6 +142,5 @@ bool FSM::checkSafety() {
 }
 
 void FSM::begin() {
-    while (!_fsm_thread.joinable()) {}
     _fsm_thread.join();
 }

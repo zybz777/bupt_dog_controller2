@@ -56,7 +56,14 @@ add_executable(bupt_dog_controller2 main.cpp
         src/control/vmc/vmc_controller.cpp
         include/control/vmc/vmc_controller.hpp
         src/FSM/state_trot.cpp
-        include/FSM/state_trot.hpp)
+        include/FSM/state_trot.hpp
+        src/control/mpc/mrt_generator.cpp
+        include/control/mpc/mrt_generator.hpp
+        include/control/mpc/mpc_solver.hpp
+        src/control/mpc/mpc_controller.cpp
+        include/control/mpc/mpc_controller.hpp
+        src/FSM/state_free_stand.cpp
+        include/FSM/state_free_stand.hpp)
 
 # 动态库路径
 link_directories(

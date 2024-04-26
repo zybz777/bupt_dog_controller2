@@ -52,8 +52,8 @@ FSMStateName State_Trot::checkChange() {
             return FSMStateName::FIXEDDOWN;
         case GaitType::FIXEDSTAND:
             return FSMStateName::FIXEDSTAND;
-//        case GaitType::FREESTAND:
-//            return FSMStateName::FREESTAND;
+        case GaitType::FREESTAND:
+            return FSMStateName::FREESTAND;
         default:
             return FSMStateName::TROTTING;
     }
