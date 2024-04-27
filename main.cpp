@@ -6,7 +6,8 @@
 int main() {
 #ifdef USE_SIM
     std::cout << "#### SIM MODE ON ####" << std::endl;
-#else
+#endif
+#ifdef USE_REAL
     std::cout << "#### REAL MODE ON ####" << std::endl;
 #endif
 #ifdef USE_CALIBRATE

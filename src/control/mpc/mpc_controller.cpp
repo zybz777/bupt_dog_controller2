@@ -37,10 +37,10 @@ void MpcController::init() {
     _mpc_f_last.setZero();
     /*mpc 权重*/
 #ifdef USE_SIM
-    _L_diag << 0.8, 0.6, 1.0, // 角度
+    _L_diag << 1.0, 1.0, 1.0, // 角度
             0.0, 0.0, 5.0,
-            0.5, 0.5, 1.0, // 角速度
-            1.0, 1.0, 1.0; // simulink weight
+            1.0, 1.0, 1.0, // 角速度
+            2.0, 2.0, 2.0; // simulink weight
     _K = 5.0e-6;       // 1e-6
 //    _S = 5.0e-8;
     _S = 0;
@@ -205,6 +205,7 @@ void MpcController::solve() {
     // solver
     _X << _robot->getRpy(),
             _estimator->getPosition(),
+//            _robot->getAngularVelocity_inWorld();
             rotMatW(_robot->getRpy()) * _robot->getAngularVelocity(),
             _estimator->getLpVelocity();
     _mpc_f_last = _mpc_f;

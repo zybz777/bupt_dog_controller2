@@ -21,6 +21,10 @@ public:
     FSMStateName checkChange() override;
 
 private:
+    void swingGainMpcTrot();
+
+    void swingGainMpcWbcTrot();
+
     Vec3 _delta_q;
     Vec12 _cmd_q;
     Vec12 _cmd_dq;

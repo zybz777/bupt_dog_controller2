@@ -15,24 +15,8 @@ void State_FreeStand::enter() {
 }
 
 void State_FreeStand::step() {
-//    加了重力补偿，脚不向内侧滑动了
-//    for (int i = 0; i < 4; ++i) {
-//        _cmd_tau.segment<3>(3 * i) << -_ctrl_comp->getRobot()->getFootJaco_inBody(i).transpose() *
-//                                      _ctrl_comp->getRobot()->getRotMat().transpose() *
-//                                      _ctrl_comp->getMpcController()->getMpcOutput(i);
-//    }
-    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
-                   * _ctrl_comp->getMpcController()->getMpcOutput()
-                   + _ctrl_comp->getRobot()->getNoLinearTorque();
-    _cmd_tau = cmd_tau.segment<12>(6);
-
-    _cmd_q = _ctrl_comp->getLowState()->getQ();
-    _cmd_dq.setZero();
-    _ctrl_comp->getLowCmd()->setZeroGain();
-    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
-    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
-    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
-    _ctrl_comp->getLowCmd()->publishLegCmd();
+    ZeroGainStand();
+//    SwingGainStand();
 }
 
 void State_FreeStand::exit() {
@@ -52,4 +36,41 @@ FSMStateName State_FreeStand::checkChange() {
         default:
             return FSMStateName::FREESTAND;
     }
+}
+
+void State_FreeStand::SwingGainStand() {
+    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
+                   * _ctrl_comp->getMpcController()->getMpcOutput()
+                   + _ctrl_comp->getRobot()->getNoLinearTorque();
+    _cmd_tau = cmd_tau.segment<12>(6);
+
+    _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
+    _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
+#ifdef USE_SIM
+    _ctrl_comp->getLowCmd()->setSimSwingGain(0);
+    _ctrl_comp->getLowCmd()->setSimSwingGain(1);
+    _ctrl_comp->getLowCmd()->setSimSwingGain(2);
+    _ctrl_comp->getLowCmd()->setSimSwingGain(3);
+#else
+    _ctrl_comp->getLowCmd()->setRealFreeStanceGain();
+#endif
+    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
+    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
+    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
+    _ctrl_comp->getLowCmd()->publishLegCmd();
+}
+
+void State_FreeStand::ZeroGainStand() {
+    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
+                   * _ctrl_comp->getMpcController()->getMpcOutput()
+                   + _ctrl_comp->getRobot()->getNoLinearTorque();
+
+    _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
+    _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
+    _cmd_tau = cmd_tau.segment<12>(6);
+    _ctrl_comp->getLowCmd()->setZeroGain();
+    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
+    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
+    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
+    _ctrl_comp->getLowCmd()->publishLegCmd();
 }

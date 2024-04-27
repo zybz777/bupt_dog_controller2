@@ -50,6 +50,8 @@ public:
 
     const Vec3 &getAngularVelocity() { return _low_state->getAngularVelocity(); }
 
+    const Vec3 &getAngularVelocity_inWorld() { return _low_state->getAngularVelocity_inWorld(); }
+
     const Vec3 &getLinearAccelerometer() { return _low_state->getLinearAccelerometer(); }
 
     const Vec3 &getLinearAccelerometer_inWorld() { return _low_state->getLinearAccelerometer_inWorld(); }

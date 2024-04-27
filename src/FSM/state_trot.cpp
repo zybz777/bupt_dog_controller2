@@ -16,38 +16,7 @@ void State_Trot::enter() {
 }
 
 void State_Trot::step() {
-    Mat3 J_inv;
-    Vec3 target_foot_vel, target_foot_pos, curr_foot_pos;
-    Vec12 q = _ctrl_comp->getLowState()->getQ();
-    Vec12 dq = _ctrl_comp->getLowState()->getDq();
-    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
-                   * _ctrl_comp->getMpcController()->getMpcOutput()
-                   + _ctrl_comp->getRobot()->getNoLinearTorque();
-    for (int i = 0; i < 4; ++i) {
-        if (_ctrl_comp->getGait()->getContact(i) == SWING) {
-            J_inv = _ctrl_comp->getRobot()->getFootJaco_inBody(i).inverse();
-            target_foot_vel = _ctrl_comp->getVmcController()->getCmdFootVel(i);
-            target_foot_pos = _ctrl_comp->getVmcController()->getCmdFootPos(i);
-            curr_foot_pos = _ctrl_comp->getRobot()->getFootPosition_inBody(i);
-            _cmd_q.segment<3>(3 * i) = q.segment<3>(3 * i) + J_inv * (target_foot_pos - curr_foot_pos);
-            _cmd_dq.segment<3>(3 * i) = J_inv * target_foot_vel;
-            _cmd_tau.segment<3>(3 * i) = _ctrl_comp->getRobot()->getLegNoLinearTorque().segment<3>(3 * i);
-#ifdef USE_SIM
-            _ctrl_comp->getLowCmd()->setSimSwingGain(i);
-#else
-            _ctrl_comp->getLowCmd()->setRealSwingGain(i);
-#endif
-        } else {
-            _ctrl_comp->getLowCmd()->setZeroGain(i);
-            _cmd_q.segment<3>(3 * i) = q.segment<3>(3 * i);
-            _cmd_dq.segment<3>(3 * i).setZero();
-            _cmd_tau.segment<3>(3 * i) = cmd_tau.segment<3>(6 + 3 * i);
-        }
-    }
-    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
-    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
-    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
-    _ctrl_comp->getLowCmd()->publishLegCmd();
+    swingGainMpcTrot();
 }
 
 void State_Trot::exit() {
@@ -67,4 +36,30 @@ FSMStateName State_Trot::checkChange() {
         default:
             return FSMStateName::TROTTING;
     }
+}
+
+void State_Trot::swingGainMpcTrot() {
+    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
+                   * _ctrl_comp->getMpcController()->getMpcOutput()
+                   + _ctrl_comp->getRobot()->getNoLinearTorque();
+    for (int i = 0; i < 4; ++i) {
+        _ctrl_comp->getLowCmd()->setSimSwingGain(i);
+        if (_ctrl_comp->getGait()->getContact(i) == SWING) {
+            _cmd_tau.segment<3>(3 * i) = _ctrl_comp->getRobot()->getLegNoLinearTorque().segment<3>(3 * i);
+
+        } else {
+            _cmd_tau.segment<3>(3 * i) = cmd_tau.segment<3>(6 + 3 * i);
+        }
+    }
+    _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
+    _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
+    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
+    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
+    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
+    _ctrl_comp->getLowCmd()->publishLegCmd();
+}
+
+
+void State_Trot::swingGainMpcWbcTrot() {
+
 }

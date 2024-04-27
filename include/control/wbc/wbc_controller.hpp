@@ -1,0 +1,77 @@
+//
+// Created by zyb on 24-4-27.
+//
+
+#ifndef BUPT_DOG_CONTROLLER2_WBC_CONTROLLER_HPP
+#define BUPT_DOG_CONTROLLER2_WBC_CONTROLLER_HPP
+
+
+#include "common/robot.hpp"
+#include "control/mpc/mpc_controller.hpp"
+#include "control/vmc/vmc_controller.hpp"
+#include "control/wbc/task/wbc_task.hpp"
+#include "control/wbc/task/wbc_task_body_pos.hpp"
+#include "control/wbc/task/wbc_task_foot_pos.hpp"
+#include "control/wbc/task/wbc_task_body_orientation.hpp"
+
+class WbcController {
+public:
+    WbcController(int ms, const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+                  const std::shared_ptr<Estimator> &estimator,
+                  const std::shared_ptr<MpcController> &mpc, const std::shared_ptr<VmcController> &vmc);
+
+    void step();
+
+    Vec12 getLegCmdQ() { return _cmd_q.segment<12>(6); }
+
+    Vec12 getLegCmdDq() { return _cmd_dq.segment<12>(6); }
+
+    Vec12 getLegCmdTau() { return _cmd_tau.segment<12>(6); }
+
+private:
+    void updateData();
+
+    void updateTask();
+
+    void updateBodyPosTask(WbcTask_BodyPos &task);
+
+    void updateBodyOrientationTask(WbcTask_BodyOrientation &task);
+
+    void updateFootPosTask(WbcTask_FootPos &task);
+
+    void solve();
+
+    // common
+    std::shared_ptr<Robot> _robot;
+    std::shared_ptr<Estimator> _estimator;
+    std::shared_ptr<Gait> _gait;
+    std::shared_ptr<MpcController> _mpc;
+    std::shared_ptr<VmcController> _vmc;
+    std::shared_ptr<MrtGenerator> _mrt;
+    std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
+    double _dt;
+    /* 任务空间 */
+    std::vector<WbcTask *> _task_list;
+    WbcTask_BodyPos _task_body_pos;
+    WbcTask_BodyOrientation _task_body_orientation;
+    WbcTask_FootPos _task_foot_pos;
+    /* 关节指令 */
+    Vec18 _cmd_q;   // 位置关节指令
+    Vec18 _cmd_dq;  // 速度关节指令
+    Vec18 _cmd_ddq; // 加速度关节指令
+    Vec18 _cmd_tau; // 力矩关节指令
+    Vec12 _joint_friction_torque;
+    // 摩擦力矩
+    LPFilter *_joint_friction_torque_filter[12];
+    /* 机器人数据 */
+    RotMat _rot_mat; // 旋转矩阵
+    Vec3 _com_pos_inWorld;
+    Vec3 _com_vel_inWorld;
+    Vec3 _com_rpy;
+    Vec3 _com_omega_inBody;
+    Vec34 _feet_positions_inBody;
+    Vec12 _f_mpc;
+};
+
+
+#endif //BUPT_DOG_CONTROLLER2_WBC_CONTROLLER_HPP

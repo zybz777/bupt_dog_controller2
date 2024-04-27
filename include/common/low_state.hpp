@@ -57,6 +57,8 @@ public:
 
     const Vec3 &getAngularVelocity() { return _angular_velocity; }
 
+    const Vec3 &getAngularVelocity_inWorld() { return _angular_velocity_in_world; }
+
     const Vec3 &getLinearAccelerometer() { return _linear_accelerometer; }
 
     const Vec3 &getLinearAccelerometer_inWorld() { return _linear_accelerometer_in_world; }
@@ -77,6 +79,7 @@ private:
     Vec3 _rpy = Vec3::Zero();
     RotMat _rot_mat = RotMat::Identity();
     Vec3 _angular_velocity = Vec3::Zero();
+    Vec3 _angular_velocity_in_world = Vec3::Zero();
     Vec3 _linear_accelerometer = Vec3::Zero();
     Vec3 _linear_accelerometer_in_world = Vec3::Zero();
     Quat _quat = Quat::Zero(); // x y z w
@@ -97,11 +100,11 @@ private:
         else if (delta_yaw < -M_PI)
             delta_yaw += 2.0 * M_PI;
         _rpy << msg->rpy[0], msg->rpy[1], _rpy[2] + delta_yaw;
-//        std::cout << delta_yaw << " " << msg->rpy[2] << " " << _rpy[2] << std::endl;
         // R
         _rot_mat = rotMatRzyx(_rpy);
         // angular_velocity
         memcpy(_angular_velocity.data(), msg->angular_velocity, sizeof(_angular_velocity));
+        _angular_velocity_in_world = _rot_mat * _angular_velocity;
         // linear_accelerometer
         memcpy(_linear_accelerometer.data(), msg->linear_accelerometer, sizeof(_linear_accelerometer));
         _linear_accelerometer_in_world = _rot_mat * _linear_accelerometer;
@@ -122,7 +125,7 @@ private:
     }
 
     void handleUserCmdMsg(const lcm::ReceiveBuffer *rbuf, const std::string &chan, const doglcm::UserCmd_t *msg) {
-        memcpy(_user_cmd.get(), msg, sizeof(_user_cmd));
+        memcpy(_user_cmd.get(), msg, sizeof(*_user_cmd));
     }
 };
 

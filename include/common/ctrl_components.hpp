@@ -13,6 +13,7 @@
 #include "estimator.hpp"
 #include "control/vmc/vmc_controller.hpp"
 #include "control/mpc/mpc_controller.hpp"
+#include "control/wbc/wbc_controller.hpp"
 
 class CtrlComponents {
 public:
@@ -28,6 +29,7 @@ public:
         // control
         _vmc = std::make_shared<VmcController>();
         _mpc = std::make_shared<MpcController>(_robot, _gait, _estimator);
+        _wbc = std::make_shared<WbcController>(ms, _robot, _gait, _estimator, _mpc, _vmc);
         std::cout << "[CtrlComponents] Init Success!" << std::endl;
     }
 
@@ -42,6 +44,7 @@ public:
         _robot->step();
         _estimator->step(_gait, _robot);
         _vmc->step(_robot, _gait, _user_cmd);
+        _wbc->step();
     }
 
     // common
@@ -62,6 +65,8 @@ public:
     const std::shared_ptr<VmcController> &getVmcController() { return _vmc; }
 
     const std::shared_ptr<MpcController> &getMpcController() { return _mpc; }
+
+    const std::shared_ptr<WbcController> &getWbcController() { return _wbc; }
 //    VmcController *getVmcController();
 
 //    MpcController *getMpcController();
@@ -83,6 +88,7 @@ private:
     // control
     std::shared_ptr<VmcController> _vmc;
     std::shared_ptr<MpcController> _mpc;
+    std::shared_ptr<WbcController> _wbc;
 //    VmcController *_vmc;
 //    WbcController *_wbc;
 //    MpcController *_mpc;

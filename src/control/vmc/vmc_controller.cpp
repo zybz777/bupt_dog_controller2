@@ -51,16 +51,6 @@ void VmcController::updateEndFootPos(const std::shared_ptr<Robot> &robot, const 
             double incre_linear_x, incre_linear_y, incre_angular_x, incre_angular_y;
             double x1, y1, th1, r, v_w, v_w_x, v_w_y;
             for (int i = 0; i < 4; ++i) {
-                if (gait->getContact(i) == CONTACT) // 支撑腿末端轨迹规划
-                {
-                    _vmc_data->end_foot_pos(0, i) = _vmc_data->start_foot_pos(0, i) -
-                                                    user_cmd->cmd_linear_velocity[0] * gait->getPhase(i) *
-                                                    gait->getTstance();
-                    _vmc_data->end_foot_pos(1, i) = _vmc_data->start_foot_pos(1, i) -
-                                                    user_cmd->cmd_linear_velocity[1] * gait->getPhase(i) *
-                                                    gait->getTstance();
-                    continue;
-                }
                 // 摆动腿最终期望位置计算
                 _vmc_data->rot_start_foot_pos.col(i) = R * _vmc_data->std_foot_pos.col(i);
                 swing_T = gait->getTswing();
@@ -75,8 +65,8 @@ void VmcController::updateEndFootPos(const std::shared_ptr<Robot> &robot, const 
                 v_w = user_cmd->cmd_angular_velocity[2] * r; // 质心角速度所产生的足端线速度
                 v_w_x = v_w * cos(th1);
                 v_w_y = v_w * sin(th1);
-                incre_angular_x = v_w_x * swing_T * 0.5;
-                incre_angular_y = v_w_y * swing_T * 0.5;
+                incre_angular_x = v_w_x * swing_T * 0.1;
+                incre_angular_y = v_w_y * swing_T * 0.1;
                 // 赋值
                 _vmc_data->end_foot_pos(0, i) = _vmc_data->std_foot_pos(0, i) + incre_linear_x + incre_angular_x;
                 _vmc_data->end_foot_pos(1, i) = _vmc_data->std_foot_pos(1, i) + incre_linear_y + incre_angular_y;

@@ -1,0 +1,14 @@
+//
+// Created by zyb on 24-4-27.
+//
+
+#ifndef BUPT_DOG_CONTROLLER2_DENSE_QP_SOLVER_HPP
+#define BUPT_DOG_CONTROLLER2_DENSE_QP_SOLVER_HPP
+
+
+class DenseQpSolver {
+
+};
+
+
+#endif //BUPT_DOG_CONTROLLER2_DENSE_QP_SOLVER_HPP
