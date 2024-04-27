@@ -36,6 +36,8 @@ WbcController::WbcController(int ms, const shared_ptr<Robot> &robot, const share
     _com_omega_inBody.setZero();
     _feet_positions_inBody.setZero();
     _f_mpc.setZero();
+    // qp solver
+    _optimizer = std::make_shared<WbcOptimizer>(_robot, _gait);
     std::cout << "[WBC] Init Successful!" << std::endl;
 }
 
@@ -161,4 +163,6 @@ void WbcController::solve() {
     _cmd_q << _com_pos_inWorld, _com_rpy, _robot->getQ();
     _cmd_q += cmd_delta_q; // 位置任务解算的关节角
     _cmd_dq = cmd_dq;
+    _cmd_ddq = cmd_ddq;
+    _cmd_tau = _optimizer->calcCmdTau(_cmd_ddq, _f_mpc);
 }

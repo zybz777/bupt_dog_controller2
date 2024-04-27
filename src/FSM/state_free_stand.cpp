@@ -15,8 +15,9 @@ void State_FreeStand::enter() {
 }
 
 void State_FreeStand::step() {
-    ZeroGainStand();
-//    SwingGainStand();
+//    zeroGainMpcWbcStand();
+    zeroGainStand();
+//    swingGainStand();
 }
 
 void State_FreeStand::exit() {
@@ -38,7 +39,8 @@ FSMStateName State_FreeStand::checkChange() {
     }
 }
 
-void State_FreeStand::SwingGainStand() {
+
+void State_FreeStand::swingGainStand() {
     auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
                    * _ctrl_comp->getMpcController()->getMpcOutput()
                    + _ctrl_comp->getRobot()->getNoLinearTorque();
@@ -60,7 +62,7 @@ void State_FreeStand::SwingGainStand() {
     _ctrl_comp->getLowCmd()->publishLegCmd();
 }
 
-void State_FreeStand::ZeroGainStand() {
+void State_FreeStand::zeroGainStand() {
     auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
                    * _ctrl_comp->getMpcController()->getMpcOutput()
                    + _ctrl_comp->getRobot()->getNoLinearTorque();
@@ -68,6 +70,17 @@ void State_FreeStand::ZeroGainStand() {
     _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
     _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
     _cmd_tau = cmd_tau.segment<12>(6);
+    _ctrl_comp->getLowCmd()->setZeroGain();
+    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
+    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
+    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
+    _ctrl_comp->getLowCmd()->publishLegCmd();
+}
+
+void State_FreeStand::zeroGainMpcWbcStand() {
+    _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
+    _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
+    _cmd_tau = _ctrl_comp->getWbcController()->getLegCmdTau();
     _ctrl_comp->getLowCmd()->setZeroGain();
     _ctrl_comp->getLowCmd()->setQ(_cmd_q);
     _ctrl_comp->getLowCmd()->setDq(_cmd_dq);

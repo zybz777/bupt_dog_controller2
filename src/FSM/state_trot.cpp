@@ -17,6 +17,7 @@ void State_Trot::enter() {
 
 void State_Trot::step() {
     swingGainMpcTrot();
+//    swingGainMpcWbcTrot();
 }
 
 void State_Trot::exit() {
@@ -61,5 +62,11 @@ void State_Trot::swingGainMpcTrot() {
 
 
 void State_Trot::swingGainMpcWbcTrot() {
-
+    _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
+    _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
+    _cmd_tau = _ctrl_comp->getWbcController()->getLegCmdTau();
+    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
+    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
+    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
+    _ctrl_comp->getLowCmd()->publishLegCmd();
 }

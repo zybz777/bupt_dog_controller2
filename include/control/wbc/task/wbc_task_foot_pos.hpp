@@ -23,7 +23,7 @@ public:
                     const VecX &target_acc,
                     const VecX &curr_pos,
                     const VecX &curr_vel) override {
-        static double Kp = 10, Kd = 10;
+        static double Kp = 100, Kd = 10;
         _task_e = target_pos - curr_pos;
         _task_dx = target_vel;
         _task_ddx = target_acc + Kp * _task_e + Kd * (target_vel - curr_vel);

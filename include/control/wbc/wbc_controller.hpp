@@ -13,6 +13,7 @@
 #include "control/wbc/task/wbc_task_body_pos.hpp"
 #include "control/wbc/task/wbc_task_foot_pos.hpp"
 #include "control/wbc/task/wbc_task_body_orientation.hpp"
+#include "wbc_optimizer.hpp"
 
 class WbcController {
 public:
@@ -71,6 +72,8 @@ private:
     Vec3 _com_omega_inBody;
     Vec34 _feet_positions_inBody;
     Vec12 _f_mpc;
+    // qp solver
+    std::shared_ptr<WbcOptimizer> _optimizer;
 };
 
 

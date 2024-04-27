@@ -34,7 +34,7 @@ private:
 
     void initSolver();
 
-    [[noreturn]] [[noreturn]] void run(int ms);
+    [[noreturn]] void run(int ms);
 
     void step();
 
@@ -57,7 +57,7 @@ private:
     std::shared_ptr<MpcSolver> _solver;
     /*机器人物理属性*/
     Mat3 _I_body, _I_world;               // 惯性矩阵
-    double _M, _M_body, _M_leg;           // 质量
+    double _M = 15.891;                    // 质量
     double _f_min = 10.0, _f_max = 100.0; // 摩擦力约束
     Vec3 _body_com;                       // 质心位置
     double _mu = 0.4;                     // 摩擦系数

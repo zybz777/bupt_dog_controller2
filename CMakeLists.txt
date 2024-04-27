@@ -73,7 +73,9 @@ add_executable(bupt_dog_controller2 main.cpp
         include/control/wbc/task/wbc_task_body_orientation.hpp
         include/control/wbc/task/wbc_task_foot_pos.hpp
         src/control/wbc/dense_qp_solver.cpp
-        include/control/wbc/dense_qp_solver.hpp)
+        include/control/wbc/dense_qp_solver.hpp
+        src/control/wbc/wbc_optimizer.cpp
+        include/control/wbc/wbc_optimizer.hpp)
 
 # 动态库路径
 link_directories(

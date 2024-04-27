@@ -26,8 +26,9 @@ private:
     Vec12 _cmd_dq;
     Vec12 _cmd_tau;
 
-    void SwingGainStand();
-    void ZeroGainStand();
+    void swingGainStand();
+    void zeroGainStand();
+    void zeroGainMpcWbcStand();
 };
 
 

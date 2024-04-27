@@ -38,20 +38,18 @@ void MpcController::init() {
     /*mpc 权重*/
 #ifdef USE_SIM
     _L_diag << 1.0, 1.0, 1.0, // 角度
-            0.0, 0.0, 5.0,
-            1.0, 1.0, 1.0, // 角速度
-            2.0, 2.0, 2.0; // simulink weight
+            0.8, 0.8, 0.8,
+            0.05, 0.05, 1.0, // 角速度
+            0.5, 0.5, 0.5; // simulink weight
     _K = 5.0e-6;       // 1e-6
-//    _S = 5.0e-8;
     _S = 0;
-    // _K = 9.0e-4;                                                                 // 5.0e-5 初见成效 高度反弹一半
 #else
-//    _L_diag << 0.6, 0.6, 1.0,
-//            0.5, 0.5, 1.5,
-//            0.6, 0.6, 1.0,
-//            0.5, 0.5, 1.0; // simulink weight
-//    _K = 5.0e-5;       // 1e-6
-//    _S = 0.0;
+    //    _L_diag << 0.6, 0.6, 1.0,
+    //            0.5, 0.5, 1.5,
+    //            0.6, 0.6, 1.0,
+    //            0.5, 0.5, 1.0; // simulink weight
+    //    _K = 5.0e-5;       // 1e-6
+    //    _S = 0.0;
 #endif
     /*矩阵*/
     initMat();
@@ -148,7 +146,6 @@ void MpcController::step() {
 void MpcController::updateMat() {
     _R = _robot->getRotMat();
     _inv_Rw = invRotMatW(_robot->getRpy());
-//    _inv_Rw = rotMatRz(_robot->getRpy()[2]).transpose();
     _I_world = _R * _I_body * _R.transpose();
     Mat3 I_world_inv = _I_world.inverse();
     // A
@@ -163,23 +160,13 @@ void MpcController::updateMat() {
 
 void MpcController::updateConstraint() {
     std::vector<Vec4_i8> gait_list = _gait->getGaitList();
-    // std::cout << "gait_list: " << std::endl;
     for (int i = 0; i < HORIZON; ++i) {
-        // std::cout << (int)gait_list[i][0] << " " << (int)gait_list[i][1] << " " << (int)gait_list[i][2] << " " << (int)gait_list[i][3] << std::endl;
         for (int leg_id = 0; leg_id < 4; ++leg_id) {
             if (gait_list[i](leg_id) == CONTACT) {
-                // _D[i](5 * leg_id + 0, 3 * leg_id + 2) = -_mu;
-                // _D[i](5 * leg_id + 1, 3 * leg_id + 2) = -_mu;
-                // _D[i](5 * leg_id + 2, 3 * leg_id + 2) = -_mu;
-                // _D[i](5 * leg_id + 3, 3 * leg_id + 2) = -_mu;
                 _D[i].block<4, 1>(5 * leg_id + 0, 3 * leg_id + 2) << -_mu, -_mu, -_mu, -_mu;
                 _D_min[i].segment<5>(5 * leg_id) << -inf, -inf, -inf, -inf, _f_min;
                 _D_max[i](5 * leg_id + 4) = _f_max;
             } else {
-                // _D[i](5 * leg_id + 0, 3 * leg_id + 2) = 0.0;
-                // _D[i](5 * leg_id + 1, 3 * leg_id + 2) = 0.0;
-                // _D[i](5 * leg_id + 2, 3 * leg_id + 2) = 0.0;
-                // _D[i](5 * leg_id + 3, 3 * leg_id + 2) = 0.0;
                 _D[i].block<4, 1>(5 * leg_id + 0, 3 * leg_id + 2) << 0, 0, 0, 0;
                 _D_min[i].segment<5>(5 * leg_id) << 0., 0., 0., 0., 0.;
                 _D_max[i](5 * leg_id + 4) = 0.;
@@ -205,7 +192,6 @@ void MpcController::solve() {
     // solver
     _X << _robot->getRpy(),
             _estimator->getPosition(),
-//            _robot->getAngularVelocity_inWorld();
             rotMatW(_robot->getRpy()) * _robot->getAngularVelocity(),
             _estimator->getLpVelocity();
     _mpc_f_last = _mpc_f;
