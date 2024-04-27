@@ -43,7 +43,7 @@ public:
         _gait->step();
         _robot->step();
         _estimator->step(_gait, _robot);
-        _vmc->step(_robot, _gait, _user_cmd);
+        _vmc->step(_robot, _gait, _estimator, _user_cmd);
         _wbc->step();
     }
 

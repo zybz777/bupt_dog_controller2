@@ -34,6 +34,8 @@ public:
 
     Vec3 getLpVelocity() { return Vec3(_vx_filter->getValue(), _vy_filter->getValue(), _vz_filter->getValue()); };
 
+    Vec3 getFootPos_inWorld(int leg_id) { return _xhat.segment<3>(6 + 3 * leg_id); }
+
 private:
     void init();
 

@@ -64,9 +64,9 @@ void Estimator::init() {
     _R_init(26, 26) = 0.0001;
     _R_init(27, 27) = 0.0001;
     // LP filter
-    _vx_filter = std::make_shared<LPFilter>(_dt, 5.0);
-    _vy_filter = std::make_shared<LPFilter>(_dt, 5.0);
-    _vz_filter = std::make_shared<LPFilter>(_dt, 5.0);
+    _vx_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _vy_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _vz_filter = std::make_shared<LPFilter>(_dt, 3.0);
     // lcm
     _es_data_topic_name = "es_data";
 }

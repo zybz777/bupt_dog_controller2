@@ -39,7 +39,7 @@ void MpcController::init() {
 #ifdef USE_SIM
     _L_diag << 1.0, 1.0, 1.0, // 角度
             0.8, 0.8, 0.8,
-            0.05, 0.05, 1.0, // 角速度
+            0.05, 0.05, 0.5, // 角速度
             0.5, 0.5, 0.5; // simulink weight
     _K = 5.0e-6;       // 1e-6
     _S = 0;

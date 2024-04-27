@@ -16,9 +16,9 @@ WbcController::WbcController(int ms, const shared_ptr<Robot> &robot, const share
     _user_cmd = _robot->getLowState()->getUserCmd();
     _mrt = _mpc->getMrtGenerator();
     // task
+    _task_list.push_back(&_task_foot_pos);
     _task_list.push_back(&_task_body_orientation);
     _task_list.push_back(&_task_body_pos);
-    _task_list.push_back(&_task_foot_pos);
     // 关节指令
     _cmd_q.setZero();
     _cmd_dq.setZero();
@@ -93,6 +93,7 @@ void WbcController::updateBodyOrientationTask(WbcTask_BodyOrientation &task) {
     // 更新位置任务
     Vec3 target_rpy = _mrt->getXtraj()[0].segment<3>(0);
     Vec3 &curr_rpy = _com_rpy;
+    target_rpy[2] = curr_rpy[2];
     // 更新速度任务
     Vec3 target_omega = invRotMatW(_robot->getRpy()) * _mrt->getXtraj()[0].segment<3>(6);
     Vec3 curr_omega = _com_omega_inBody;
@@ -113,18 +114,16 @@ void WbcController::updateFootPosTask(WbcTask_FootPos &task) {
     Vec12 target_vel, curr_vel;
     Vec12 target_acc;
     for (int i = 0; i < 4; ++i) {
-        curr_pos.segment<3>(3 * i) << _com_pos_inWorld + _rot_mat * _feet_positions_inBody.col(i);
+        curr_pos.segment<3>(3 * i) << _estimator->getFootPos_inWorld(i);
         curr_vel.segment<3>(3 * i) << _com_vel_inWorld + _rot_mat * (_robot->getFootVelocity_inBody(i) +
                                                                      skew(_com_omega_inBody) *
                                                                      _feet_positions_inBody.col(i));
 
         if (_gait->getContact(i) == SWING) // VMC
         {
-            target_pos.segment<3>(3 * i) << _com_pos_inWorld + _rot_mat * _vmc->getCmdFootPos(i);
-            target_vel.segment<3>(3 * i) << _com_vel_inWorld + _rot_mat * (_vmc->getCmdFootVel(i) +
-                                                                           skew(_com_omega_inBody) *
-                                                                           _feet_positions_inBody.col(i));
-            target_acc.segment<3>(3 * i) << _rot_mat * _vmc->getCmdFootAcc(i);
+            target_pos.segment<3>(3 * i) << _vmc->getCmdFootPos_inWorld(i);
+            target_vel.segment<3>(3 * i) << _vmc->getCmdFootVel_inWorld(i);
+            target_acc.segment<3>(3 * i) << _vmc->getCmdFootAcc_inWorld(i);
         } else // MPC
         {
             target_pos.segment<3>(3 * i) = curr_pos.segment<3>(3 * i);

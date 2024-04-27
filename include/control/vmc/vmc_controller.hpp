@@ -9,6 +9,7 @@
 #include "utils/math_types.hpp"
 #include "common/robot.hpp"
 #include "gait/gait.hpp"
+#include "common/estimator.hpp"
 
 typedef struct VmcData {
     // 当前足端状态
@@ -19,6 +20,12 @@ typedef struct VmcData {
     Vec34 std_foot_pos;
     Vec34 end_foot_pos;
     Vec34 rot_start_foot_pos;
+    // 世界系下数据
+    Vec34 curr_foot_pos_in_world;
+    Vec34 curr_foot_vel_in_world;
+    Vec34 start_foot_pos_in_world;
+    Vec34 std_foot_pos_in_world;
+    Vec34 end_foot_pos_in_world;
 } VmcData;
 typedef struct VmcCmd {
     // 期望足端状态
@@ -26,37 +33,43 @@ typedef struct VmcCmd {
     Vec34 cmd_foot_vel;
     Vec34 cmd_foot_force;
     Vec34 cmd_foot_acc;
+    // 世界系
+    Vec34 cmd_foot_pos_in_world;
+    Vec34 cmd_foot_vel_in_world;
+    Vec34 cmd_foot_acc_in_world;
 } VmcCmd;
+
 
 class VmcController {
 public:
     VmcController();
 
-    void step(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+    void step(const std::shared_ptr<Robot> &robot,
+              const std::shared_ptr<Gait> &gait,
+              const std::shared_ptr<Estimator> &estimator,
               const std::shared_ptr<doglcm::UserCmd_t> &user_cmd);
 
-    const Vec34 &getCmdFootPos() { return _vmc_cmd->cmd_foot_pos; }
 
-    const Vec34 &getCmdFootVel() { return _vmc_cmd->cmd_foot_vel; }
+    Vec3 getCmdFootPos_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_pos_in_world.col(leg_id); }
 
-    const Vec34 &getCmdFootAcc() { return _vmc_cmd->cmd_foot_acc; }
+    Vec3 getCmdFootVel_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_vel_in_world.col(leg_id); }
 
-    Vec3 getCmdFootPos(int leg_id) { return _vmc_cmd->cmd_foot_pos.col(leg_id); }
-
-    Vec3 getCmdFootVel(int leg_id) { return _vmc_cmd->cmd_foot_vel.col(leg_id); }
-
-    Vec3 getCmdFootAcc(int leg_id) { return _vmc_cmd->cmd_foot_acc.col(leg_id); }
+    Vec3 getCmdFootAcc_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_acc_in_world.col(leg_id); }
 
 private:
-    void SwingLegPolynomialCurve(int leg_id, int contact, double phase, double swing_T, double h = 0.05);
+    void updateStartFeetPos_inWorld(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Estimator> &estimator);
 
-    void updateStartFootPos(const std::shared_ptr<Gait> &gait);
+    void updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot,
+                                  const std::shared_ptr<Gait> &gait,
+                                  const std::shared_ptr<Estimator> &estimator,
+                                  const std::shared_ptr<doglcm::UserCmd_t> &user_cmd);
 
-    void updateEndFootPos(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
-                          const std::shared_ptr<doglcm::UserCmd_t> &user_cmd);
+    void SwingLegPolynomialCurve_inWorld(int leg_id, int contact, double phase, double swing_T, double h = 0.05);
 
     std::shared_ptr<VmcData> _vmc_data;
     std::shared_ptr<VmcCmd> _vmc_cmd;
+    Vec4 _theta0;
+    double _r;
 };
 
 

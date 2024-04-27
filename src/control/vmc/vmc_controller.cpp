@@ -12,90 +12,112 @@ VmcController::VmcController() {
             -0.313384, -0.313384, -0.313384, -0.313384;
     _vmc_data->start_foot_pos = _vmc_data->std_foot_pos;
     _vmc_data->end_foot_pos = _vmc_data->std_foot_pos;
+    // theta0
+    for (int i = 0; i < 4; ++i) {
+        _theta0[i] = atan2(_vmc_data->std_foot_pos(1, i), _vmc_data->std_foot_pos(0, i));
+    }
+    _r = sqrt(_vmc_data->std_foot_pos(0, 0) * _vmc_data->std_foot_pos(0, 0) +
+              _vmc_data->std_foot_pos(1, 0) * _vmc_data->std_foot_pos(1, 0));
     std::cout << "[VmcController] Init Success!" << std::endl;
 }
 
 void VmcController::step(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+                         const std::shared_ptr<Estimator> &estimator,
                          const std::shared_ptr<doglcm::UserCmd_t> &user_cmd) {
     // 数据同步
     _vmc_data->curr_foot_pos = robot->getFootPositions_inBody();
     _vmc_data->curr_foot_vel = robot->getFootVelocities_inBody();
+    for (int i = 0; i < 4; ++i) {
+        _vmc_data->curr_foot_pos_in_world.col(i) << estimator->getFootPos_inWorld(i);
+        _vmc_data->curr_foot_vel_in_world.col(i) << estimator->getLpVelocity() +
+                                                    robot->getRotMat() * (_vmc_data->curr_foot_vel.col(i) +
+                                                                          skew(robot->getAngularVelocity()) *
+                                                                          _vmc_data->curr_foot_pos.col(i));
+        _vmc_data->std_foot_pos_in_world.col(i) << estimator->getPosition() +
+                                                   robot->getRotMat() * _vmc_data->std_foot_pos.col(i);
+    }
     // 记录足端起点 终点
-    updateStartFootPos(gait);
-    updateEndFootPos(robot, gait, user_cmd);
+    updateStartFeetPos_inWorld(gait, estimator);
+    updateEndFeetPos_inWorld(robot, gait, estimator, user_cmd);
     // 计算轨迹
     double h = 0.05;
     for (int i = 0; i < 4; ++i) {
-        SwingLegPolynomialCurve(i,
-                                gait->getContact(i),
-                                gait->getPhase(i),
-                                gait->getTswing(),
-                                h);
+        SwingLegPolynomialCurve_inWorld(i,
+                                        gait->getContact(i),
+                                        gait->getPhase(i),
+                                        gait->getTswing(),
+                                        h);
     }
 }
 
-void VmcController::updateStartFootPos(const std::shared_ptr<Gait> &gait) {
+void VmcController::updateStartFeetPos_inWorld(const shared_ptr<Gait> &gait, const shared_ptr<Estimator> &estimator) {
     for (int i = 0; i < 4; ++i) {
-        if (gait->getPhase(i) > 0.98) {  // 摆动项或支撑项快结束时记录支撑相起点
-            _vmc_data->start_foot_pos.col(i) = _vmc_data->curr_foot_pos.col(i);
+        if (gait->getGaitType() != GaitType::TROTTING) { // 初始化一下start_foot_pos_in_world
+            _vmc_data->start_foot_pos_in_world.col(i) = _vmc_data->curr_foot_pos_in_world.col(i);
+        }
+        if (gait->getContact(i) == CONTACT && gait->getPhase(i) > 0.98) {  // 摆动项或支撑项快结束时记录支撑相起点
+            _vmc_data->start_foot_pos_in_world.col(i) = _vmc_data->curr_foot_pos_in_world.col(i);
         }
     }
 }
 
-void VmcController::updateEndFootPos(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
-                                     const std::shared_ptr<doglcm::UserCmd_t> &user_cmd) {
+void VmcController::updateEndFeetPos_inWorld(const shared_ptr<Robot> &robot, const shared_ptr<Gait> &gait,
+                                             const shared_ptr<Estimator> &estimator,
+                                             const shared_ptr<doglcm::UserCmd_t> &user_cmd) {
     switch (gait->getGaitType()) {
         case GaitType::TROTTING: {
-            RotMat R = rotMatRy(-robot->getRpy()[1]) * rotMatRx(-robot->getRpy()[0]);
-            double swing_T;
-            double incre_linear_x, incre_linear_y, incre_angular_x, incre_angular_y;
-            double x1, y1, th1, r, v_w, v_w_x, v_w_y;
+            double kx = 0.001;
+            double ky = 0.001;
+            double kw = 0.001;
+            Vec3 cmd_vel_in_world(user_cmd->cmd_linear_velocity[0], user_cmd->cmd_linear_velocity[1],
+                                  user_cmd->cmd_linear_velocity[2]);
+            Vec3 cmd_omega_in_world(user_cmd->cmd_angular_velocity[0], user_cmd->cmd_angular_velocity[1],
+                                    user_cmd->cmd_angular_velocity[2]);
+            cmd_vel_in_world = robot->getRotMat() * cmd_vel_in_world;
+            cmd_omega_in_world = rotMatW(robot->getRpy()) * cmd_omega_in_world;
+            Vec3 omega_in_world = rotMatW(robot->getRpy()) * robot->getAngularVelocity();
+            double w = omega_in_world[2];
             for (int i = 0; i < 4; ++i) {
-                // 摆动腿最终期望位置计算
-                _vmc_data->rot_start_foot_pos.col(i) = R * _vmc_data->std_foot_pos.col(i);
-                swing_T = gait->getTswing();
-                // 线速度
-                incre_linear_x = user_cmd->cmd_linear_velocity[0] * swing_T * 0.5;
-                incre_linear_y = user_cmd->cmd_linear_velocity[1] * swing_T * 0.5;
-                // 角速度
-                x1 = _vmc_data->std_foot_pos(0, i);
-                y1 = _vmc_data->std_foot_pos(1, i);
-                th1 = atan2(x1, y1);
-                r = sqrt(pow(x1, 2) + pow(y1, 2));
-                v_w = user_cmd->cmd_angular_velocity[2] * r; // 质心角速度所产生的足端线速度
-                v_w_x = v_w * cos(th1);
-                v_w_y = v_w * sin(th1);
-                incre_angular_x = v_w_x * swing_T * 0.1;
-                incre_angular_y = v_w_y * swing_T * 0.1;
-                // 赋值
-                _vmc_data->end_foot_pos(0, i) = _vmc_data->std_foot_pos(0, i) + incre_linear_x + incre_angular_x;
-                _vmc_data->end_foot_pos(1, i) = _vmc_data->std_foot_pos(1, i) + incre_linear_y + incre_angular_y;
+                double theta_f = robot->getRpy()[2] + _theta0[i] + w * (1 - gait->getPhase(i)) * gait->getTswing() +
+                                 0.5 * w * gait->getTstance() + kw * (w - cmd_omega_in_world[2]);
+                // x y
+                _vmc_data->end_foot_pos_in_world(0, i) = estimator->getPosition()[0] + _r * cos(theta_f)
+                                                         + estimator->getLpVelocity()[0] * (1 - gait->getPhase(i)) *
+                                                           gait->getTswing()
+                                                         + 0.5 * estimator->getLpVelocity()[0] * gait->getTstance()
+                                                         + kx * (estimator->getLpVelocity()[0] - cmd_vel_in_world[0]);
+
+                _vmc_data->end_foot_pos_in_world(1, i) = estimator->getPosition()[1] + _r * sin(theta_f)
+                                                         + estimator->getLpVelocity()[1] * (1 - gait->getPhase(i)) *
+                                                           gait->getTswing()
+                                                         + 0.5 * estimator->getLpVelocity()[1] * gait->getTstance()
+                                                         + ky * (estimator->getLpVelocity()[1] - cmd_vel_in_world[1]);
             }
         }
             break;
         default:
-            _vmc_data->end_foot_pos = _vmc_data->std_foot_pos;
+            _vmc_data->end_foot_pos_in_world = _vmc_data->std_foot_pos_in_world;
             break;
     }
 }
 
-void VmcController::SwingLegPolynomialCurve(int leg_id, int contact, double phase, double swing_T, double h) {
-    double &x = _vmc_cmd->cmd_foot_pos(0, leg_id);
-    double &y = _vmc_cmd->cmd_foot_pos(1, leg_id);
-    double &z = _vmc_cmd->cmd_foot_pos(2, leg_id);
-    double &vx = _vmc_cmd->cmd_foot_vel(0, leg_id);
-    double &vy = _vmc_cmd->cmd_foot_vel(1, leg_id);
-    double &vz = _vmc_cmd->cmd_foot_vel(2, leg_id);
-    double &ax = _vmc_cmd->cmd_foot_acc(0, leg_id);
-    double &ay = _vmc_cmd->cmd_foot_acc(1, leg_id);
-    double &az = _vmc_cmd->cmd_foot_acc(2, leg_id);
+void VmcController::SwingLegPolynomialCurve_inWorld(int leg_id, int contact, double phase, double swing_T, double h) {
+    double &x = _vmc_cmd->cmd_foot_pos_in_world(0, leg_id);
+    double &y = _vmc_cmd->cmd_foot_pos_in_world(1, leg_id);
+    double &z = _vmc_cmd->cmd_foot_pos_in_world(2, leg_id);
+    double &vx = _vmc_cmd->cmd_foot_vel_in_world(0, leg_id);
+    double &vy = _vmc_cmd->cmd_foot_vel_in_world(1, leg_id);
+    double &vz = _vmc_cmd->cmd_foot_vel_in_world(2, leg_id);
+    double &ax = _vmc_cmd->cmd_foot_acc_in_world(0, leg_id);
+    double &ay = _vmc_cmd->cmd_foot_acc_in_world(1, leg_id);
+    double &az = _vmc_cmd->cmd_foot_acc_in_world(2, leg_id);
 
-    double &x0 = _vmc_data->start_foot_pos(0, leg_id);
-    double &y0 = _vmc_data->start_foot_pos(1, leg_id);
-    double &z0 = _vmc_data->start_foot_pos(2, leg_id);
-    double &x1 = _vmc_data->end_foot_pos(0, leg_id);
-    double &y1 = _vmc_data->end_foot_pos(1, leg_id);
-    double &z1 = _vmc_data->end_foot_pos(2, leg_id);
+    double &x0 = _vmc_data->start_foot_pos_in_world(0, leg_id);
+    double &y0 = _vmc_data->start_foot_pos_in_world(1, leg_id);
+    double &z0 = _vmc_data->start_foot_pos_in_world(2, leg_id);
+    double &x1 = _vmc_data->end_foot_pos_in_world(0, leg_id);
+    double &y1 = _vmc_data->end_foot_pos_in_world(1, leg_id);
+    double &z1 = _vmc_data->end_foot_pos_in_world(2, leg_id);
 
     if (contact == 1) {
         x = x1;
