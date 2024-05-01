@@ -5,8 +5,6 @@
 #include "FSM/fsm.hpp"
 #include "utils/timer.hpp"
 
-#include <utility>
-
 FSM::FSM(const std::shared_ptr<CtrlComponents> &ctrl_comp, int ms) {
     _ms = ms;
     _ctrl_comp = ctrl_comp;
@@ -98,22 +96,22 @@ bool FSM::checkSafety() {
     // 检查质心角度，判断机器人是否失去平衡姿态
     double roll_abs = fabs(_ctrl_comp->getLowState()->getRpy()[0]);
     double pitch_abs = fabs(_ctrl_comp->getLowState()->getRpy()[1]);
-    if (roll_abs > 0.5235987755982988) // 30 degree
+    if (roll_abs > BASE_MAX_ROLL)
     {
         _mode = FSMMode::ABNORMAL;
         std::cout << "[ABNORMAL] Roll out of safe range" << std::endl;
         return false;
-    } else if (pitch_abs > 0.8726646259971648) // 50 degree
+    } else if (pitch_abs > BASE_MAX_PITCH)
     {
         _mode = FSMMode::ABNORMAL;
         std::cout << "[ABNORMAL] Pitch out of safe range" << std::endl;
         return false;
     }
     // 检查电机角度是否超出限位
-    static Vec3 q_max(30 * M_PI / 180, 100 * M_PI / 180, -70 * M_PI / 180);
-    static Vec3 q_min(-30 * M_PI / 180, 0 * M_PI / 180, -163.0 * M_PI / 180); // 关节限位最小值
+    static Vec3 q_max(0.8 * MOTOR0_MAX_POS, 0.8 * MOTOR1_MAX_POS, 0.8 * MOTOR2_MAX_POS);
+    static Vec3 q_min(0.8 * MOTOR0_MIN_POS, 0.8 * MOTOR1_MIN_POS, 0.8 * MOTOR2_MIN_POS); // 关节限位最小值
     Vec12 q = _ctrl_comp->getLowState()->getQ();
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < LEG_NUM; ++i) {
         // 位置检测
         if (fabs(q[0 + 3 * i]) > q_max[0]) {
             _mode = FSMMode::ABNORMAL;
@@ -129,10 +127,19 @@ bool FSM::checkSafety() {
             return false;
         }
     }
+    // 速度检测
+    Vec12 dq = _ctrl_comp->getLowState()->getDq();
+    for (int i = 0; i < DOF_NUM; ++i) {
+        if (fabs(dq[i]) > 0.8 * MOTOR_MAX_VEL) {
+            _mode = FSMMode::ABNORMAL;
+            std::cout << "[ABNORMAL] dq" << i << " " << dq[i] << " out of safe range" << std::endl;
+            return false;
+        }
+    }
     // 力矩检测
     Vec12 tau = _ctrl_comp->getLowState()->getTau();
-    for (int i = 0; i < 12; ++i) {
-        if (fabsf((float) tau[i]) > 28) {
+    for (int i = 0; i < DOF_NUM; ++i) {
+        if (fabs(tau[i]) > 0.8 * MOTOR_MAX_TAU) {
             _mode = FSMMode::ABNORMAL;
             std::cout << "[ABNORMAL] tau" << i << " " << tau[i] << " out of safe range" << std::endl;
             return false;

@@ -84,10 +84,10 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
                 // _X_traj[i][1] = 0.0;
                 // yaw 角
                 _X_traj[i][2] = last_X_traj[2] + user_cmd->cmd_angular_velocity[2] * i * _dt;
-//                _X_traj[i][2] = clip(_X_traj[i][2], Vec2(-0.25, 0.25));
+                _X_traj[i][2] = clip(_X_traj[i][2], Vec2(-0.25, 0.25));
 
                 _X_traj[i].segment<3>(6) << rotMatW(robot->getRpy()) * Vec3(0, 0, user_cmd->cmd_angular_velocity[2]);
-                if (std::abs(_X_traj[i][2]) >= 0.245) {
+                if (fabs(_X_traj[i][2]) >= 0.245) {
                     _X_traj[i].segment<3>(6).setZero();
                 }
                 // H 高度

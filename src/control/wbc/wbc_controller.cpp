@@ -16,9 +16,9 @@ WbcController::WbcController(int ms, const shared_ptr<Robot> &robot, const share
     _user_cmd = _robot->getLowState()->getUserCmd();
     _mrt = _mpc->getMrtGenerator();
     // task
-    _task_list.push_back(&_task_foot_pos);
     _task_list.push_back(&_task_body_orientation);
     _task_list.push_back(&_task_body_pos);
+    _task_list.push_back(&_task_foot_pos);
     // 关节指令
     _cmd_q.setZero();
     _cmd_dq.setZero();

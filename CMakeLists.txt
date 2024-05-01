@@ -28,54 +28,23 @@ include_directories(
         ${EIGEN3_INCLUDE_DIR}
 )
 
-add_executable(bupt_dog_controller2 main.cpp
-        include/common/low_state.hpp
-        include/utils/math_types.hpp
-        include/utils/math_tools.hpp
+add_executable(${PROJECT_NAME}
+        main.cpp
         src/common/robot.cpp
-        include/common/robot.hpp
         src/common/estimator.cpp
-        include/common/estimator.hpp
-        include/common/low_cmd.hpp
-        include/FSM/fsm_state.hpp
-        include/common/ctrl_components.hpp
-        include/FSM/fsm_enum.hpp
-        src/FSM/state_fixed_down.cpp
-        include/FSM/state_fixed_down.hpp
-        src/FSM/state_fixed_stand.cpp
-        include/FSM/state_fixed_stand.hpp
-        include/gait/enum_gait.hpp
-        include/gait/wave_generator.hpp
-        include/utils/timer.hpp
-        include/control/mpc/mpc_param.hpp
-        src/gait/gait.cpp
-        include/gait/gait.hpp
         src/FSM/fsm.cpp
-        include/FSM/fsm.hpp
-        src/FSM/state_passive.cpp
-        include/FSM/state_passive.hpp
-        src/control/vmc/vmc_controller.cpp
-        include/control/vmc/vmc_controller.hpp
-        src/FSM/state_trot.cpp
-        include/FSM/state_trot.hpp
-        src/control/mpc/mrt_generator.cpp
-        include/control/mpc/mrt_generator.hpp
-        include/control/mpc/mpc_solver.hpp
-        src/control/mpc/mpc_controller.cpp
-        include/control/mpc/mpc_controller.hpp
+        src/FSM/state_fixed_down.cpp
+        src/FSM/state_fixed_stand.cpp
         src/FSM/state_free_stand.cpp
-        include/FSM/state_free_stand.hpp
-        include/utils/real_time.hpp
+        src/FSM/state_passive.cpp
+        src/FSM/state_trot.cpp
+        src/gait/gait.cpp
+        src/control/vmc/vmc_controller.cpp
+        src/control/mpc/mrt_generator.cpp
+        src/control/mpc/mpc_controller.cpp
         src/control/wbc/wbc_controller.cpp
-        include/control/wbc/wbc_controller.hpp
-        include/control/wbc/task/wbc_task.hpp
-        include/control/wbc/task/wbc_task_body_pos.hpp
-        include/control/wbc/task/wbc_task_body_orientation.hpp
-        include/control/wbc/task/wbc_task_foot_pos.hpp
         src/control/wbc/dense_qp_solver.cpp
-        include/control/wbc/dense_qp_solver.hpp
-        src/control/wbc/wbc_optimizer.cpp
-        include/control/wbc/wbc_optimizer.hpp)
+        src/control/wbc/wbc_optimizer.cpp)
 
 # 动态库路径
 link_directories(
@@ -83,7 +52,7 @@ link_directories(
         ${blasfeo_DIR}/../lib
 )
 
-target_link_libraries(bupt_dog_controller2
+target_link_libraries(${PROJECT_NAME}
         lcm
         pinocchio
         yaml-cpp::yaml-cpp

@@ -55,7 +55,7 @@ void VmcController::updateStartFeetPos_inWorld(const shared_ptr<Gait> &gait, con
         if (gait->getGaitType() != GaitType::TROTTING) { // 初始化一下start_foot_pos_in_world
             _vmc_data->start_foot_pos_in_world.col(i) = _vmc_data->curr_foot_pos_in_world.col(i);
         }
-        if (gait->getContact(i) == CONTACT && gait->getPhase(i) > 0.98) {  // 摆动项或支撑项快结束时记录支撑相起点
+        if (gait->getContact(i) == CONTACT && gait->getPhase(i) > 0.98) {  // 记录摆动项起点位置
             _vmc_data->start_foot_pos_in_world.col(i) = _vmc_data->curr_foot_pos_in_world.col(i);
         }
     }
@@ -66,9 +66,9 @@ void VmcController::updateEndFeetPos_inWorld(const shared_ptr<Robot> &robot, con
                                              const shared_ptr<doglcm::UserCmd_t> &user_cmd) {
     switch (gait->getGaitType()) {
         case GaitType::TROTTING: {
-            double kx = 0.001;
-            double ky = 0.001;
-            double kw = 0.001;
+            double kx = 0.005;
+            double ky = 0.005;
+            double kw = 0.005;
             Vec3 cmd_vel_in_world(user_cmd->cmd_linear_velocity[0], user_cmd->cmd_linear_velocity[1],
                                   user_cmd->cmd_linear_velocity[2]);
             Vec3 cmd_omega_in_world(user_cmd->cmd_angular_velocity[0], user_cmd->cmd_angular_velocity[1],
@@ -77,7 +77,7 @@ void VmcController::updateEndFeetPos_inWorld(const shared_ptr<Robot> &robot, con
             cmd_omega_in_world = rotMatW(robot->getRpy()) * cmd_omega_in_world;
             Vec3 omega_in_world = rotMatW(robot->getRpy()) * robot->getAngularVelocity();
             double w = omega_in_world[2];
-            for (int i = 0; i < 4; ++i) {
+            for (int i = 0; i < LEG_NUM; ++i) {
                 double theta_f = robot->getRpy()[2] + _theta0[i] + w * (1 - gait->getPhase(i)) * gait->getTswing() +
                                  0.5 * w * gait->getTstance() + kw * (w - cmd_omega_in_world[2]);
                 // x y

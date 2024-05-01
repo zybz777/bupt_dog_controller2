@@ -16,8 +16,9 @@ void State_FreeStand::enter() {
 
 void State_FreeStand::step() {
 //    zeroGainMpcWbcStand();
-    zeroGainStand();
+//    zeroGainStand();
 //    swingGainStand();
+    balanceSoftTest();
 }
 
 void State_FreeStand::exit() {
@@ -44,8 +45,8 @@ void State_FreeStand::swingGainStand() {
     auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
                    * _ctrl_comp->getMpcController()->getMpcOutput()
                    + _ctrl_comp->getRobot()->getNoLinearTorque();
-    _cmd_tau = cmd_tau.segment<12>(6);
-
+//    _cmd_tau = cmd_tau.segment<12>(6);
+    _cmd_tau = _ctrl_comp->getRobot()->getLegNoLinearTorque();
     _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
     _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
 #ifdef USE_SIM
@@ -82,6 +83,30 @@ void State_FreeStand::zeroGainMpcWbcStand() {
     _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
     _cmd_tau = _ctrl_comp->getWbcController()->getLegCmdTau();
     _ctrl_comp->getLowCmd()->setZeroGain();
+    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
+    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
+    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
+    _ctrl_comp->getLowCmd()->publishLegCmd();
+}
+
+void State_FreeStand::balanceSoftTest() {
+    // 使用较小的PD增益，测试机器人原地旋转和高度的位置速度跟踪情况
+    _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
+    _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
+    _cmd_tau = _ctrl_comp->getRobot()->getLegNoLinearTorque();
+#ifdef USE_SIM
+//    _ctrl_comp->getLowCmd()->setSimSwingGain(0);
+//    _ctrl_comp->getLowCmd()->setSimSwingGain(1);
+//    _ctrl_comp->getLowCmd()->setSimSwingGain(2);
+//    _ctrl_comp->getLowCmd()->setSimSwingGain(3);
+    _ctrl_comp->getLowCmd()->setSimStanceGain(0);
+    _ctrl_comp->getLowCmd()->setSimStanceGain(1);
+    _ctrl_comp->getLowCmd()->setSimStanceGain(2);
+    _ctrl_comp->getLowCmd()->setSimStanceGain(3);
+
+#else
+    _ctrl_comp->getLowCmd()->setRealFreeStanceGain();
+#endif
     _ctrl_comp->getLowCmd()->setQ(_cmd_q);
     _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
     _ctrl_comp->getLowCmd()->setTau(_cmd_tau);

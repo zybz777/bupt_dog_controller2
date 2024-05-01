@@ -20,7 +20,7 @@
 
 using namespace pinocchio;
 using namespace std;
-const std::string foot_link[4] = {"FL_FOOT", "FR_FOOT", "HL_FOOT", "HR_FOOT"};
+const std::string foot_link[LEG_NUM] = {"FL_FOOT", "FR_FOOT", "HL_FOOT", "HR_FOOT"};
 
 class Robot {
 public:
@@ -70,7 +70,7 @@ public:
     // 动力学数据
     const VecX &getNoLinearTorque() { return _nle; }
 
-    Vec12 getLegNoLinearTorque() { return _nle.segment<12>(6); }
+    Vec12 getLegNoLinearTorque() { return _nle.segment<DOF_NUM>(6); }
 
     const MatX &getMassMat() { return _M; }
 
@@ -136,7 +136,7 @@ private:
     Vec34 _foot_pos_inWorld;   // 世界坐标系下足端位置
     Vec34 _foot_pos_inBody;    // 质心坐标系下足端位置
     Vec34 _foot_vel_inBody;    // 质心坐标系下足端速度
-    Mat3 _foot_jaco_inBody[4]; // 质心坐标系下足端雅可比
+    Mat3 _foot_jaco_inBody[LEG_NUM]; // 质心坐标系下足端雅可比
     // 动力学参数
     VecX _nle;              // 非线性力矩 重力+科势力
     MatX _M;                // 广义质量矩阵
@@ -158,10 +158,10 @@ private:
     // lcm
     lcm::LCM _lcm;
     // leg data
-    std::string _foot_data_topic_name[4];
-    doglcm::LegData_t _foot_data[4]{};
-    std::unique_ptr<LPFilter> _foot_vel_inBody_filter[12];
-    std::unique_ptr<LPFilter> _foot_pos_inBody_filter[12];
+    std::string _foot_data_topic_name[LEG_NUM];
+    doglcm::LegData_t _foot_data[LEG_NUM]{};
+    std::unique_ptr<LPFilter> _foot_vel_inBody_filter[DOF_NUM];
+    std::unique_ptr<LPFilter> _foot_pos_inBody_filter[DOF_NUM];
 };
 
 

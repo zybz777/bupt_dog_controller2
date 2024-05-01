@@ -29,6 +29,7 @@ private:
     void swingGainStand();
     void zeroGainStand();
     void zeroGainMpcWbcStand();
+    void balanceSoftTest();
 };
 
 

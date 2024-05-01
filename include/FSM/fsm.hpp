@@ -10,6 +10,7 @@
 #include "state_passive.hpp"
 #include "state_trot.hpp"
 #include "state_free_stand.hpp"
+#include "common/safety_param.hpp"
 
 struct FSMStateList {
     // FSMState *invalid;

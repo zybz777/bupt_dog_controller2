@@ -17,20 +17,21 @@
 // utils
 #include "utils/math_types.hpp"
 #include "utils/math_tools.hpp"
+#include "safety_param.hpp"
 
 class LowState {
 public:
     LowState() {
         // lcm
         _lcm.subscribe("imu", &LowState::handleImuMsg, this);
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < LEG_NUM; ++i) {
             _lcm.subscribe("leg" + std::to_string(i) + "/leg_data", &LowState::handleLegMsg, this);
         }
         _lcm.subscribe("user_cmd", &LowState::handleUserCmdMsg, this);
 
         _user_cmd = std::make_shared<doglcm::UserCmd_t>();
         _user_cmd->gait_type = 0x00;
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _user_cmd->cmd_angular_velocity[i] = 0.0;
             _user_cmd->cmd_linear_velocity[i] = 0.0;
         }
@@ -69,7 +70,7 @@ private:
     std::thread _recv_thread;
     // lcm
     lcm::LCM _lcm;
-    doglcm::LegData_t _legs[4]{};
+    doglcm::LegData_t _legs[LEG_NUM]{};
     std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
     // motor
     Vec12 _q = Vec12::Zero();
@@ -117,7 +118,7 @@ private:
 
     void handleLegMsg(const lcm::ReceiveBuffer *rbuf, const std::string &chan, const doglcm::LegData_t *msg) {
         memcpy(&_legs[msg->leg_id], msg, sizeof(_legs[msg->leg_id]));
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _q[3 * msg->leg_id + i] = msg->joint_data[i].Pos;
             _dq[3 * msg->leg_id + i] = msg->joint_data[i].W;
             _tau[3 * msg->leg_id + i] = msg->joint_data[i].T;

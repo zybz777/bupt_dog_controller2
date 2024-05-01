@@ -53,11 +53,11 @@ void Robot::init() {
     _com_lp_vel_inWorld.setZero();
     _com_lp_vel_inBody.setZero();
     // lcm
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < LEG_NUM; ++i) {
         _foot_data_topic_name[i] = "leg" + std::to_string(i) + "/foot_data";
     }
     // filter
-    for (int i = 0; i < 12; ++i) {
+    for (int i = 0; i < DOF_NUM; ++i) {
         _foot_vel_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 20);
         _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 20);
     }
@@ -97,7 +97,7 @@ void Robot::forwardKinematics() {
     Vec3 com_pos_inWorld = _robot_data->oMf[_robot_model->getFrameId("body")].translation();
     pinocchio::Data::Matrix6x J(6, _robot_model->nv);
     pinocchio::Data::Matrix6x dJ(6, _robot_model->nv);
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < LEG_NUM; ++i) {
         // 世界坐标系下足端位置
         _foot_pos_inWorld.col(i) << _robot_data->oMf[_robot_model->getFrameId(foot_link[i])].translation();
         // 质心坐标系下足端位置

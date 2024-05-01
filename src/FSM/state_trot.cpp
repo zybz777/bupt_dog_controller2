@@ -50,6 +50,7 @@ void State_Trot::swingGainMpcTrot() {
 
         } else {
             _cmd_tau.segment<3>(3 * i) = cmd_tau.segment<3>(6 + 3 * i);
+//            _cmd_tau.segment<3>(3 * i) = _ctrl_comp->getRobot()->getLegNoLinearTorque().segment<3>(3 * i);
         }
     }
     _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
