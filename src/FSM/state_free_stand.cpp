@@ -118,6 +118,14 @@ void State_FreeStand::swingGainMpcWbcStand() {
     _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
     _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
     _cmd_tau = _ctrl_comp->getWbcController()->getLegCmdTau();
+#ifdef USE_SIM
+    _ctrl_comp->getLowCmd()->setSimSwingGain(0);
+    _ctrl_comp->getLowCmd()->setSimSwingGain(1);
+    _ctrl_comp->getLowCmd()->setSimSwingGain(2);
+    _ctrl_comp->getLowCmd()->setSimSwingGain(3);
+#else
+    _ctrl_comp->getLowCmd()->setRealFreeStanceGain();
+#endif
     _ctrl_comp->getLowCmd()->setQ(_cmd_q);
     _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
     _ctrl_comp->getLowCmd()->setTau(_cmd_tau);

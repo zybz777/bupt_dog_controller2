@@ -4,8 +4,6 @@
 
 #include "FSM/state_fixed_stand.hpp"
 
-#include <utility>
-
 State_FixedStand::State_FixedStand(const std::shared_ptr<CtrlComponents> &ctrl_comp) : FSMState(ctrl_comp,
                                                                                                 FSMStateName::FIXEDSTAND,
                                                                                                 "fixed stand") {
@@ -20,7 +18,11 @@ void State_FixedStand::enter() {
     _start_pos << _ctrl_comp->getLowState()->getQ();
     // 设置关节增益
     for (int i = 0; i < 4; ++i) {
+#ifdef USE_SIM
         _ctrl_comp->getLowCmd()->setSimStanceGain(i); // 设置关节增益
+#else
+        _ctrl_comp->getLowCmd()->setRealStanceGain(i);
+#endif
         _ctrl_comp->getLowCmd()->setZeroDq(i);  // 关节速度为0
         _ctrl_comp->getLowCmd()->setZeroTau(i); // 关节力矩为0
     }

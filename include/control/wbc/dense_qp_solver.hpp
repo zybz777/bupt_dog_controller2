@@ -67,7 +67,7 @@ public:
         ipm_mem_ = malloc(ipm_size);
         d_dense_qp_ipm_ws_create(&dim_, &arg_, &workspace_, ipm_mem_);
 
-        std::cout << "dense qp solver initialized" << std::endl;
+        std::cout << "[DenseQpSolver] Init Success!" << std::endl;
     }
 
     void test() {
