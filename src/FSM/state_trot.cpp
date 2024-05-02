@@ -16,8 +16,8 @@ void State_Trot::enter() {
 }
 
 void State_Trot::step() {
-    swingGainMpcTrot();
-//    swingGainMpcWbcTrot();
+//    swingGainMpcTrot();
+    swingGainMpcWbcTrot();
 }
 
 void State_Trot::exit() {

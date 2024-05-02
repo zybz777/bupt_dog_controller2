@@ -34,11 +34,13 @@ private:
 
     void updateTask();
 
+    void updateContactFootTask(WbcTask_FootPos &task);
+
     void updateBodyPosTask(WbcTask_BodyPos &task);
 
     void updateBodyOrientationTask(WbcTask_BodyOrientation &task);
 
-    void updateFootPosTask(WbcTask_FootPos &task);
+    void updateSwingFootTask(WbcTask_FootPos &task);
 
     void solve();
 
@@ -55,7 +57,8 @@ private:
     std::vector<WbcTask *> _task_list;
     WbcTask_BodyPos _task_body_pos;
     WbcTask_BodyOrientation _task_body_orientation;
-    WbcTask_FootPos _task_foot_pos;
+    WbcTask_FootPos _task_swing_foot;
+    WbcTask_FootPos _task_contact_foot;
     /* 关节指令 */
     Vec18 _cmd_q;   // 位置关节指令
     Vec18 _cmd_dq;  // 速度关节指令

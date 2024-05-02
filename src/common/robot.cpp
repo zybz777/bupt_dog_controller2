@@ -33,6 +33,7 @@ void Robot::init() {
     _foot_vel_inBody.setZero();
     // 动力学参数初始化
     _M = MatX::Zero(_robot_model->nv, _robot_model->nv);
+    _M_inv = MatX::Zero(_robot_model->nv, _robot_model->nv);
     _nle = VecX::Zero(_robot_model->nv);
     _J_contact = MatX::Zero(12, _robot_model->nv);
     _friction_torque.setZero();
@@ -41,7 +42,6 @@ void Robot::init() {
     // _J_Body_Orientation.block<3, 3>(0, 3) << _I3;
     _J_Body_Position = MatX::Zero(3, _robot_model->nv);
     _J_Foot_Position = MatX::Zero(12, _robot_model->nv);
-
     _dJ_Body_Orientation = MatX::Zero(3, _robot_model->nv);
     // _dJ_Body_Orientation.block<3, 3>(0, 3) << _I3;
     _dJ_Body_Position = MatX::Zero(3, _robot_model->nv);
@@ -162,5 +162,6 @@ void Robot::inverseDynamics() {
     pinocchio::crba(*_robot_model, *_robot_data, _q);
     _nle << _robot_data->nle;
     _M << _robot_data->M;
+    _M_inv << _robot_data->Minv;
 }
 

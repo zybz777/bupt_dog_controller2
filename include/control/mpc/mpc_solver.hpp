@@ -98,19 +98,19 @@ public:
     // 初始化求解器
     void setupQpSolver() {
         // solver setting 初始化
-        solver_settings_.mode = hpipm::HpipmMode::Robust;
-        solver_settings_.iter_max = 200;
+        solver_settings_.mode = hpipm::HpipmMode::SpeedAbs;
+        solver_settings_.iter_max = 100;
         solver_settings_.warm_start = 1;
-        solver_settings_.alpha_min = 1e-12;
-        solver_settings_.mu0 = 1e4;
-        solver_settings_.tol_stat = 1e-04;
-        solver_settings_.tol_eq = 1e-05;
-        solver_settings_.tol_ineq = 1e-05;
-        solver_settings_.tol_comp = 1e-05;
-        solver_settings_.reg_prim = 1e-12;
-        solver_settings_.pred_corr = 1;
-        solver_settings_.ric_alg = 1;
-        solver_settings_.split_step = 1;
+//        solver_settings_.alpha_min = 1e-12;
+//        solver_settings_.mu0 = 1e4;
+//        solver_settings_.tol_stat = 1e-04;
+//        solver_settings_.tol_eq = 1e-05;
+//        solver_settings_.tol_ineq = 1e-05;
+//        solver_settings_.tol_comp = 1e-05;
+//        solver_settings_.reg_prim = 1e-12;
+//        solver_settings_.pred_corr = 1;
+//        solver_settings_.ric_alg = 1;
+//        solver_settings_.split_step = 1;
         // solution 初始化
         solution_ = std::vector<hpipm::OcpQpSolution>(N_ + 1);
         for (int i = 0; i < N_; ++i) {
@@ -176,10 +176,23 @@ public:
 
     // 求解结果
     const VecX &solve(const VecX &x) {
-        if (solver_->solve(x, qp_, solution_) != hpipm::HpipmStatus::Success) {
-            std::cout << "[mpc solver]: solver failed" << std::endl;
-        } else {
-            u_output_ << solution_[0].u;
+        auto state = solver_->solve(x, qp_, solution_);
+        switch (state) {
+            case hpipm::HpipmStatus::Success:
+                u_output_ << solution_[0].u;
+                break;
+            case hpipm::HpipmStatus::MaxIterReached:
+                std::cout << "[MPC SOLVER] MaxIterReached" << std::endl;
+                break;
+            case hpipm::HpipmStatus::MinStepLengthReached:
+                std::cout << "[MPC SOLVER] MinStepLengthReached" << std::endl;
+                break;
+            case hpipm::HpipmStatus::NaNDetected:
+                std::cout << "[MPC SOLVER] NaNDetected" << std::endl;
+                break;
+            case hpipm::HpipmStatus::UnknownFailure:
+                std::cout << "[MPC SOLVER] UnknownFailure" << std::endl;
+                break;
         }
         return u_output_;
     }

@@ -16,9 +16,10 @@ WbcController::WbcController(int ms, const shared_ptr<Robot> &robot, const share
     _user_cmd = _robot->getLowState()->getUserCmd();
     _mrt = _mpc->getMrtGenerator();
     // task
+    _task_list.push_back(&_task_contact_foot);
     _task_list.push_back(&_task_body_orientation);
     _task_list.push_back(&_task_body_pos);
-    _task_list.push_back(&_task_foot_pos);
+    _task_list.push_back(&_task_swing_foot);
     // 关节指令
     _cmd_q.setZero();
     _cmd_dq.setZero();
@@ -58,9 +59,10 @@ void WbcController::updateData() {
 }
 
 void WbcController::updateTask() {
-    updateBodyPosTask(_task_body_pos);
+    updateContactFootTask(_task_contact_foot);
     updateBodyOrientationTask(_task_body_orientation);
-    updateFootPosTask(_task_foot_pos);
+    updateBodyPosTask(_task_body_pos);
+    updateSwingFootTask(_task_swing_foot);
 }
 
 void WbcController::updateBodyPosTask(WbcTask_BodyPos &task) {
@@ -102,13 +104,45 @@ void WbcController::updateBodyOrientationTask(WbcTask_BodyOrientation &task) {
     task.updateTask(target_rpy, target_omega, target_acc, curr_rpy, curr_omega);
 }
 
-void WbcController::updateFootPosTask(WbcTask_FootPos &task) {
+void WbcController::updateContactFootTask(WbcTask_FootPos &task) {
+    // 更新雅可比矩阵
+    auto J = _robot->getJ_FeetPosition();
+    auto dJ = _robot->getDJ_FeetPosition();
+    for (int i = 0; i < LEG_NUM; ++i) {
+        if (_gait->getContact(i) == SWING) { // 过滤摆动项
+            J.block<3, 18>(0 + 3 * i, 0).setZero();
+            dJ.block<3, 18>(0 + 3 * i, 0).setZero();
+        }
+    }
+    task.updateTaskJacobi(J, dJ);
+    // 更新位置速度加速度任务
+    static Vec12 target_pos, target_vel = Vec12::Zero(), target_acc = Vec12::Zero(), curr_pos, curr_vel;
+    for (int i = 0; i < LEG_NUM; ++i) {
+        curr_pos.segment<3>(3 * i) << _estimator->getFootPos_inWorld(i);
+        curr_vel.segment<3>(3 * i) << _com_vel_inWorld + _rot_mat * (_robot->getFootVelocity_inBody(i) +
+                                                                     skew(_com_omega_inBody) *
+                                                                     _feet_positions_inBody.col(i));
+        target_pos.segment<3>(3 * i) << curr_pos.segment<3>(3 * i);
+    }
+    task.updateTask(target_pos, target_vel, target_acc, curr_pos, curr_vel);
+}
+
+void WbcController::updateSwingFootTask(WbcTask_FootPos &task) {
     /*  工作空间： 世界系足端位置 世界系足端速度 世界系足端加速度
        关节空间q： 世界系质心位置 欧拉角 关节电机角度
        关节空间dq: 质心系质心速度 质心系角速度 关节电机角速度
    */
     // 更新雅可比矩阵
-    task.updateTaskJacobi(_robot->getJ_FeetPosition(), _robot->getDJ_FeetPosition());
+    // 更新雅可比矩阵
+    auto J = _robot->getJ_FeetPosition();
+    auto dJ = _robot->getDJ_FeetPosition();
+    for (int i = 0; i < LEG_NUM; ++i) {
+        if (_gait->getContact(i) == CONTACT) { // 过滤支撑项
+            J.block<3, 18>(0 + 3 * i, 0).setZero();
+            dJ.block<3, 18>(0 + 3 * i, 0).setZero();
+        }
+    }
+    task.updateTaskJacobi(J, dJ);
     // 更新位置速度加速度任务
     static Vec12 target_pos, curr_pos;
     Vec12 target_vel, curr_vel;
@@ -118,15 +152,14 @@ void WbcController::updateFootPosTask(WbcTask_FootPos &task) {
         curr_vel.segment<3>(3 * i) << _com_vel_inWorld + _rot_mat * (_robot->getFootVelocity_inBody(i) +
                                                                      skew(_com_omega_inBody) *
                                                                      _feet_positions_inBody.col(i));
-
         if (_gait->getContact(i) == SWING) // VMC
         {
             target_pos.segment<3>(3 * i) << _vmc->getCmdFootPos_inWorld(i);
             target_vel.segment<3>(3 * i) << _vmc->getCmdFootVel_inWorld(i);
             target_acc.segment<3>(3 * i) << _vmc->getCmdFootAcc_inWorld(i);
-        } else // MPC
+        } else // 支撑腿不在此处控制，下列无效，固定为0
         {
-            target_pos.segment<3>(3 * i) = curr_pos.segment<3>(3 * i);
+            target_pos.segment<3>(3 * i).setZero();
             target_vel.segment<3>(3 * i).setZero();
             target_acc.segment<3>(3 * i).setZero();
         }
@@ -136,28 +169,40 @@ void WbcController::updateFootPosTask(WbcTask_FootPos &task) {
 }
 
 void WbcController::solve() {
+    MatX A_inv = _robot->getMassMatInv();
     MatX pinv_J0 = pinv(_task_list[0]->getTask_J());
+    MatX dynamic_pinv_J0 = A_inv * _task_list[0]->getTask_J().transpose() *
+                           pinv(_task_list[0]->getTask_J() * A_inv * _task_list[0]->getTask_J().transpose());
     /*0号任务*/
     MatX N = I18 - pinv_J0 * _task_list[0]->getTask_J();
+    MatX dynamic_N = I18 - dynamic_pinv_J0 * _task_list[0]->getTask_J();
     // 速度0号任务
     VecX cmd_dq = pinv_J0 * _task_list[0]->getTask_dx();
+    cmd_dq.setZero();
     // 位置0号任务
     VecX cmd_delta_q = pinv_J0 * _task_list[0]->getTask_e();
+    cmd_delta_q.setZero();
     //  加速度0号任务
-    VecX cmd_ddq = pinv_J0 * (_task_list[0]->getTask_ddx() - _task_list[0]->getTask_dJ() * _robot->getFloatBaseDq());
+    VecX cmd_ddq =
+            dynamic_pinv_J0 * (-_task_list[0]->getTask_J() * _robot->getFloatBaseDq());
     /*N号任务计算*/
-    MatX J_pre, pinv_J_pre;
+    MatX J_pre, pinv_J_pre, dynamic_pinv_J_pre, dynamic_J_pre;
     for (int i = 1; i < _task_list.size(); ++i) {
         J_pre = _task_list[i]->getTask_J() * N;
         pinv_J_pre = pinv(J_pre);
+        dynamic_J_pre = _task_list[i]->getTask_J() * dynamic_N;
+        dynamic_pinv_J_pre = A_inv * dynamic_J_pre.transpose() *
+                             pinv(dynamic_J_pre * A_inv * dynamic_J_pre.transpose());
         // 位置任务
         cmd_delta_q += pinv_J_pre * (_task_list[i]->getTask_e() - _task_list[i]->getTask_J() * cmd_delta_q);
         // 速度任务
         cmd_dq += pinv_J_pre * (_task_list[i]->getTask_dx() - _task_list[i]->getTask_J() * cmd_dq);
         // 加速度任务
-        cmd_ddq += pinv_J_pre * (_task_list[i]->getTask_ddx() - _task_list[i]->getTask_dJ() * _robot->getFloatBaseDq() -
-                                 _task_list[i]->getTask_J() * cmd_ddq);
-        N *= (I18 - pinv(_task_list[i]->getTask_J() * N) * _task_list[i]->getTask_J() * N);
+        cmd_ddq += dynamic_pinv_J_pre *
+                   (_task_list[i]->getTask_ddx() - _task_list[i]->getTask_dJ() * _robot->getFloatBaseDq() -
+                    _task_list[i]->getTask_J() * cmd_ddq);
+        N *= I18 - pinv_J_pre * J_pre;
+        dynamic_N *= I18 - dynamic_pinv_J_pre * dynamic_J_pre;
     }
     _cmd_q << _com_pos_inWorld, _com_rpy, _robot->getQ();
     _cmd_q += cmd_delta_q; // 位置任务解算的关节角
@@ -165,3 +210,4 @@ void WbcController::solve() {
     _cmd_ddq = cmd_ddq;
     _cmd_tau = _optimizer->calcCmdTau(_cmd_ddq, _f_mpc);
 }
+

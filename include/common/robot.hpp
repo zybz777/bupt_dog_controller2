@@ -74,6 +74,8 @@ public:
 
     const MatX &getMassMat() { return _M; }
 
+    const MatX &getMassMatInv() { return _M_inv; }
+
 // WBC雅可比矩阵
     const MatX &getJ_BodyOrientation() { return _J_Body_Orientation; }
 
@@ -140,6 +142,7 @@ private:
     // 动力学参数
     VecX _nle;              // 非线性力矩 重力+科势力
     MatX _M;                // 广义质量矩阵
+    MatX _M_inv;
     MatX _J_contact;        // 足端雅可比矩阵 12x18
     Vec12 _friction_torque; // 摩擦力矩
     // WBC 雅可比矩阵

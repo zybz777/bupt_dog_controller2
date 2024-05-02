@@ -70,18 +70,23 @@ const VecX &WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
 void WbcOptimizer::updateDenseQpEqualityConstraints(Vec18 cmd_ddq, Vec12 f_mpc) {
     const MatX &M = _robot->getMassMat();
     const Vec18 &nle = _robot->getNoLinearTorque();
-    const MatX &J = _robot->getJ_FeetPosition();
+    MatX J = _robot->getJ_FeetPosition();
+    for (int i = 0; i < LEG_NUM; ++i) {
+        if (_gait->getContact(i) == SWING) { // 过滤摆动项
+            J.block<3, 18>(0 + 3 * i, 0).setZero();
+        }
+    }
     MatX extend_M = MatX::Zero(18, 18);
     extend_M.block<18, 6>(0, 0) << M.block<18, 6>(0, 0);
     MatX extend_J_T = MatX::Zero(18, 18);
     extend_J_T.block<18, 12>(0, 6) << J.transpose();
-    // trick：摆动腿MPC力为0,令雅可比矩阵对应项为0,使其不影响等式约束。
-    for (int i = 0; i < 4; ++i) {
-        if (_gait->getContact(i) == SWING) {
-            extend_J_T.block<18, 3>(0, 6 + 3 * i).setZero();
-            f_mpc.segment<3>(3 * i).setZero();
-        }
-    }
+//    // trick：摆动腿MPC力为0,令雅可比矩阵对应项为0,使其不影响等式约束。
+//    for (int i = 0; i < 4; ++i) {
+//        if (_gait->getContact(i) == SWING) {
+//            extend_J_T.block<18, 3>(0, 6 + 3 * i).setZero();
+//            f_mpc.segment<3>(3 * i).setZero();
+//        }
+//    }
     _A = _Sf * (extend_M - extend_J_T);
     _b = -_Sf * (M * cmd_ddq + nle - J.transpose() * f_mpc);
     _qp_solver->DenseQpSetMat_A(_A);
