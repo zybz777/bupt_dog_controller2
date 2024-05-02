@@ -18,7 +18,8 @@ void State_FreeStand::step() {
 //    zeroGainMpcWbcStand();
 //    zeroGainStand();
 //    swingGainStand();
-    balanceSoftTest();
+//    balanceSoftTest();
+    swingGainMpcWbcStand();
 }
 
 void State_FreeStand::exit() {
@@ -107,6 +108,16 @@ void State_FreeStand::balanceSoftTest() {
 #else
     _ctrl_comp->getLowCmd()->setRealFreeStanceGain();
 #endif
+    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
+    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
+    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
+    _ctrl_comp->getLowCmd()->publishLegCmd();
+}
+
+void State_FreeStand::swingGainMpcWbcStand() {
+    _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
+    _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
+    _cmd_tau = _ctrl_comp->getWbcController()->getLegCmdTau();
     _ctrl_comp->getLowCmd()->setQ(_cmd_q);
     _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
     _ctrl_comp->getLowCmd()->setTau(_cmd_tau);

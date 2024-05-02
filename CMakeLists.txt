@@ -43,7 +43,6 @@ add_executable(${PROJECT_NAME}
         src/control/mpc/mrt_generator.cpp
         src/control/mpc/mpc_controller.cpp
         src/control/wbc/wbc_controller.cpp
-        src/control/wbc/dense_qp_solver.cpp
         src/control/wbc/wbc_optimizer.cpp)
 
 # 动态库路径

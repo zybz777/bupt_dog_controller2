@@ -4,6 +4,7 @@
 
 #ifndef BUPT_DOG_CONTROLLER2_DENSE_QP_SOLVER_HPP
 #define BUPT_DOG_CONTROLLER2_DENSE_QP_SOLVER_HPP
+
 #include "utils/math_types.hpp"
 #include <blasfeo_d_aux_ext_dep.h>
 #include <hpipm_d_dense_qp_ipm.h>
@@ -110,7 +111,6 @@ public:
         // check
         if (H.rows() != nv_ || H.cols() != nv_) {
             std::cerr << "H shape error" << std::endl;
-            // RCLCPP_WARN_STREAM(rclcpp::get_logger("DenseQpSetMat_H"), "H shape error");
             return false;
         }
         H_ = H;
@@ -122,7 +122,6 @@ public:
         // check
         if (g.rows() != nv_) {
             std::cerr << "g shape error" << std::endl;
-            // RCLCPP_WARN_STREAM(rclcpp::get_logger("DenseQpSetVec_g"), "g shape error");
             return false;
         }
         g_ = g;
@@ -134,7 +133,6 @@ public:
     bool DenseQpSetMat_A(const MatX &A) {
         if (A.rows() != ne_ || A.cols() != nv_) {
             std::cerr << "A shape error" << std::endl;
-            // RCLCPP_WARN_STREAM(rclcpp::get_logger("DenseQpSetMat_A"), "A shape error");
             return false;
         }
         A_ = A;
@@ -145,7 +143,6 @@ public:
     bool DenseQpSetVec_b(const VecX &b) {
         if (b.rows() != ne_) {
             std::cerr << "b shape error" << std::endl;
-            // RCLCPP_WARN_STREAM(rclcpp::get_logger("DenseQpSetVec_b"), "b shape error");
             return false;
         }
         b_ = b;
@@ -157,7 +154,6 @@ public:
     bool DenseQpSetMat_C(const MatX &C) {
         if (C.rows() != ng_ || C.cols() != nv_) {
             std::cerr << "C shape error" << std::endl;
-            // RCLCPP_WARN_STREAM(rclcpp::get_logger("DenseQpSetMat_C"), "C shape error");
             return false;
         }
         C_ = C;
@@ -168,7 +164,6 @@ public:
     bool DenseQpSetVec_lg(const VecX &lg) {
         if (lg.rows() != ng_) {
             std::cerr << "lg shape error" << std::endl;
-            // RCLCPP_WARN_STREAM(rclcpp::get_logger("DenseQpSetVec_lg"), "lg shape error");
             return false;
         }
         lg_ = lg;
@@ -179,7 +174,6 @@ public:
     bool DenseQpSetVec_ug(const VecX &ug) {
         if (ug.rows() != ng_) {
             std::cerr << "ug shape error" << std::endl;
-            // RCLCPP_WARN_STREAM(rclcpp::get_logger("DenseQpSetVec_ug"), "ug shape error");
             return false;
         }
         ug_ = ug;
@@ -191,7 +185,6 @@ public:
     bool DenseQpSetVec_lg_mask(const VecX &lg_mask) {
         if (lg_mask.rows() != ng_) {
             std::cerr << "lg_mask shape error" << std::endl;
-            // RCLCPP_WARN_STREAM(rclcpp::get_logger("DenseQpSetVec_lg_mask"), "lg_mask shape error");
             return false;
         }
         lg_mask_ = lg_mask;
@@ -202,7 +195,6 @@ public:
     bool DenseQpSetVec_ug_mask(const VecX &ug_mask) {
         if (ug_mask.rows() != ng_) {
             std::cerr << "ug_mask shape error" << std::endl;
-            // RCLCPP_WARN_STREAM(rclcpp::get_logger("DenseQpSetVec_ug_mask"), "ug_mask shape error");
             return false;
         }
         ug_mask_ = ug_mask;
@@ -222,37 +214,31 @@ public:
         /************************************************
          * print solution info
          ************************************************/
-        // RCLCPP_INFO_STREAM(rclcpp::get_logger(""), "HPIPM returned with flag " << hpipm_status);
-        if (hpipm_status == 0) {
-            // RCLCPP_INFO_STREAM(rclcpp::get_logger(""), "-> QP solved!");
-        } else if (hpipm_status == 1) {
-            std::cerr << "-> Solver failed! Maximum number of iterations reached!" << std::endl;
-            // RCLCPP_INFO_STREAM(rclcpp::get_logger(""), "-> Solver failed! Maximum number of iterations reached!");
-            return false;
-        } else if (hpipm_status == 2) {
-            std::cerr << "-> Solver failed! Minimum step length reached!" << std::endl;
-            // RCLCPP_INFO_STREAM(rclcpp::get_logger(""), "-> Solver failed! Minimum step length reached!");
-            return false;
-        } else if (hpipm_status == 3) {
-            std::cerr << "-> Solver failed! NaN in computations!" << std::endl;
-            // RCLCPP_INFO_STREAM(rclcpp::get_logger(""), "-> Solver failed! NaN in computations!");
-            return false;
-        } else {
-            std::cerr << "-> Solver failed! Unknown return flag" << std::endl;
-            // RCLCPP_INFO_STREAM(rclcpp::get_logger(""), "-> Solver failed! Unknown return flag");
-            return false;
+        switch (hpipm_status) {
+            case 0:
+                break;
+            case 1:
+                std::cout << "[WBC SOLVER] MaxIterReached" << std::endl;
+                return false;
+            case 2:
+                std::cout << "[WBC SOLVER] MinStepLengthReached" << std::endl;
+                return false;
+            case 3:
+                std::cout << "[WBC SOLVER] NaNDetected" << std::endl;
+                return false;
+            case 4:
+            default:
+                std::cout << "[WBC SOLVER] UnknownFailure" << std::endl;
+                return false;
         }
         /************************************************
          * extract and print solution
          ************************************************/
         d_dense_qp_sol_get_v(&qp_sol_, u_.data());
-        // RCLCPP_INFO_STREAM(rclcpp::get_logger(""), "u " << u_.transpose());
         return true;
     }
 
-    const VecX &getOutput() {
-        return u_;
-    }
+    const VecX &getOutput() { return u_; }
 
 private:
     void initDenseQpData() {
@@ -265,7 +251,6 @@ private:
         ug_ = VecX::Zero(ng_);
         lg_mask_ = VecX::Ones(ng_);
         ug_mask_ = VecX::Ones(ng_);
-        // idxs_rev_ = -Matrix<int, -1, 1>::Ones(nv_);
 
         hpipm_size_t qp_size = d_dense_qp_memsize(&dim_);
         qp_mem_ = malloc(qp_size);
@@ -313,9 +298,9 @@ private:
      * arg
      ***************/
     /* mode */
-    hpipm_mode mode = hpipm_mode::ROBUST;
+    hpipm_mode mode = hpipm_mode::SPEED_ABS;
     /* iter_max */
-    int iter_max = 60;
+    int iter_max = 100;
     /* alpha_min */
     double alpha_min = 1.000000000000000e-12;
     /* mu0 */

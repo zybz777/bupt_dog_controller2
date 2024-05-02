@@ -76,21 +76,23 @@ void VmcController::updateEndFeetPos_inWorld(const shared_ptr<Robot> &robot, con
             cmd_vel_in_world = robot->getRotMat() * cmd_vel_in_world;
             cmd_omega_in_world = rotMatW(robot->getRpy()) * cmd_omega_in_world;
             Vec3 omega_in_world = rotMatW(robot->getRpy()) * robot->getAngularVelocity();
+            double k = 0.05;
+            Vec3 v = k * estimator->getLpVelocity() + (1 - k) * cmd_vel_in_world;
             double w = omega_in_world[2];
             for (int i = 0; i < LEG_NUM; ++i) {
                 double theta_f = robot->getRpy()[2] + _theta0[i] + w * (1 - gait->getPhase(i)) * gait->getTswing() +
                                  0.5 * w * gait->getTstance() + kw * (w - cmd_omega_in_world[2]);
                 // x y
                 _vmc_data->end_foot_pos_in_world(0, i) = estimator->getPosition()[0] + _r * cos(theta_f)
-                                                         + estimator->getLpVelocity()[0] * (1 - gait->getPhase(i)) *
+                                                         + v[0] * (1 - gait->getPhase(i)) *
                                                            gait->getTswing()
-                                                         + 0.5 * estimator->getLpVelocity()[0] * gait->getTstance()
+                                                         + 0.5 * v[0] * gait->getTstance()
                                                          + kx * (estimator->getLpVelocity()[0] - cmd_vel_in_world[0]);
 
                 _vmc_data->end_foot_pos_in_world(1, i) = estimator->getPosition()[1] + _r * sin(theta_f)
-                                                         + estimator->getLpVelocity()[1] * (1 - gait->getPhase(i)) *
+                                                         + v[1] * (1 - gait->getPhase(i)) *
                                                            gait->getTswing()
-                                                         + 0.5 * estimator->getLpVelocity()[1] * gait->getTstance()
+                                                         + 0.5 * v[1] * gait->getTstance()
                                                          + ky * (estimator->getLpVelocity()[1] - cmd_vel_in_world[1]);
             }
         }

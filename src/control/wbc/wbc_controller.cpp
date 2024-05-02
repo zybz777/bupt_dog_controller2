@@ -75,8 +75,6 @@ void WbcController::updateBodyPosTask(WbcTask_BodyPos &task) {
     // 更新位置任务
     Vec3 target_pos = _mrt->getXtraj()[0].segment<3>(3);
     Vec3 &curr_pos = _com_pos_inWorld;
-    target_pos[0] = curr_pos[0]; // x方向位置不跟踪
-    target_pos[1] = curr_pos[1]; // y方向位置不跟踪
     // 更新速度任务
     Vec3 target_vel = _mrt->getXtraj()[0].segment<3>(9);
     Vec3 &curr_vel = _com_vel_inWorld;
@@ -95,7 +93,7 @@ void WbcController::updateBodyOrientationTask(WbcTask_BodyOrientation &task) {
     // 更新位置任务
     Vec3 target_rpy = _mrt->getXtraj()[0].segment<3>(0);
     Vec3 &curr_rpy = _com_rpy;
-    target_rpy[2] = curr_rpy[2];
+//    target_rpy[2] = curr_rpy[2];
     // 更新速度任务
     Vec3 target_omega = invRotMatW(_robot->getRpy()) * _mrt->getXtraj()[0].segment<3>(6);
     Vec3 curr_omega = _com_omega_inBody;
