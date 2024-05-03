@@ -58,8 +58,8 @@ void Robot::init() {
     }
     // filter
     for (int i = 0; i < DOF_NUM; ++i) {
-        _foot_vel_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 20);
-        _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 20);
+        _foot_vel_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 10);
+        _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 10);
     }
 }
 
@@ -162,6 +162,6 @@ void Robot::inverseDynamics() {
     pinocchio::crba(*_robot_model, *_robot_data, _q);
     _nle << _robot_data->nle;
     _M << _robot_data->M;
-    _M_inv << _robot_data->Minv;
+    _M_inv = _M.inverse();
 }
 

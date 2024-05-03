@@ -168,40 +168,38 @@ void WbcController::updateSwingFootTask(WbcTask_FootPos &task) {
 }
 
 void WbcController::solve() {
-    MatX A_inv = _robot->getMassMatInv();
     MatX pinv_J0 = pinv(_task_list[0]->getTask_J());
-    MatX dynamic_pinv_J0 = A_inv * _task_list[0]->getTask_J().transpose() *
-                           pinv(_task_list[0]->getTask_J() * A_inv * _task_list[0]->getTask_J().transpose());
     /*0号任务*/
     MatX N = I18 - pinv_J0 * _task_list[0]->getTask_J();
-    MatX dynamic_N = I18 - dynamic_pinv_J0 * _task_list[0]->getTask_J();
-    // 速度0号任务
-    VecX cmd_dq = pinv_J0 * _task_list[0]->getTask_dx();
-    cmd_dq.setZero();
     // 位置0号任务
-    VecX cmd_delta_q = pinv_J0 * _task_list[0]->getTask_e();
-    cmd_delta_q.setZero();
+    VecX cmd_delta_q = VecX::Zero(18);
+    //    VecX cmd_delta_q = pinv_J0 * _task_list[0]->getTask_e();
+    //    cmd_delta_q.setZero();
+    // 速度0号任务
+    VecX cmd_dq = VecX::Zero(18);
+    //    VecX cmd_dq = pinv_J0 * _task_list[0]->getTask_dx();
+    //    cmd_dq.setZero();
     //  加速度0号任务
-    VecX cmd_ddq =
-            dynamic_pinv_J0 * (-_task_list[0]->getTask_J() * _robot->getFloatBaseDq());
+    VecX cmd_ddq = pinv_J0 * (-_task_list[0]->getTask_J() * _robot->getFloatBaseDq());
+    for (int i = 0; i < LEG_NUM; ++i) {
+        if (_gait->getContact(i) == SWING) {
+            cmd_ddq.segment<3>(6 + 3 * i).setZero();
+        }
+    }
     /*N号任务计算*/
     MatX J_pre, pinv_J_pre, dynamic_pinv_J_pre, dynamic_J_pre;
     for (int i = 1; i < _task_list.size(); ++i) {
         J_pre = _task_list[i]->getTask_J() * N;
         pinv_J_pre = pinv(J_pre);
-        dynamic_J_pre = _task_list[i]->getTask_J() * dynamic_N;
-        dynamic_pinv_J_pre = A_inv * dynamic_J_pre.transpose() *
-                             pinv(dynamic_J_pre * A_inv * dynamic_J_pre.transpose());
         // 位置任务
         cmd_delta_q += pinv_J_pre * (_task_list[i]->getTask_e() - _task_list[i]->getTask_J() * cmd_delta_q);
         // 速度任务
         cmd_dq += pinv_J_pre * (_task_list[i]->getTask_dx() - _task_list[i]->getTask_J() * cmd_dq);
         // 加速度任务
-        cmd_ddq += dynamic_pinv_J_pre *
+        cmd_ddq += pinv_J_pre *
                    (_task_list[i]->getTask_ddx() - _task_list[i]->getTask_dJ() * _robot->getFloatBaseDq() -
                     _task_list[i]->getTask_J() * cmd_ddq);
         N *= I18 - pinv_J_pre * J_pre;
-        dynamic_N *= I18 - dynamic_pinv_J_pre * dynamic_J_pre;
     }
     _cmd_q << _com_pos_inWorld, _com_rpy, _robot->getQ();
     _cmd_q += cmd_delta_q; // 位置任务解算的关节角

@@ -47,9 +47,9 @@ void Estimator::init() {
     // Q init
     for (int i = 0; i < _Q_diag.rows(); ++i) {
         if (i < 3) {  // 位置估计 建模误差较小
-            _Q_diag[i] = 0.0002;
+            _Q_diag[i] = 0.0000001;
         } else if (i < 6) { // 速度估计 建模误差较小
-            _Q_diag[i] = 0.0002;
+            _Q_diag[i] = 0.0000001;
         } else {    // 足端位置估计 足端触地时抖动带来较大误差
             _Q_diag[i] = 0.05;
         }
@@ -64,9 +64,9 @@ void Estimator::init() {
     _R_init(26, 26) = 0.0001;
     _R_init(27, 27) = 0.0001;
     // LP filter
-    _vx_filter = std::make_shared<LPFilter>(_dt, 3.0);
-    _vy_filter = std::make_shared<LPFilter>(_dt, 3.0);
-    _vz_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _vx_filter = std::make_shared<LPFilter>(_dt, 5.0);
+    _vy_filter = std::make_shared<LPFilter>(_dt, 5.0);
+    _vz_filter = std::make_shared<LPFilter>(_dt, 5.0);
     // lcm
     _es_data_topic_name = "es_data";
 }

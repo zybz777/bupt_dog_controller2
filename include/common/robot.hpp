@@ -100,18 +100,18 @@ public:
 
     const Vec3 &getComLpVelocity_inBody() { return _com_lp_vel_inBody; }
 
-    void setComPosition_inWorld(Vec3 pos) {
-        _com_pos_inWorld = std::move(pos);
+    void setComPosition_inWorld(const Vec3 &pos) {
+        _com_pos_inWorld = pos;
         _q.segment<3>(0) << _com_pos_inWorld;
     }
 
-    void setComVelocity_inWorld(Vec3 vel) {
-        _com_vel_inWorld = std::move(vel);
+    void setComVelocity_inWorld(const Vec3 &vel) {
+        _com_vel_inWorld = vel;
         _com_vel_inBody = getRotMat().transpose() * _com_vel_inWorld;
     }
 
-    void setComLpVelocity_inWorld(Vec3 lp_vel) {
-        _com_lp_vel_inWorld = std::move(lp_vel);
+    void setComLpVelocity_inWorld(const Vec3 &lp_vel) {
+        _com_lp_vel_inWorld = lp_vel;
         _com_lp_vel_inBody = getRotMat().transpose() * _com_lp_vel_inWorld;
         _dq.segment<3>(0) << _com_lp_vel_inBody;
     }
