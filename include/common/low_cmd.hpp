@@ -147,7 +147,7 @@ public:
     /********* Set Sim Motor Gain *********/
     /**************************************/
     void setSimStanceGain(int leg_id) {
-        Vec3 Kp(200, 200, 300), Kd(3.5, 3.5, 4.0);
+        Vec3 Kp(300, 300, 300), Kd(4.0, 4.0, 4.0);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0B;
             _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);

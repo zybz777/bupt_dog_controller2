@@ -68,7 +68,11 @@ void State_Trot::swingGainMpcWbcTrot() {
     _cmd_tau = _ctrl_comp->getWbcController()->getLegCmdTau();
     for (int i = 0; i < LEG_NUM; ++i) {
 #ifdef USE_SIM
-        _ctrl_comp->getLowCmd()->setSimSwingGain(i);
+        if (_ctrl_comp->getGait()->getContact(i) == SWING) {
+            _ctrl_comp->getLowCmd()->setSimSwingGain(i);
+        } else {
+            _ctrl_comp->getLowCmd()->setSimSwingGain(i);
+        }
 #else
         if (_ctrl_comp->getGait()->getContact(i) == SWING) {
             _ctrl_comp->getLowCmd()->setRealSwingGain(i);

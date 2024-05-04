@@ -24,7 +24,7 @@ public:
                     const VecX &target_acc,
                     const VecX &curr_pos,
                     const VecX &curr_vel) override {
-        static Vec3 Kp(8, 8, 8), Kd(2.0, 2.0, 2.0);
+        static Vec3 Kp(8, 8, 20), Kd(2.0, 2.0, 2.0);
         _task_e << target_pos - curr_pos;
         _task_e.segment<2>(0) << 0.0001 * _task_e.segment<2>(0);
         _task_dx << target_vel;

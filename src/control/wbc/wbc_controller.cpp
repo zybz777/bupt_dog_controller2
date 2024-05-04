@@ -94,7 +94,7 @@ void WbcController::updateBodyOrientationTask(WbcTask_BodyOrientation &task) {
     // 更新位置任务
     Vec3 target_rpy = _mrt->getXtraj()[0].segment<3>(0);
     Vec3 &curr_rpy = _com_rpy;
-    target_rpy[2] = curr_rpy[2];
+//    target_rpy[2] = curr_rpy[2];
     // 更新速度任务
     Vec3 target_omega = invRotMatW(_robot->getRpy()) * _mrt->getXtraj()[0].segment<3>(6);
     Vec3 curr_omega = _com_omega_inBody;
