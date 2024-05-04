@@ -8,8 +8,8 @@ VmcController::VmcController() {
     _vmc_data = std::make_shared<VmcData>();
     _vmc_cmd = std::make_shared<VmcCmd>();
     _vmc_data->std_foot_pos << 0.240142, 0.240142, -0.240142, -0.240142,
-            0.1551, -0.1551, 0.1551, -0.1551,
-            -0.313384, -0.313384, -0.313384, -0.313384;
+            0.1755, -0.1755, 0.1755, -0.1755,
+            -0.31426373, -0.31426373, -0.31426373, -0.31426373;
     _vmc_data->start_foot_pos = _vmc_data->std_foot_pos;
     _vmc_data->end_foot_pos = _vmc_data->std_foot_pos;
     // theta0

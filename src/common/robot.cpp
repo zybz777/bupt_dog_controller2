@@ -22,7 +22,8 @@ void Robot::init() {
     string urdf_path = CONFIG_PATH;
     urdf_path += "robot.urdf";
     _robot_model = std::make_unique<pinocchio::Model>();
-    pinocchio::urdf::buildModel(urdf_path, *_robot_model);
+    pinocchio::JointModelFreeFlyer root_joint;
+    pinocchio::urdf::buildModel(urdf_path, root_joint, *_robot_model);
     _robot_data = std::make_unique<pinocchio::Data>(*_robot_model);
     // 关节参数初始化
     _q = VecX::Zero(_robot_model->nq);
