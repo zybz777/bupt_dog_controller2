@@ -18,8 +18,20 @@ sudo make install
 ```
 2. Pinocchino
 ```bash
-sudo apt update
-sudo apt install ros-noetic-pinocchio # 通过ros安装
+sudo apt install libboost-all-dev
+sudo apt install liburdfdom-dev
+sudo apt install liburdfdom-headers-dev 
+sudo apt install lib
+git clone --recursive https://github.com/stack-of-tasks/pinocchio
+cd pinocchio && mkdir build && cd build
+# TODO: 将CMakeLists.txt中82行的BUILD_PYTHON_INTERFACE设置为OFF 清空build，重新cmake..
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+make -j8 # 多次编译
+sudo make install
+echo 'export PATH=/usr/local/bin:$PATH' >> ~/.bashrc
+echo 'export PKG_CONFIG_PATH =/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+echo 'export CMAKE_PREFIX_PATH=/usr/local:$CMAKE_PREFIX_PATH' >> ~/.bashrc
 ```
 3. hpipm-cpp
 ```bash
@@ -41,7 +53,14 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j8
 sudo make install -j
 ```
-
+4. yaml-cpp
+```bash
+git clone git@github.com:jbeder/yaml-cpp.git
+cd yaml-cpp && mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBLASFEO_EXAMPLES=OFF 
+make -j8
+sudo make install -j
+```
 ## Common
 1. low_state：读取电机数据和IMU数据 单独线程
 2. low_cmd：发送电机指令 与状态机同一线程
