@@ -7,8 +7,6 @@ sudo apt install build-essential
 sudo apt install cmake
 sudo apt install libglib2.0-dev
 sudo apt install default-jdk
-sudo apt install openjdk-8-jdk
-sudo apt install libjchart2d-java
 sudo apt install python3-dev
 git clone git@github.com:lcm-proj/lcm.git
 cd lcm
