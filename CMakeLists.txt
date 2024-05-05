@@ -24,7 +24,6 @@ find_package(hpipm-cpp REQUIRED)
 include_directories(
         include
         ${LCM_USE_FILE}
-        ../msg # lcm msg
         ${EIGEN3_INCLUDE_DIR}
 )
 

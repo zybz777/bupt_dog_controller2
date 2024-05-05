@@ -4,7 +4,7 @@
 
 #include "control/wbc/wbc_optimizer.hpp"
 
-WbcOptimizer::WbcOptimizer(const shared_ptr<Robot> &robot, const shared_ptr<Gait> &gait) {
+WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait) {
     _robot = robot;
     _gait = gait;
     _qp_solver = std::make_shared<DenseQpSolver>(_nv, _ne, _ng);

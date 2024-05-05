@@ -50,7 +50,7 @@ void VmcController::step(const std::shared_ptr<Robot> &robot, const std::shared_
     }
 }
 
-void VmcController::updateStartFeetPos_inWorld(const shared_ptr<Gait> &gait, const shared_ptr<Estimator> &estimator) {
+void VmcController::updateStartFeetPos_inWorld(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Estimator> &estimator) {
     for (int i = 0; i < 4; ++i) {
         if (gait->getGaitType() != GaitType::TROTTING) { // 初始化一下start_foot_pos_in_world
             _vmc_data->start_foot_pos_in_world.col(i) = _vmc_data->curr_foot_pos_in_world.col(i);
@@ -61,9 +61,9 @@ void VmcController::updateStartFeetPos_inWorld(const shared_ptr<Gait> &gait, con
     }
 }
 
-void VmcController::updateEndFeetPos_inWorld(const shared_ptr<Robot> &robot, const shared_ptr<Gait> &gait,
-                                             const shared_ptr<Estimator> &estimator,
-                                             const shared_ptr<doglcm::UserCmd_t> &user_cmd) {
+void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+                                             const std::shared_ptr<Estimator> &estimator,
+                                             const std::shared_ptr<doglcm::UserCmd_t> &user_cmd) {
     switch (gait->getGaitType()) {
         case GaitType::TROTTING: {
             double kx = 0.005;

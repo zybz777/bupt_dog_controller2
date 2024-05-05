@@ -29,7 +29,7 @@ public:
 //    void begin();
     void step();
 
-    const shared_ptr<LowState> &getLowState() { return _low_state; };
+    const std::shared_ptr<LowState> &getLowState() { return _low_state; };
 
     // 关节数据
     const Vec12 &getQ() { return _low_state->getQ(); }

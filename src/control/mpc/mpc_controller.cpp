@@ -6,7 +6,7 @@
 #include "control/mpc/mpc_param.hpp"
 
 
-MpcController::MpcController(const shared_ptr<Robot> &robot, const shared_ptr<Gait> &gait,
+MpcController::MpcController(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
                              const std::shared_ptr<Estimator> &estimator) {
     _robot = robot;
     _gait = gait;

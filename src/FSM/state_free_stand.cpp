@@ -4,7 +4,7 @@
 
 #include "FSM/state_free_stand.hpp"
 
-State_FreeStand::State_FreeStand(const shared_ptr<CtrlComponents> &ctrl_comp)
+State_FreeStand::State_FreeStand(const std::shared_ptr<CtrlComponents> &ctrl_comp)
         : FSMState(ctrl_comp, FSMStateName::FREESTAND, "freestand") {}
 
 void State_FreeStand::enter() {

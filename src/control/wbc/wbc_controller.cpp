@@ -4,9 +4,9 @@
 
 #include "control/wbc/wbc_controller.hpp"
 
-WbcController::WbcController(int ms, const shared_ptr<Robot> &robot, const shared_ptr<Gait> &gait,
+WbcController::WbcController(int ms, const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
                              const std::shared_ptr<Estimator> &estimator,
-                             const shared_ptr<MpcController> &mpc, const shared_ptr<VmcController> &vmc) {
+                             const std::shared_ptr<MpcController> &mpc, const std::shared_ptr<VmcController> &vmc) {
     _dt = double(ms / 1000.0);
     _robot = robot;
     _estimator = estimator;
