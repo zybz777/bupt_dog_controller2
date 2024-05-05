@@ -82,7 +82,7 @@ echo 'export PATH=~/bupt_dog_controller2/build:$PATH' >> ~/.bashrc
 ### REAL
 1. 建立软链接将可执行文件放入/usr/local/bin中
 ```bash
-sudo ln -s /home/zyb/CLionProjects/bupt_dog_controller2/cmake-build-release/bupt_dog_controller2 /usr/local/bin/
+sudo ln -s ~/bupt_dog_controller2/build/bupt_dog_controller2 /usr/local/bin/
 ```
 2. 建立软链接将库文件放入/usr/local/lib中
 ```bash
