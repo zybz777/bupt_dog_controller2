@@ -41,7 +41,7 @@ void MpcController::init() {
             0.8, 0.8, 1.2,
             0.1, 0.1, 0.001, // 角速度
             1.0, 1.0, 1.0; // simulink weight
-    _K = 5.0e-6;       // 1e-6
+    _K = 2.0e-6;       // 1e-6
     _S = 0;
 #else
     //    _L_diag << 0.6, 0.6, 1.0,

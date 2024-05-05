@@ -48,7 +48,7 @@
     <inertial>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
       <mass value="7.863"/>
-      <inertia ixx="0.037221" ixy="0.0" ixz="0.0" iyy="0.145629" iyz="0.0" izz="0.16547"/>
+      <inertia ixx="0.0522" ixy="0.0" ixz="0.0" iyy="0.0929" iyz="0.0" izz="0.130989"/>
     </inertial>
   </link>
   <joint name="FL_X_joint" type="revolute">

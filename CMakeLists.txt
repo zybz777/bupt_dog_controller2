@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 project(bupt_dog_controller2)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_BUILD_TYPE "Release")
 # 设置 仿真模式(ON)或实物模式(OFF)
 set(SIM_MODE ON)# 设置为 ON 或者 OFF
 set(REAL_MODE OFF)
@@ -9,7 +10,6 @@ set(REAL_MODE OFF)
 set(CALIBRATE_MODE OFF)
 
 set(hpipm-cpp_DIR "/usr/local/share/hpipm-cpp/cmake/hpipm-cpp-config.cmake")
-
 add_definitions(-DCONFIG_PATH="${CMAKE_SOURCE_DIR}/config/")
 add_definitions(-DROBOT_PATH="${CMAKE_SOURCE_DIR}/config/")
 
