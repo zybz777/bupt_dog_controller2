@@ -61,6 +61,15 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBLASFEO_EXAMPLES=OF
 make -j8
 sudo make install -j
 ```
+5. 该库
+```bash
+sudo apt install libarmadillo-dev
+cd ~/bupt_dog_controller2
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j8
+echo 'export PATH=~/bupt_dog_controller2/build:$PATH' >> ~/.bashrc
+```
 ## Common
 1. low_state：读取电机数据和IMU数据 单独线程
 2. low_cmd：发送电机指令 与状态机同一线程
