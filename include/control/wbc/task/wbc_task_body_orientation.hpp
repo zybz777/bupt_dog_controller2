@@ -23,9 +23,20 @@ public:
                     const VecX &target_acc,
                     const VecX &curr_pos,
                     const VecX &curr_vel) override {
-        static Vec3 Kp(15, 15, 15), Kd(2, 2, 2);
+        static Vec3 Kp(50, 50, 50), Kd(3, 3, 3);
         _task_e << target_pos - curr_pos;
-        _task_e[2] *= 0.005;
+//        _task_e[2] *= 0.005;
+        _task_dx << target_vel;
+        _task_ddx << target_acc + Kp.asDiagonal() * _task_e + Kd.asDiagonal() * (target_vel - curr_vel);
+    }
+
+    void updateTask(const VecX &task_err,
+                    const VecX &target_vel,
+                    const VecX &target_acc,
+                    const VecX &curr_vel) {
+        static Vec3 Kp(20, 20, 20), Kd(2, 2, 2);
+        _task_e << task_err;
+//        _task_e[2] *= 0.005;
         _task_dx << target_vel;
         _task_ddx << target_acc + Kp.asDiagonal() * _task_e + Kd.asDiagonal() * (target_vel - curr_vel);
     }

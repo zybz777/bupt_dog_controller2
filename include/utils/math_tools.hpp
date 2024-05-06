@@ -21,7 +21,19 @@ inline Mat3 skew(const Vec3 &v) {
     return m;
 }
 
-// 角速度旋转矩阵 本体->世界
+inline RotMat rotMatEluerVel2BodyOmega(const Vec3 &rpy) {
+    Mat3 m;
+    double cy = cos(rpy[1]);
+    double sy = sin(rpy[1]);
+    double cx = cos(rpy[0]);
+    double sx = sin(rpy[0]);
+    m << 1, 0, -sy,
+            0, cx, cy * sx,
+            0, -sx, cy * cx;
+    return m;
+}
+
+// 角速度旋转矩阵 欧拉角速率->世界系角速度
 inline RotMat rotMatW(const Vec3 &rpy) {
     Mat3 m;
     double cy = cos(rpy[1]);
@@ -34,7 +46,7 @@ inline RotMat rotMatW(const Vec3 &rpy) {
     return m;
 }
 
-// 角速度旋转矩阵 世界->本体
+// 角速度旋转矩阵 世界系角速度->欧拉角速率
 inline RotMat invRotMatW(const Vec3 &rpy) {
     RotMat mat;
     double c2 = cos(rpy[2]), c1 = cos(rpy[1]);

@@ -96,8 +96,8 @@ void Robot::forwardKinematics() {
     pinocchio::framesForwardKinematics(*_robot_model, *_robot_data, _q);
     pinocchio::computeJointJacobiansTimeVariation(*_robot_model, *_robot_data, _q, _dq);
     Vec3 com_pos_inWorld = _robot_data->oMf[_robot_model->getFrameId("body")].translation();
-    pinocchio::Data::Matrix6x J(6, _robot_model->nv);
-    pinocchio::Data::Matrix6x dJ(6, _robot_model->nv);
+    static pinocchio::Data::Matrix6x J(6, _robot_model->nv);
+    static pinocchio::Data::Matrix6x dJ(6, _robot_model->nv);
     for (int i = 0; i < LEG_NUM; ++i) {
         // 世界坐标系下足端位置
         _foot_pos_inWorld.col(i) << _robot_data->oMf[_robot_model->getFrameId(foot_link[i])].translation();
@@ -143,18 +143,12 @@ void Robot::forwardKinematics() {
     pinocchio::computeFrameJacobian(*_robot_model, *_robot_data, _q, _robot_model->getFrameId("body"),
                                     pinocchio::LOCAL_WORLD_ALIGNED, J);
     _J_Body_Position << J.block<3, 18>(0, 0); // 世界系速度 = J * 质心系速度
-    J.setZero();
-    pinocchio::computeFrameJacobian(*_robot_model, *_robot_data, _q, _robot_model->getFrameId("body"), pinocchio::LOCAL,
-                                    J);
-    _J_Body_Orientation << J.block<3, 18>(3, 0); // 本体角速度坐标系不变化
+    _J_Body_Orientation << J.block<3, 18>(3, 0); // 世界系角速度 = J * 质心系角速度
     /*质心线速度雅可比矩阵的导数*/
     dJ.setZero();
     pinocchio::getFrameJacobianTimeVariation(*_robot_model, *_robot_data, _robot_model->getFrameId("body"),
                                              pinocchio::LOCAL_WORLD_ALIGNED, dJ);
     _dJ_Body_Position << dJ.block<3, 18>(0, 0);
-    dJ.setZero();
-    pinocchio::getFrameJacobianTimeVariation(*_robot_model, *_robot_data, _robot_model->getFrameId("body"),
-                                             pinocchio::LOCAL, dJ);
     _dJ_Body_Orientation << dJ.block<3, 18>(3, 0);
 }
 

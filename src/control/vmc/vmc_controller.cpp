@@ -50,12 +50,13 @@ void VmcController::step(const std::shared_ptr<Robot> &robot, const std::shared_
     }
 }
 
-void VmcController::updateStartFeetPos_inWorld(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Estimator> &estimator) {
+void VmcController::updateStartFeetPos_inWorld(const std::shared_ptr<Gait> &gait,
+                                               const std::shared_ptr<Estimator> &estimator) {
     for (int i = 0; i < 4; ++i) {
         if (gait->getGaitType() != GaitType::TROTTING) { // 初始化一下start_foot_pos_in_world
             _vmc_data->start_foot_pos_in_world.col(i) = _vmc_data->curr_foot_pos_in_world.col(i);
         }
-        if (gait->getContact(i) == CONTACT && gait->getPhase(i) > 0.98) {  // 记录摆动项起点位置
+        if (gait->getContact(i) == CONTACT && gait->getPhase(i) > 0.95) {  // 记录摆动项起点位置
             _vmc_data->start_foot_pos_in_world.col(i) = _vmc_data->curr_foot_pos_in_world.col(i);
         }
     }
@@ -92,11 +93,16 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
                                                          + v[1] * (1 - gait->getPhase(i)) * gait->getTswing()
                                                          + 0.5 * v[1] * gait->getTstance()
                                                          + ky * (estimator->getLpVelocity()[1] - cmd_vel_in_world[1]);
+                _vmc_data->end_foot_pos_in_world(2, i) = 0;
             }
         }
             break;
         default:
             _vmc_data->end_foot_pos_in_world = _vmc_data->std_foot_pos_in_world;
+            _vmc_data->end_foot_pos_in_world(2, 0) = 0;
+            _vmc_data->end_foot_pos_in_world(2, 1) = 0;
+            _vmc_data->end_foot_pos_in_world(2, 2) = 0;
+            _vmc_data->end_foot_pos_in_world(2, 3) = 0;
             break;
     }
 }

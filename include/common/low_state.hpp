@@ -18,6 +18,7 @@
 #include "utils/math_types.hpp"
 #include "utils/math_tools.hpp"
 #include "safety_param.hpp"
+#include "utils/timer.hpp"
 
 class LowState {
 public:
@@ -56,6 +57,8 @@ public:
 
     const RotMat &getRotMat() { return _rot_mat; }
 
+    const Vec3 &getEulerAngularVelocity() { return _euler_angular_velocity; }
+
     const Vec3 &getAngularVelocity() { return _angular_velocity; }
 
     const Vec3 &getAngularVelocity_inWorld() { return _angular_velocity_in_world; }
@@ -70,7 +73,6 @@ private:
     std::thread _recv_thread;
     // lcm
     lcm::LCM _lcm;
-    doglcm::LegData_t _legs[LEG_NUM]{};
     std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
     // motor
     Vec12 _q = Vec12::Zero();
@@ -79,6 +81,7 @@ private:
     // imu
     Vec3 _rpy = Vec3::Zero();
     RotMat _rot_mat = RotMat::Identity();
+    Vec3 _euler_angular_velocity = Vec3::Zero();
     Vec3 _angular_velocity = Vec3::Zero();
     Vec3 _angular_velocity_in_world = Vec3::Zero();
     Vec3 _linear_accelerometer = Vec3::Zero();
@@ -91,7 +94,7 @@ private:
         }
     }
 
-    void handleImuMsg(const lcm::ReceiveBuffer *rbuf, const std::string &chan, const doglcm::ImuData_t *msg) {
+    void handleImuMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::ImuData_t *msg) {
         // rpy
         static double last_yaw = 0.0;
         double delta_yaw = msg->rpy[2] - last_yaw;
@@ -106,18 +109,18 @@ private:
         // angular_velocity
         memcpy(_angular_velocity.data(), msg->angular_velocity, sizeof(_angular_velocity));
         _angular_velocity_in_world = _rot_mat * _angular_velocity;
+        _euler_angular_velocity = rotMatEluerVel2BodyOmega(_rpy).inverse() * _angular_velocity;
         // linear_accelerometer
         memcpy(_linear_accelerometer.data(), msg->linear_accelerometer, sizeof(_linear_accelerometer));
         _linear_accelerometer_in_world = _rot_mat * _linear_accelerometer;
         // quat x y z w
-        Eigen::Quaterniond quaternion = Eigen::AngleAxisd(msg->rpy[2], Eigen::Vector3d::UnitZ()) *
-                                        Eigen::AngleAxisd(msg->rpy[1], Eigen::Vector3d::UnitY()) *
-                                        Eigen::AngleAxisd(msg->rpy[0], Eigen::Vector3d::UnitX());
+        Eigen::Quaterniond quaternion = Eigen::AngleAxisd(_rpy[2], Eigen::Vector3d::UnitZ()) *
+                                        Eigen::AngleAxisd(_rpy[1], Eigen::Vector3d::UnitY()) *
+                                        Eigen::AngleAxisd(_rpy[0], Eigen::Vector3d::UnitX());
         _quat << quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w();
     }
 
-    void handleLegMsg(const lcm::ReceiveBuffer *rbuf, const std::string &chan, const doglcm::LegData_t *msg) {
-        memcpy(&_legs[msg->leg_id], msg, sizeof(_legs[msg->leg_id]));
+    void handleLegMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::LegData_t *msg) {
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _q[3 * msg->leg_id + i] = msg->joint_data[i].Pos;
             _dq[3 * msg->leg_id + i] = msg->joint_data[i].W;
@@ -125,7 +128,7 @@ private:
         }
     }
 
-    void handleUserCmdMsg(const lcm::ReceiveBuffer *rbuf, const std::string &chan, const doglcm::UserCmd_t *msg) {
+    void handleUserCmdMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::UserCmd_t *msg) {
         memcpy(_user_cmd.get(), msg, sizeof(*_user_cmd));
     }
 };

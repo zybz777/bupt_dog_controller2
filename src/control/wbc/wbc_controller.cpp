@@ -93,14 +93,14 @@ void WbcController::updateBodyOrientationTask(WbcTask_BodyOrientation &task) {
     task.updateTaskJacobi(_robot->getJ_BodyOrientation(), _robot->getDJ_BodyOrientation());
     // 更新位置任务
     Vec3 target_rpy = _mrt->getXtraj()[0].segment<3>(0);
-    Vec3 &curr_rpy = _com_rpy;
-//    target_rpy[2] = curr_rpy[2];
+    const Vec3 &curr_rpy = _robot->getRpy();
+    Vec3 task_err = rotMatW(curr_rpy) * (target_rpy - curr_rpy);
     // 更新速度任务
-    Vec3 target_omega = invRotMatW(_robot->getRpy()) * _mrt->getXtraj()[0].segment<3>(6);
-    Vec3 curr_omega = _com_omega_inBody;
+    Vec3 target_vel = _mrt->getXtraj()[0].segment<3>(6);
+    const Vec3 &curr_vel = _robot->getAngularVelocity_inWorld();
     // 更新加速度任务
-    static Vec3 target_acc = Vec3::Zero();
-    task.updateTask(target_rpy, target_omega, target_acc, curr_rpy, curr_omega);
+    const static Vec3 target_acc = Vec3::Zero();
+    task.updateTask(task_err, target_vel, target_acc, curr_vel);
 }
 
 void WbcController::updateContactFootTask(WbcTask_FootPos &task) {
@@ -169,18 +169,15 @@ void WbcController::updateSwingFootTask(WbcTask_FootPos &task) {
 
 void WbcController::solve() {
     MatX pinv_J0 = pinv(_task_list[0]->getTask_J());
-    /*0号任务*/
+    /*0号任务 支撑腿触地不动*/
     MatX N = I18 - pinv_J0 * _task_list[0]->getTask_J();
     // 位置0号任务
     VecX cmd_delta_q = VecX::Zero(18);
-    //    VecX cmd_delta_q = pinv_J0 * _task_list[0]->getTask_e();
-    //    cmd_delta_q.setZero();
     // 速度0号任务
     VecX cmd_dq = VecX::Zero(18);
-    //    VecX cmd_dq = pinv_J0 * _task_list[0]->getTask_dx();
-    //    cmd_dq.setZero();
     //  加速度0号任务
-    VecX cmd_ddq = pinv_J0 * (-_task_list[0]->getTask_J() * _robot->getFloatBaseDq());
+    VecX cmd_ddq = pinv_J0 * (-_task_list[0]->getTask_J() * _robot->getFloatBaseDq() -
+                              _task_list[0]->getTask_dJ() * _robot->getFloatBaseDq());
     for (int i = 0; i < LEG_NUM; ++i) {
         if (_gait->getContact(i) == SWING) {
             cmd_ddq.segment<3>(6 + 3 * i).setZero();

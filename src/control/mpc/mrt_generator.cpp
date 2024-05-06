@@ -41,8 +41,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
                         const std::shared_ptr<Estimator> &estimator) {
     _X << robot->getRpy(),
             estimator->getPosition(),
-//            robot->getAngularVelocity_inWorld(),
-            rotMatW(robot->getRpy()) * robot->getAngularVelocity(),
+            robot->getAngularVelocity_inWorld(),
             estimator->getLpVelocity();
     auto user_cmd = robot->getLowState()->getUserCmd();
     switch (gait->getGaitType()) {
@@ -57,8 +56,8 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
                              user_cmd->cmd_linear_velocity[2]);
                 cmd_vel = robot->getRotMat() * cmd_vel;
                 // 角度 位置 角速度 速度
-                // _X_traj[i][0] = 0.0;
-                // _X_traj[i][1] = 0.0;
+                _X_traj[i][0] = 0.0;
+                _X_traj[i][1] = 0.0;
                 _X_traj[i][2] = last_X_traj[2] + user_cmd->cmd_angular_velocity[2] * i * _dt;
 
                 _X_traj[i][3] = last_X_traj[3] + cmd_vel[0] * i * _dt;
@@ -72,7 +71,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
 
                 _X_traj[i][9] = cmd_vel[0];
                 _X_traj[i][10] = cmd_vel[1];
-                // _X_traj[i][11] = 0.0;
+                _X_traj[i][11] = 0.0;
             }
         }
             break;
@@ -84,7 +83,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
                 // _X_traj[i][1] = 0.0;
                 // yaw 角
                 _X_traj[i][2] = last_X_traj[2] + user_cmd->cmd_angular_velocity[2] * i * _dt;
-                _X_traj[i][2] = clip(_X_traj[i][2], Vec2(-0.25, 0.25));
+//                _X_traj[i][2] = clip(_X_traj[i][2], Vec2(-0.25, 0.25));
 
                 _X_traj[i].segment<3>(6) << rotMatW(robot->getRpy()) * Vec3(0, 0, user_cmd->cmd_angular_velocity[2]);
                 if (fabs(_X_traj[i][2]) >= 0.245) {
