@@ -74,13 +74,13 @@ void WbcController::updateBodyPosTask(WbcTask_BodyPos &task) {
     task.updateTaskJacobi(_robot->getJ_BodyPosition(), _robot->getDJ_BodyPosition());
     // 更新位置任务
     Vec3 target_pos = _mrt->getXtraj()[0].segment<3>(3);
-    Vec3 &curr_pos = _com_pos_inWorld;
+    Vec3 curr_pos = _com_pos_inWorld;
     target_pos.segment<2>(0) = curr_pos.segment<2>(0);
     // 更新速度任务
     Vec3 target_vel = _mrt->getXtraj()[0].segment<3>(9);
-    Vec3 &curr_vel = _com_vel_inWorld;
+    Vec3 curr_vel = _com_vel_inWorld;
     // 更新加速度任务
-    static Vec3 target_acc = Vec3::Zero();
+    Vec3 target_acc = Vec3::Zero();
     task.updateTask(target_pos, target_vel, target_acc, curr_pos, curr_vel);
 }
 
@@ -93,13 +93,19 @@ void WbcController::updateBodyOrientationTask(WbcTask_BodyOrientation &task) {
     task.updateTaskJacobi(_robot->getJ_BodyOrientation(), _robot->getDJ_BodyOrientation());
     // 更新位置任务
     Vec3 target_rpy = _mrt->getXtraj()[0].segment<3>(0);
-    const Vec3 &curr_rpy = _robot->getRpy();
+    Vec3 curr_rpy = _robot->getRpy();
     Vec3 task_err = rotMatW(curr_rpy) * (target_rpy - curr_rpy);
+    if (fabs(curr_rpy[2]) > M_PI) {
+        int n = int(fabs(curr_rpy[2]) / M_PI);
+        if (n > 0) {
+            task_err[2] = task_err[2] / double(n);
+        }
+    }
     // 更新速度任务
     Vec3 target_vel = _mrt->getXtraj()[0].segment<3>(6);
-    const Vec3 &curr_vel = _robot->getAngularVelocity_inWorld();
+    Vec3 curr_vel = _robot->getAngularVelocity_inWorld();
     // 更新加速度任务
-    const static Vec3 target_acc = Vec3::Zero();
+    Vec3 target_acc = Vec3::Zero();
     task.updateTask(task_err, target_vel, target_acc, curr_vel);
 }
 
@@ -115,12 +121,10 @@ void WbcController::updateContactFootTask(WbcTask_FootPos &task) {
     }
     task.updateTaskJacobi(J, dJ);
     // 更新位置速度加速度任务
-    static Vec12 target_pos, target_vel = Vec12::Zero(), target_acc = Vec12::Zero(), curr_pos, curr_vel;
+    Vec12 target_pos, target_vel = Vec12::Zero(), target_acc = Vec12::Zero(), curr_pos, curr_vel;
+    curr_vel = _robot->getJ_FeetPosition() * _robot->getFloatBaseDq();
     for (int i = 0; i < LEG_NUM; ++i) {
         curr_pos.segment<3>(3 * i) << _estimator->getFootPos_inWorld(i);
-        curr_vel.segment<3>(3 * i) << _com_vel_inWorld + _rot_mat * (_robot->getFootVelocity_inBody(i) +
-                                                                     skew(_com_omega_inBody) *
-                                                                     _feet_positions_inBody.col(i));
         target_pos.segment<3>(3 * i) << curr_pos.segment<3>(3 * i);
     }
     task.updateTask(target_pos, target_vel, target_acc, curr_pos, curr_vel);
@@ -143,14 +147,12 @@ void WbcController::updateSwingFootTask(WbcTask_FootPos &task) {
     }
     task.updateTaskJacobi(J, dJ);
     // 更新位置速度加速度任务
-    static Vec12 target_pos, curr_pos;
+    Vec12 target_pos, curr_pos;
     Vec12 target_vel, curr_vel;
     Vec12 target_acc;
+    curr_vel = _robot->getJ_FeetPosition() * _robot->getFloatBaseDq();
     for (int i = 0; i < 4; ++i) {
         curr_pos.segment<3>(3 * i) << _estimator->getFootPos_inWorld(i);
-        curr_vel.segment<3>(3 * i) << _com_vel_inWorld + _rot_mat * (_robot->getFootVelocity_inBody(i) +
-                                                                     skew(_com_omega_inBody) *
-                                                                     _feet_positions_inBody.col(i));
         if (_gait->getContact(i) == SWING) // VMC
         {
             target_pos.segment<3>(3 * i) << _vmc->getCmdFootPos_inWorld(i);

@@ -76,7 +76,7 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
                                     user_cmd->cmd_angular_velocity[2]);
             cmd_vel_in_world = robot->getRotMat() * cmd_vel_in_world;
             cmd_omega_in_world = rotMatW(robot->getRpy()) * cmd_omega_in_world;
-            Vec3 omega_in_world = rotMatW(robot->getRpy()) * robot->getAngularVelocity();
+            Vec3 omega_in_world = robot->getAngularVelocity_inWorld();
             double k = 1.0;
             Vec3 v = k * estimator->getLpVelocity() + (1 - k) * cmd_vel_in_world;
             double w = omega_in_world[2];

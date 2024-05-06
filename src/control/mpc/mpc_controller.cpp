@@ -37,11 +37,11 @@ void MpcController::init() {
     _mpc_f_last.setZero();
     /*mpc 权重*/
 #ifdef USE_SIM
-    _L_diag << 0.8, 0.8, 1.0, // 角度
-            0.4, 0.4, 1.0,
-            0.001, 0.001, 0.001, // 角速度
-            1.0, 1.0, 1.0; // simulink weight
-    _K = 1.0e-6;       // 1e-6
+    _L_diag << 0.4, 0.4, 0.8, // 角度
+            0.4, 0.4, 0.8,
+            0.2, 0.2, 0.2, // 角速度
+            0.8, 0.8, 0.8; // simulink weight
+    _K = 5.0e-6;       // 1e-6
     _S = 0;
 #else
     //    _L_diag << 0.6, 0.6, 1.0,
