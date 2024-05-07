@@ -1,3 +1,13 @@
+/*
+ * @Author       : Zybz
+ * @Date         : 2024-05-07 14:36:48
+ * @LastEditors  : Zybz
+ * @LastEditTime : 2024-05-07 15:38:05
+ * @FilePath     : /bupt_dog_controller2/include/control/wbc/task/wbc_task_body_pos.hpp
+ * @Description  : 
+ * 
+ * Copyright (c) 2024 by BUPT RobotTeam, All Rights Reserved. 
+ */
 //
 // Created by zyb on 24-4-27.
 //

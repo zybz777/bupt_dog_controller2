@@ -47,11 +47,11 @@ void Estimator::init() {
     // Q init
     for (int i = 0; i < _Q_diag.rows(); ++i) {
         if (i < 3) {  // 位置估计 建模误差较小
-            _Q_diag[i] = 0.0000001;
+            _Q_diag[i] = 0.00001;
         } else if (i < 6) { // 速度估计 建模误差较小
-            _Q_diag[i] = 0.0000001;
+            _Q_diag[i] = 0.00001;
         } else {    // 足端位置估计 足端触地时抖动带来较大误差
-            _Q_diag[i] = 0.05;
+            _Q_diag[i] = 0.02;
         }
     }
     _Q_init = _Q_diag.asDiagonal();       // 建模与离散化产生的过程噪声
