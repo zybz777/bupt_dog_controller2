@@ -47,9 +47,9 @@ void Estimator::init() {
     // Q init
     for (int i = 0; i < _Q_diag.rows(); ++i) {
         if (i < 3) {  // 位置估计 建模误差较小
-            _Q_diag[i] = 0.00001;
+            _Q_diag[i] = 0.0002;
         } else if (i < 6) { // 速度估计 建模误差较小
-            _Q_diag[i] = 0.00001;
+            _Q_diag[i] = 0.0002;
         } else {    // 足端位置估计 足端触地时抖动带来较大误差
             _Q_diag[i] = 0.02;
         }

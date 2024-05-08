@@ -10,7 +10,7 @@
 State_FixedDown::State_FixedDown(const std::shared_ptr<CtrlComponents> &ctrl_comp) : FSMState(ctrl_comp,
                                                                                               FSMStateName::FIXEDDOWN,
                                                                                               "fixed down") {
-    _freq = 1000;
+    _freq = 500;
     _percent = 0;
     _duration = FIXEDDOWN_T;
 }

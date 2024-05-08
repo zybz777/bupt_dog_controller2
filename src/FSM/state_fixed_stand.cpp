@@ -7,7 +7,7 @@
 State_FixedStand::State_FixedStand(const std::shared_ptr<CtrlComponents> &ctrl_comp) : FSMState(ctrl_comp,
                                                                                                 FSMStateName::FIXEDSTAND,
                                                                                                 "fixed stand") {
-    _freq = 1000;
+    _freq = 500;
     _percent = 0;
     _duration = FIXEDSTAND_T;
 }
