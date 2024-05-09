@@ -85,7 +85,7 @@ public:
      * @param leg_id
      */
     void setRealStanceGain(int leg_id) {
-        Vec3 Kp(0.15, 0.15, 0.15), Kd(2.0, 2.0, 2.0);
+        Vec3 Kp(0.15, 0.15, 0.15), Kd(2.5, 2.5, 2.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
             _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);

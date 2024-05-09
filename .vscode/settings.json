@@ -4,6 +4,7 @@
         "*.wxss": "css",
         "*.wxs": "javascript",
         "*.m": "matlab",
-        "thread": "cpp"
+        "thread": "cpp",
+        "ostream": "cpp"
     }
 }
