@@ -126,9 +126,9 @@ void State_FreeStand::swingGainMpcWbcStand() {
     _ctrl_comp->getLowCmd()->setZeroGain();
 #else
     _ctrl_comp->getLowCmd()->setRealFreeStanceGain();
-    // for (int i = 0; i < LEG_NUM; ++i) {
-    //     _cmd_tau[2 + 3 * i] = _cmd_tau[2 + 3 * i] / pow(sin(_ctrl_comp->getLowState()->getQ()[2 + 3 * i]), 2);
-    // }
+    for (int i = 0; i < LEG_NUM; ++i) {
+        _cmd_tau[2 + 3 * i] = _cmd_tau[2 + 3 * i] / pow(sin(_ctrl_comp->getLowState()->getQ()[2 + 3 * i]), 2);
+    }
 #endif
     _ctrl_comp->getLowCmd()->setQ(_cmd_q);
     _ctrl_comp->getLowCmd()->setDq(_cmd_dq);

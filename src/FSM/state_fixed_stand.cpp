@@ -1,13 +1,23 @@
-//
-// Created by zyb on 24-4-23.
-//
+/*
+ * @Author       : Zybz
+ * @Date         : 2024-05-08 14:41:32
+ * @LastEditors  : Zybz
+ * @LastEditTime : 2024-05-09 16:39:56
+ * @FilePath     : /bupt_dog_controller2/src/FSM/state_fixed_stand.cpp
+ * @Description  :
+ *
+ * Copyright (c) 2024 by BUPT RobotTeam, All Rights Reserved.
+ */
+ //
+ // Created by zyb on 24-4-23.
+ //
 
 #include "FSM/state_fixed_stand.hpp"
 
-State_FixedStand::State_FixedStand(const std::shared_ptr<CtrlComponents> &ctrl_comp) : FSMState(ctrl_comp,
-                                                                                                FSMStateName::FIXEDSTAND,
-                                                                                                "fixed stand") {
-    _freq = 500;
+State_FixedStand::State_FixedStand(const std::shared_ptr<CtrlComponents>& ctrl_comp) : FSMState(ctrl_comp,
+    FSMStateName::FIXEDSTAND,
+    "fixed stand") {
+    _freq = 1000;
     _percent = 0;
     _duration = FIXEDSTAND_T;
 }
@@ -30,7 +40,7 @@ void State_FixedStand::enter() {
 }
 
 void State_FixedStand::step() {
-    _percent += (double) 1.0 / (_duration * _freq);
+    _percent += (double)1.0 / (_duration * _freq);
     _percent = clip(_percent, Vec2(0.0, 1.0));
     Vec12 cmd_q = Vec12::Zero();
     for (int i = 0; i < 12; ++i) {
@@ -49,15 +59,15 @@ FSMStateName State_FixedStand::checkChange() {
         return FSMStateName::TEST;
     }
     switch (_ctrl_comp->getGait()->getGaitType()) {
-        case GaitType::PASSIVE:
-            return FSMStateName::PASSIVE;
-        case GaitType::FIXEDDOWN:
-            return FSMStateName::FIXEDDOWN;
-        case GaitType::TROTTING:
-            return FSMStateName::TROTTING;
-        case GaitType::FREESTAND:
-            return FSMStateName::FREESTAND;
-        default:
-            return FSMStateName::FIXEDSTAND;
+    case GaitType::PASSIVE:
+        return FSMStateName::PASSIVE;
+    case GaitType::FIXEDDOWN:
+        return FSMStateName::FIXEDDOWN;
+    case GaitType::TROTTING:
+        return FSMStateName::TROTTING;
+    case GaitType::FREESTAND:
+        return FSMStateName::FREESTAND;
+    default:
+        return FSMStateName::FIXEDSTAND;
     }
 }

@@ -1,3 +1,13 @@
+/*
+ * @Author       : Zybz
+ * @Date         : 2024-05-05 19:51:11
+ * @LastEditors  : Zybz
+ * @LastEditTime : 2024-05-09 17:06:09
+ * @FilePath     : /bupt_dog_controller2/include/control/mpc/mpc_param.hpp
+ * @Description  : 
+ * 
+ * Copyright (c) 2024 by BUPT RobotTeam, All Rights Reserved. 
+ */
 //
 // Created by zyb on 24-4-23.
 //
