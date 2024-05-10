@@ -300,7 +300,7 @@ private:
     /* mode */
     hpipm_mode mode = hpipm_mode::SPEED_ABS;
     /* iter_max */
-    int iter_max = 100;
+    int iter_max = 200;
     /* alpha_min */
     double alpha_min = 1.000000000000000e-12;
     /* mu0 */

@@ -155,8 +155,9 @@ void Robot::forwardKinematics() {
 void Robot::inverseDynamics() {
     pinocchio::nonLinearEffects(*_robot_model, *_robot_data, _q, _dq);
     pinocchio::crba(*_robot_model, *_robot_data, _q);
+    pinocchio::computeMinverse(*_robot_model, *_robot_data, _q);
     _nle << _robot_data->nle;
     _M << _robot_data->M;
-    _M_inv = _M.inverse();
+    _M_inv << _robot_data->Minv;
 }
 

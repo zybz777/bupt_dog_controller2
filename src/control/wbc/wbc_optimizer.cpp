@@ -16,7 +16,7 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot> &robot, const std::share
     Q1 = 1 * Q1;
     Vec12 Q2; // 足端MPC力权重 0.1
     Q2.setOnes();
-    Q2 = 0.01 * Q2;
+    Q2 = 0.001 * Q2;
     _H.diagonal() << Q1, Q2;
     _g = VecX::Zero(_nv);
     _g.setZero();

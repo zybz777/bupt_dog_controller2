@@ -11,6 +11,7 @@
 #include <pinocchio/algorithm/jacobian.hpp>
 #include <pinocchio/algorithm/dynamics.hpp>
 #include <pinocchio/algorithm/rnea.hpp>
+#include <pinocchio/algorithm/aba.hpp>
 #include <utility>
 // common
 #include "low_state.hpp"
