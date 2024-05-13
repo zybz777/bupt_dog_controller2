@@ -179,8 +179,8 @@ inline void updateAvgCov(T1 &cov, T2 &exp, T3 newValue, double n) {
 
 class AvgCov {
 public:
-    AvgCov(unsigned int size, std::string name, bool avgOnly = false, unsigned int showPeriod = 500,
-           unsigned int waitCount = 15000, double zoomFactor = 10000) {
+    AvgCov(unsigned int size, std::string name, bool avgOnly = false, unsigned int showPeriod = 1000,
+           unsigned int waitCount = 30000, double zoomFactor = 10000) {
         _size = size;
         _valueName = name;
         _avgOnly = avgOnly;

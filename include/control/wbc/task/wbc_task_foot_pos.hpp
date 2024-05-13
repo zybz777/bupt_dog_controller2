@@ -2,7 +2,7 @@
  * @Author       : Zybz
  * @Date         : 2024-05-05 19:51:11
  * @LastEditors  : Zybz
- * @LastEditTime : 2024-05-09 16:47:13
+ * @LastEditTime : 2024-05-13 15:16:58
  * @FilePath     : /bupt_dog_controller2/include/control/wbc/task/wbc_task_foot_pos.hpp
  * @Description  : 
  * 
@@ -33,7 +33,7 @@ public:
                     const VecX &target_acc,
                     const VecX &curr_pos,
                     const VecX &curr_vel) override {
-        static double Kp = 10, Kd = 5;
+        static double Kp = 1, Kd = 1;
         _task_e << target_pos - curr_pos;
         _task_dx << target_vel;
         _task_ddx << target_acc + Kp * _task_e + Kd * (target_vel - curr_vel);

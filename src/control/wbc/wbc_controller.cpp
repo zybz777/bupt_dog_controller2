@@ -171,7 +171,7 @@ void WbcController::updateSwingFootTask(WbcTask_FootPos &task) {
 
 void WbcController::solve() {
     MatX pinv_J0 = pinv(_task_list[0]->getTask_J());
-    MatX pinv_MJ0 = dynamicPinv(_task_list[0]->getTask_J(), _robot->getMassMatInv());
+    // MatX pinv_MJ0 = dynamicPinv(_task_list[0]->getTask_J(), _robot->getMassMatInv());
     /*0号任务 支撑腿触地不动*/
     MatX N = I18 - pinv_J0 * _task_list[0]->getTask_J();
     // 位置0号任务
@@ -191,7 +191,7 @@ void WbcController::solve() {
     for (int i = 1; i < _task_list.size(); ++i) {
         J_pre = _task_list[i]->getTask_J() * N;
         pinv_J_pre = pinv(J_pre);
-        pinv_MJ_pre = dynamicPinv(J_pre, _robot->getMassMatInv());
+        // pinv_MJ_pre = dynamicPinv(J_pre, _robot->getMassMatInv());
         // 位置任务
         cmd_delta_q += pinv_J_pre * (_task_list[i]->getTask_e() - _task_list[i]->getTask_J() * cmd_delta_q);
         // 速度任务

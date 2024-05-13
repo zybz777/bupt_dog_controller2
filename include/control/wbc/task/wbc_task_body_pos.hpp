@@ -2,7 +2,7 @@
  * @Author       : Zybz
  * @Date         : 2024-05-07 14:36:48
  * @LastEditors  : Zybz
- * @LastEditTime : 2024-05-07 15:38:05
+ * @LastEditTime : 2024-05-13 15:25:54
  * @FilePath     : /bupt_dog_controller2/include/control/wbc/task/wbc_task_body_pos.hpp
  * @Description  : 
  * 
@@ -34,7 +34,7 @@ public:
                     const VecX &target_acc,
                     const VecX &curr_pos,
                     const VecX &curr_vel) override {
-        static Vec3 Kp(8, 8, 50), Kd(10, 10, 5.0);
+        static Vec3 Kp(8, 8, 30), Kd(10, 10, 5.0);
         _task_e << target_pos - curr_pos;
         _task_e.segment<2>(0) << 0.0001 * _task_e.segment<2>(0);
         _task_dx << target_vel;

@@ -56,7 +56,7 @@ public:
     const Vec12& getTau() { return _tau; }
 
     // imu
-    const Vec3& getRpy() { return _rpy_filtered; }
+    const Vec3& getRpy() { return _rpy; }
 
     const RotMat& getRotMat() { return _rot_mat; }
 
