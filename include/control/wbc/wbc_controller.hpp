@@ -65,8 +65,6 @@ private:
     Vec18 _cmd_ddq; // 加速度关节指令
     Vec18 _cmd_tau; // 力矩关节指令
     Vec12 _joint_friction_torque;
-    // 摩擦力矩
-    LPFilter *_joint_friction_torque_filter[12];
     /* 机器人数据 */
     RotMat _rot_mat; // 旋转矩阵
     Vec3 _com_pos_inWorld;

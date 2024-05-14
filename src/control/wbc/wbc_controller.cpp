@@ -17,18 +17,14 @@ WbcController::WbcController(int ms, const std::shared_ptr<Robot> &robot, const 
     _mrt = _mpc->getMrtGenerator();
     // task
     _task_list.push_back(&_task_contact_foot);
+    _task_list.push_back(&_task_swing_foot);
     _task_list.push_back(&_task_body_orientation);
     _task_list.push_back(&_task_body_pos);
-    _task_list.push_back(&_task_swing_foot);
     // 关节指令
     _cmd_q.setZero();
     _cmd_dq.setZero();
     _cmd_ddq.setZero();
     _cmd_tau.setZero();
-    _joint_friction_torque.setZero();
-    for (int i = 0; i < 12; ++i) {
-        _joint_friction_torque_filter[i] = new LPFilter(1e-3, 5);
-    }
     // 机器人数据
     _rot_mat.setIdentity();
     _com_pos_inWorld.setZero();
