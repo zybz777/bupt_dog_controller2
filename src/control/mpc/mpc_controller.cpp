@@ -4,6 +4,7 @@
 
 #include "control/mpc/mpc_controller.hpp"
 #include "control/mpc/mpc_param.hpp"
+#include "utils/real_time.hpp"
 
 
 MpcController::MpcController(const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait,
@@ -38,7 +39,7 @@ void MpcController::init() {
     /*mpc 权重*/
 #ifdef USE_SIM
     _L_diag << 0.4, 0.4, 0.8, // 角度
-        0.4, 0.4, 0.8,
+        0.0, 0.0, 0.8,
         0.2, 0.2, 0.2, // 角速度
         0.8, 0.8, 0.8; // simulink weight
     _K = 5.0e-6;       // 1e-6
@@ -47,7 +48,7 @@ void MpcController::init() {
     _L_diag << 0.5, 0.8, 0.8, // 角度
         0.0, 0.0, 0.8,
         0.2, 0.2, 0.2, // 角速度
-        0.8, 0.8, 0.8; // simulink weight
+        1.0, 1.0, 0.8; // simulink weight
     _K = 5.0e-6;       // 1e-6
     _S = 0;
 #endif
@@ -125,6 +126,8 @@ void MpcController::initSolver() {
 }
 
 [[noreturn]] void MpcController::run(int ms) {
+    std::cout << "[MPC] Task Run!" << std::endl;
+    // assignTask2Cpu(2);
     std::chrono::microseconds period(ms * 1000);
     std::chrono::microseconds zero_us(0);
     auto start_time = std::chrono::high_resolution_clock::now();

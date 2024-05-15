@@ -34,7 +34,7 @@ public:
                     const VecX &target_vel,
                     const VecX &target_acc,
                     const VecX &curr_vel) {
-        static Vec3 Kp(20, 20, 20), Kd(2, 2, 2);
+        static Vec3 Kp(20, 30, 20), Kd(2, 2, 2);
         _task_e << task_err;
 //        _task_e[2] *= 0.005;
         _task_dx << target_vel;

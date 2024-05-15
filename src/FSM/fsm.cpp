@@ -4,6 +4,7 @@
 
 #include "FSM/fsm.hpp"
 #include "utils/timer.hpp"
+#include "utils/real_time.hpp"
 
 FSM::FSM(const std::shared_ptr<CtrlComponents> &ctrl_comp, int ms) {
     _ms = ms;
@@ -24,6 +25,8 @@ FSM::FSM(const std::shared_ptr<CtrlComponents> &ctrl_comp, int ms) {
 }
 
 [[noreturn]] void FSM::run(int ms) {
+    std::cout << "[FSM] Task Run!" << std::endl;
+    // assignTask2Cpu(1);
     std::chrono::microseconds period(ms * 1000);
     std::chrono::microseconds zero_us(0);
     auto start_time = std::chrono::high_resolution_clock::now();

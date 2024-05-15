@@ -143,6 +143,19 @@ inline T windowFunc(const T x, const T windowRatio, const T xRange = 1.0, const 
         return yRange;
     }
 }
+template<typename T>
+inline T windowFunc2(const T x, const T leftRatio, const T RightRatio,const T xRange = 1.0, const T yRange = 1.0) {
+    if ((x < 0) || (x > xRange)) {
+        std::cout << "[ERROR][windowFunc] The x=" << x << ", which should between [0, xRange]" << std::endl;
+    }
+    if (x / xRange < leftRatio) {
+        return x * yRange / (xRange * leftRatio);
+    } else if (x / xRange > 1 - RightRatio) {
+        return yRange * (xRange - x) / (xRange * RightRatio);
+    } else {
+        return yRange;
+    }
+}
 
 template<typename T1, typename T2>
 inline void updateAverage(T1 &exp, T2 newValue, double n) {

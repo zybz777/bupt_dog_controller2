@@ -175,8 +175,7 @@ void WbcController::solve() {
     // 速度0号任务
     VecX cmd_dq = VecX::Zero(18);
     //  加速度0号任务
-    VecX cmd_ddq = pinv_J0 * (-_task_list[0]->getTask_J() * _robot->getFloatBaseDq() -
-                              _task_list[0]->getTask_dJ() * _robot->getFloatBaseDq());
+    VecX cmd_ddq = pinv_J0 * (-_task_list[0]->getTask_J() * _robot->getFloatBaseDq());
     for (int i = 0; i < LEG_NUM; ++i) {
         if (_gait->getContact(i) == SWING) {
             cmd_ddq.segment<3>(6 + 3 * i).setZero();
