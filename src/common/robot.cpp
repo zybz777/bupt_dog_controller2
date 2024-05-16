@@ -60,8 +60,8 @@ void Robot::init() {
     }
     // filter
     for (int i = 0; i < DOF_NUM; ++i) {
-        _foot_vel_inBody_filter[i] = std::make_unique<LPFilter>((double)_ms / 1000.0, 20);
-        _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double)_ms / 1000.0, 500);
+        _foot_vel_inBody_filter[i] = std::make_unique<LPFilter>((double)_ms / 1000.0, 10);
+        _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double)_ms / 1000.0, 50);
     }
 }
 
@@ -86,7 +86,7 @@ void Robot::init() {
 void Robot::step() {
     _q.segment<16>(3) << _low_state->getQuaternion(), _low_state->getQ();
     _dq.segment<15>(3) << _low_state->getAngularVelocity(), _low_state->getDq();
-    //    _q << Vec3::Zero(), _low_state->getQuaternion(), _low_state->getQ();
+    //    _q << Vec3::Zero(), _low_state->getQuaternion(), _lgetFootVelocitiesFiltered_inBodyow_state->getQ();
     //    _dq << Vec3::Zero(), _low_state->getAngularVelocity(), _low_state->getDq();
     forwardKinematics();
     inverseDynamics();

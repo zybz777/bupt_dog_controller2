@@ -180,6 +180,7 @@ void WbcController::solve() {
         if (_gait->getContact(i) == SWING) {
             cmd_ddq.segment<3>(6 + 3 * i).setZero();
         }
+        cmd_ddq.segment<3>(6 + 3 * i).setZero();
     }
     /*N号任务计算*/
     MatX J_pre, pinv_J_pre, pinv_MJ_pre, MJ_pre;

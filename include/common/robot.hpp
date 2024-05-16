@@ -64,6 +64,8 @@ public:
 
     Vec3 getFootVelocity_inBody(int leg_id) { return _foot_vel_inBody.col(leg_id); }
 
+    Vec3 getFootVelocityFiltered_inBody(int leg_id) { return _foot_vel_filtered_inBody.col(leg_id); }
+
     const Vec34& getFootPositions_inBody() { return _foot_pos_inBody; }
 
     const Vec34& getFootVelocitiesFiltered_inBody() { return _foot_vel_filtered_inBody; }
