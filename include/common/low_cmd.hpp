@@ -98,7 +98,7 @@ public:
      * @param leg_id
      */
     void setRealSwingGain(int leg_id) {
-        Vec3 Kp(0.008, 0.008, 0.008), Kd(0.6, 0.6, 0.6);
+        Vec3 Kp(0.012, 0.012, 0.012), Kd(0.5, 0.5, 0.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
             _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
