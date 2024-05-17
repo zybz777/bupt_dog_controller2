@@ -93,7 +93,7 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
                                                          + v[1] * (1 - gait->getPhase(i)) * gait->getTswing()
                                                          + 0.5 * v[1] * gait->getTstance()
                                                          + ky * (estimator->getLpVelocity()[1] - cmd_vel_in_world[1]);
-                _vmc_data->end_foot_pos_in_world(2, i) = 0;
+                _vmc_data->end_foot_pos_in_world(2, i) = 0.0;
             }
         }
             break;

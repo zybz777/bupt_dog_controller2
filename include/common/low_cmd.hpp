@@ -85,7 +85,7 @@ public:
      * @param leg_id
      */
     void setRealStanceGain(int leg_id) {
-        Vec3 Kp(0.15, 0.15, 0.15), Kd(2.5, 2.5, 2.5);
+        Vec3 Kp(0.00732, 0.15, 0.15), Kd(1.5, 2.5, 2.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
             _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
@@ -98,7 +98,7 @@ public:
      * @param leg_id
      */
     void setRealSwingGain(int leg_id) {
-        Vec3 Kp(0.012, 0.012, 0.012), Kd(0.5, 0.5, 0.5);
+        Vec3 Kp(0.005, 0.012, 0.005), Kd(0.5, 0.5, 0.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
             _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
@@ -111,7 +111,7 @@ public:
      * @param leg_id
      */
     void setRealFreeStanceGain(int leg_id) {
-        Vec3 Kp(0.0075, 0.0075, 0.0075), Kd(0.5, 0.5, 0.5);
+        Vec3 Kp(0.005, 0.0075, 0.0075), Kd(0.5, 0.5, 0.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
             _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
