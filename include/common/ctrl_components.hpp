@@ -14,6 +14,7 @@
 #include "control/vmc/vmc_controller.hpp"
 #include "control/mpc/mpc_controller.hpp"
 #include "control/wbc/wbc_controller.hpp"
+#include "control/rl/rl_controller.hpp"
 
 class CtrlComponents {
 public:
@@ -30,12 +31,14 @@ public:
         _vmc = std::make_shared<VmcController>();
         _mpc = std::make_shared<MpcController>(_robot, _gait, _estimator);
         _wbc = std::make_shared<WbcController>(ms, _robot, _gait, _estimator, _mpc, _vmc);
+        _rl = std::make_shared<RLController>(_low_state);
         std::cout << "[CtrlComponents] Init Success!" << std::endl;
     }
 
     void begin() {
         _low_state->begin();
         _mpc->begin();
+        _rl->begin();
         std::cout << "[CtrlComponents] begin!" << std::endl;
     }
 
@@ -89,6 +92,7 @@ private:
     std::shared_ptr<VmcController> _vmc;
     std::shared_ptr<MpcController> _mpc;
     std::shared_ptr<WbcController> _wbc;
+    std::shared_ptr<RLController> _rl;
 //    VmcController *_vmc;
 //    WbcController *_wbc;
 //    MpcController *_mpc;

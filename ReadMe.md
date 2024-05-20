@@ -60,7 +60,11 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBLASFEO_EXAMPLES=OF
 make -j8
 sudo make install -j
 ```
-5. 该库
+5. libtorch(正在测试)
+   1. https://pytorch.org/ 下载cxx11 ABI 2.3版本压缩包
+   2. 移动libtorch文件夹到/opt/libtorch
+   3. export LD_LIBRARY_PATH=/opt/libtorch/lib:$LD_LIBRARY_PATH
+6. 该库
 ```bash
 sudo apt install libarmadillo-dev
 cd ~/bupt_dog_controller2

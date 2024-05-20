@@ -4,12 +4,14 @@ project(bupt_dog_controller2)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE "Release")
 # 设置 仿真模式(ON)或实物模式(OFF)
-set(SIM_MODE OFF)# 设置为 ON 或者 OFF
-set(REAL_MODE ON)
+set(SIM_MODE ON)# 设置为 ON 或者 OFF
+set(REAL_MODE OFF)
 # 设置 状态估计标定噪声(ON OFF)
 set(CALIBRATE_MODE OFF)
 
 set(hpipm-cpp_DIR "/usr/local/share/hpipm-cpp/cmake/hpipm-cpp-config.cmake")
+set(Torch_DIR "/opt/libtorch/share/cmake/Torch/")
+
 add_definitions(-DCONFIG_PATH="${CMAKE_SOURCE_DIR}/config/")
 add_definitions(-DROBOT_PATH="${CMAKE_SOURCE_DIR}/config/")
 
@@ -20,11 +22,21 @@ find_package(yaml-cpp REQUIRED)
 find_package(blasfeo REQUIRED)
 find_package(hpipm REQUIRED)
 find_package(hpipm-cpp REQUIRED)
+find_package(Torch REQUIRED)
+
+
+message(STATUS "Torch library status:")
+message(STATUS "    version: ${TORCH_VERSION}")
+message(STATUS "    libraries: ${TORCH_LIBS}")
+message(STATUS "    include path: ${TORCH_INCLUDE_DIRS}")
+message(STATUS "    torch lib : ${TORCH_LIBRARIES} ")
+
 
 include_directories(
         include
         ${LCM_USE_FILE}
         ${EIGEN3_INCLUDE_DIR}
+        ${TORCH_INCLUDE_DIRS}
 )
 
 add_executable(${PROJECT_NAME}
@@ -42,7 +54,9 @@ add_executable(${PROJECT_NAME}
         src/control/mpc/mrt_generator.cpp
         src/control/mpc/mpc_controller.cpp
         src/control/wbc/wbc_controller.cpp
-        src/control/wbc/wbc_optimizer.cpp)
+        src/control/wbc/wbc_optimizer.cpp
+        src/control/rl/rl_controller.cpp
+)
 
 # 动态库路径
 link_directories(
@@ -51,13 +65,14 @@ link_directories(
 )
 
 target_link_libraries(${PROJECT_NAME}
-        lcm
         pinocchio
         yaml-cpp::yaml-cpp
+        lcm
         hpipm
         blasfeo
         hpipm-cpp::hpipm-cpp
         -lpthread
+        ${TORCH_LIBRARIES}
 )
 
 if (SIM_MODE)
