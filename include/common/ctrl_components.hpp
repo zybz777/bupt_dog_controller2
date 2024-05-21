@@ -31,14 +31,18 @@ public:
         _vmc = std::make_shared<VmcController>();
         _mpc = std::make_shared<MpcController>(_robot, _gait, _estimator);
         _wbc = std::make_shared<WbcController>(ms, _robot, _gait, _estimator, _mpc, _vmc);
+#ifdef USE_RL_CTRL
         _rl = std::make_shared<RLController>(_low_state, _estimator, _gait);
+#endif
         std::cout << "[CtrlComponents] Init Success!" << std::endl;
     }
 
     void begin() {
         _low_state->begin();
         _mpc->begin();
+#ifdef USE_RL_CTRL
         _rl->begin();
+#endif
         std::cout << "[CtrlComponents] begin!" << std::endl;
     }
 
@@ -71,8 +75,9 @@ public:
 
     const std::shared_ptr<WbcController> &getWbcController() { return _wbc; }
 
+#ifdef USE_RL_CTRL
     const std::shared_ptr<RLController> &getRLController() { return _rl; }
-
+#endif
 private:
     // common
     std::shared_ptr<LowCmd> _low_cmd; // 底层电机控制接口
@@ -86,7 +91,9 @@ private:
     std::shared_ptr<VmcController> _vmc;
     std::shared_ptr<MpcController> _mpc;
     std::shared_ptr<WbcController> _wbc;
+#ifdef USE_RL_CTRL
     std::shared_ptr<RLController> _rl;
+#endif
 };
 
 #endif //BUPT_DOG_CONTROLLER2_CTRL_COMPONENTS_HPP

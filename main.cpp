@@ -25,6 +25,11 @@ int main() {
 #else
     std::cout << "#### CALIBRATE MODE OFF ####" << std::endl;
 #endif
+#ifdef USE_RL_CTRL
+    std::cout << "#### RL CTRL ON ####" << std::endl;
+#else
+    std::cout << "#### RL CTRL OFF ####" << std::endl;
+#endif
     setPriority();
     int ms = 1;
     auto ctrl_comp = std::make_shared<CtrlComponents>(ms);

@@ -28,7 +28,11 @@ void State_Trot::enter() {
 void State_Trot::step() {
     //    swingGainMpcTrot();
 //    swingGainMpcWbcTrot();
+#ifdef USE_RL_CTRL
     RLTrot();
+#else
+    swingGainMpcWbcTrot();
+#endif
 }
 
 void State_Trot::exit() {
@@ -100,6 +104,7 @@ void State_Trot::swingGainMpcWbcTrot() {
 }
 
 void State_Trot::RLTrot() {
+#ifdef USE_RL_CTRL
     _cmd_q = _ctrl_comp->getRLController()->getLegCmdQ();
     _cmd_dq = _ctrl_comp->getRLController()->getLegCmdDq();
     _cmd_tau = _ctrl_comp->getRLController()->getLegCmdTau();
@@ -115,4 +120,5 @@ void State_Trot::RLTrot() {
     _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
     _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
     _ctrl_comp->getLowCmd()->publishLegCmd();
+#endif
 }
