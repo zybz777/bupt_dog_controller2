@@ -31,7 +31,7 @@ public:
         _vmc = std::make_shared<VmcController>();
         _mpc = std::make_shared<MpcController>(_robot, _gait, _estimator);
         _wbc = std::make_shared<WbcController>(ms, _robot, _gait, _estimator, _mpc, _vmc);
-        _rl = std::make_shared<RLController>(_low_state);
+        _rl = std::make_shared<RLController>(_low_state, _estimator, _gait);
         std::cout << "[CtrlComponents] Init Success!" << std::endl;
     }
 
@@ -70,15 +70,10 @@ public:
     const std::shared_ptr<MpcController> &getMpcController() { return _mpc; }
 
     const std::shared_ptr<WbcController> &getWbcController() { return _wbc; }
-//    VmcController *getVmcController();
 
-//    MpcController *getMpcController();
-
-//    WbcController *getWbcController();
+    const std::shared_ptr<RLController> &getRLController() { return _rl; }
 
 private:
-//    void gaitThreadRun(int ms);
-
     // common
     std::shared_ptr<LowCmd> _low_cmd; // 底层电机控制接口
     std::shared_ptr<LowState> _low_state; // 底层电机与IMU数据、手柄控制指令
@@ -86,17 +81,12 @@ private:
     std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
     std::shared_ptr<Estimator> _estimator;
     // gait
-//    std::thread _gait_thread;
     std::shared_ptr<Gait> _gait;
     // control
     std::shared_ptr<VmcController> _vmc;
     std::shared_ptr<MpcController> _mpc;
     std::shared_ptr<WbcController> _wbc;
     std::shared_ptr<RLController> _rl;
-//    VmcController *_vmc;
-//    WbcController *_wbc;
-//    MpcController *_mpc;
-//    MrtGenerator *_mrt;
 };
 
 #endif //BUPT_DOG_CONTROLLER2_CTRL_COMPONENTS_HPP

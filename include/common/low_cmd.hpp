@@ -163,6 +163,14 @@ public:
             _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd(i);
         }
     }
+
+    void setSimRLGain(int leg_id, double Kp, double Kd) {
+        for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
+            _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
+            _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp;
+            _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd;
+        }
+    }
     /**************************************/
     /********* Set Motor Cmd Zero *********/
     /**************************************/

@@ -25,6 +25,8 @@ private:
 
     void swingGainMpcWbcTrot();
 
+    void RLTrot();
+
     Vec3 _delta_q;
     Vec12 _cmd_q;
     Vec12 _cmd_dq;

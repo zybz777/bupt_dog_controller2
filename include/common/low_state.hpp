@@ -46,31 +46,34 @@ public:
     void begin() { _recv_thread.join(); }
 
     // user cmd
-    const std::shared_ptr<doglcm::UserCmd_t>& getUserCmd() { return _user_cmd; }
+    const std::shared_ptr<doglcm::UserCmd_t> &getUserCmd() { return _user_cmd; }
 
     // joint
-    const Vec12& getQ() { return _q; }
+    const Vec12 &getQ() { return _q; }
 
-    const Vec12& getDq() { return _dq; }
+    const Vec12 &getDq() { return _dq; }
 
-    const Vec12& getTau() { return _tau; }
+    const Vec12 &getTau() { return _tau; }
 
     // imu
-    const Vec3& getRpy() { return _rpy_filtered; }
+    const Vec3 &getRpy() { return _rpy_filtered; }
 
-    const RotMat& getRotMat() { return _rot_mat; }
+    const RotMat &getRotMat() { return _rot_mat; }
 
-    const Vec3& getEulerAngularVelocity() { return _euler_angular_velocity; }
+    const Vec3 &getEulerAngularVelocity() { return _euler_angular_velocity; }
 
-    const Vec3& getAngularVelocity() { return _angular_velocity; }
+    const Vec3 &getAngularVelocity() { return _angular_velocity; }
 
-    const Vec3& getAngularVelocity_inWorld() { return _angular_velocity_in_world; }
+    const Vec3 &getAngularVelocity_inWorld() { return _angular_velocity_in_world; }
 
-    const Vec3& getLinearAccelerometer() { return _linear_accelerometer; }
+    const Vec3 &getLinearAccelerometer() { return _linear_accelerometer; }
 
-    const Vec3& getLinearAccelerometer_inWorld() { return _linear_accelerometer_in_world; }
+    const Vec3 &getLinearAccelerometer_inWorld() { return _linear_accelerometer_in_world; }
 
-    const Quat& getQuaternion() { return _quat; }
+    const Quat &getQuaternion() { return _quat; }
+
+    // gps
+    const Vec3 &getGpsVel() { return _gps_vel; }
 
 private:
     std::thread _recv_thread;
@@ -91,6 +94,8 @@ private:
     Vec3 _linear_accelerometer = Vec3::Zero();
     Vec3 _linear_accelerometer_in_world = Vec3::Zero();
     Quat _quat = Quat::Zero(); // x y z w
+    // gps
+    Vec3 _gps_vel = Vec3::Zero();
     //LP filter
     std::shared_ptr<LPFilter> _rpy_filter[3];
 
@@ -100,7 +105,7 @@ private:
         }
     }
 
-    void handleImuMsg(const lcm::ReceiveBuffer*, const std::string&, const doglcm::ImuData_t* msg) {
+    void handleImuMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::ImuData_t *msg) {
         // rpy
         static double last_yaw = 0.0;
         double delta_yaw = msg->rpy[2] - last_yaw;
@@ -125,12 +130,14 @@ private:
         _linear_accelerometer_in_world = _rot_mat * _linear_accelerometer;
         // quat x y z w
         Eigen::Quaterniond quaternion = Eigen::AngleAxisd(getRpy()[2], Eigen::Vector3d::UnitZ()) *
-            Eigen::AngleAxisd(getRpy()[1], Eigen::Vector3d::UnitY()) *
-            Eigen::AngleAxisd(getRpy()[0], Eigen::Vector3d::UnitX());
+                                        Eigen::AngleAxisd(getRpy()[1], Eigen::Vector3d::UnitY()) *
+                                        Eigen::AngleAxisd(getRpy()[0], Eigen::Vector3d::UnitX());
         _quat << quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w();
+        // gps_vel
+        memcpy(_gps_vel.data(), msg->gps_vel, sizeof(_gps_vel));
     }
 
-    void handleLegMsg(const lcm::ReceiveBuffer*, const std::string&, const doglcm::LegData_t* msg) {
+    void handleLegMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::LegData_t *msg) {
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _q[3 * msg->leg_id + i] = msg->joint_data[i].Pos;
             _dq[3 * msg->leg_id + i] = msg->joint_data[i].W;
@@ -138,7 +145,7 @@ private:
         }
     }
 
-    void handleUserCmdMsg(const lcm::ReceiveBuffer*, const std::string&, const doglcm::UserCmd_t* msg) {
+    void handleUserCmdMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::UserCmd_t *msg) {
         memcpy(_user_cmd.get(), msg, sizeof(*_user_cmd));
     }
 };

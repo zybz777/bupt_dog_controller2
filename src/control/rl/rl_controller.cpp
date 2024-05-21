@@ -4,21 +4,26 @@
 
 #include "control/rl/rl_controller.hpp"
 
-RLController::RLController(const std::shared_ptr<LowState> &low_state) {
+RLController::RLController(const std::shared_ptr<LowState> &low_state, const std::shared_ptr<Estimator> &estimator,
+                           const std::shared_ptr<Gait> &gait) {
     //data
     _low_state = low_state;
+    _estimator = estimator;
+    _gait = gait;
     _gravity_vec << 0.0, 0.0, -1.0;
-    _base_lin_vel = torch::zeros({3}, torch::kDouble);
-    _base_ang_vel = torch::zeros({3}, torch::kDouble);
-    _projected_gravity = torch::zeros({3}, torch::kDouble);
-    _cmd_vel = torch::zeros({3}, torch::kDouble);
-    _default_pos = torch::from_blob(const_cast<double *>(_target_pos), {12},
-                                    torch::kDouble).clone();
+    _base_lin_vel = torch::zeros({3}, torch::kFloat);
+    _base_ang_vel = torch::zeros({3}, torch::kFloat);
+    _projected_gravity = torch::zeros({3}, torch::kFloat);
+    _cmd_vel = torch::zeros({3}, torch::kFloat);
+    _default_pos = torch::zeros({12}, torch::kFloat);
+    for (int i = 0; i < 12; ++i) {
+        _default_pos[i] = _target_pos[i];
+    }
     _dof_pos = _default_pos.clone();
-    _dof_vel = torch::zeros({12}, torch::kDouble);
-    _actions = torch::zeros({12}, torch::kDouble);
-    _clock_inputs = torch::zeros({4}, torch::kDouble);
-    _cmd_gait = torch::zeros({5}, torch::kDouble);
+    _dof_vel = torch::zeros({12}, torch::kFloat);
+    _actions = torch::zeros({12}, torch::kFloat);
+    _clock_inputs = torch::zeros({4}, torch::kFloat);
+    _cmd_gait = torch::zeros({5}, torch::kFloat);
     _cmd_gait[ID_FOOT_HEIGHT] = 0.05; // 足端高度
     _cmd_gait[ID_PHASES] = 0.5; // 相位控制
     _cmd_gait[ID_OFFSETS] = 0.0;
@@ -27,13 +32,24 @@ RLController::RLController(const std::shared_ptr<LowState> &low_state) {
     // scale
     _lin_vel_scale = 2.0;
     _ang_vel_scale = 0.25;
-    _cmd_vel_scale = torch::tensor({2.0, 2.0, 0.25}, torch::kDouble);
+    _cmd_vel_scale = torch::tensor({2.0, 2.0, 0.25}, torch::kFloat);
     _dof_pos_scale = 1.0;
     _dof_vel_scale = 0.05;
+    _action_scale = 0.25; // use in rl_tau
+    // output cmd
+    _rl_tau = Vec12::Zero();
+    for (int i = 0; i < 12; ++i) {
+        _rl_target_pos[i] = _target_pos[i];
+    }
+    _rl_target_vel = Vec12::Zero();
+    _Kp = 20.0;
+    _Kd = 0.5;
     // torch
     std::string pt_path = CONFIG_PATH;
     pt_path += "robot.pt";
     _module = std::make_shared<Module>(torch::jit::load(pt_path));
+    _module->eval();
+    _module->to(at::kCPU);
     // thread
     _ms = 20;
     _rl_thread = std::thread([this] { run(_ms); });
@@ -63,20 +79,41 @@ void RLController::step() {
 
 void RLController::computeObservations() {
     // 质心数据
-    _base_lin_vel = torch::zeros({3}, torch::kDouble);
-    _base_ang_vel = torch::from_blob(const_cast<double *>(_low_state->getAngularVelocity().data()), {3},
-                                     torch::kDouble).clone();
-    Vec3 projected_gravity = _low_state->getRotMat() * _gravity_vec;
-    _projected_gravity = torch::from_blob(projected_gravity.data(), {3}, torch::kDouble).clone();
+    Vec3 world_vel = _low_state->getGpsVel();
+    Vec3 body_vel = _low_state->getRotMat().transpose() * world_vel;
+    _base_lin_vel[0] = body_vel[0];
+    _base_lin_vel[1] = body_vel[1];
+    _base_lin_vel[2] = body_vel[2];
+    _base_ang_vel[0] = _low_state->getAngularVelocity()[0];
+    _base_ang_vel[1] = _low_state->getAngularVelocity()[1];
+    _base_ang_vel[2] = _low_state->getAngularVelocity()[2];
+    Vec3 projected_gravity = _low_state->getRotMat().transpose() * _gravity_vec;
+    _projected_gravity[0] = projected_gravity[0];
+    _projected_gravity[1] = projected_gravity[1];
+    _projected_gravity[2] = projected_gravity[2];
     _cmd_vel[0] = _low_state->getUserCmd()->cmd_linear_velocity[0];
     _cmd_vel[1] = _low_state->getUserCmd()->cmd_linear_velocity[1];
     _cmd_vel[2] = _low_state->getUserCmd()->cmd_angular_velocity[2];
     // 关节数据
-    _dof_pos = torch::from_blob(const_cast<double *>(_low_state->getQ().data()), {12}, torch::kDouble).clone();
-    _dof_vel = torch::from_blob(const_cast<double *>(_low_state->getDq().data()), {12}, torch::kDouble).clone();
-    // 上次action
-    // 时钟更新
+    for (int i = 0; i < 12; ++i) {
+        _dof_pos[i] = _low_state->getQ()[i];
+        _dof_vel[i] = _low_state->getDq()[i];
+    }
+    // 时钟更新 先不考虑周期 默认为1
+    for (int leg_id = 0; leg_id < LEG_NUM; ++leg_id) {
+        if (_gait->getContact(leg_id) == CONTACT) {
+            _clock_inputs[leg_id] = sin(M_PI * _gait->getPhase(leg_id));
+        } else {
+            _clock_inputs[leg_id] = -sin(M_PI * _gait->getPhase(leg_id));
+        }
+    }
     // 步态更新
+    _cmd_gait[ID_FOOT_HEIGHT] = 0.05; // 足端高度
+    _cmd_gait[ID_PHASES] = 0.5; // 相位控制
+    _cmd_gait[ID_OFFSETS] = 0.0;
+    _cmd_gait[ID_BOUNDS] = 0.0;
+    _cmd_gait[ID_STANCE_RATIO] = 0.5; // 站立比例[0~1]
+    // 组合观测量
     torch::Tensor obs_buf = torch::cat({
                                                _base_lin_vel * _lin_vel_scale,
                                                _base_ang_vel * _ang_vel_scale,
@@ -87,5 +124,10 @@ void RLController::computeObservations() {
                                                _actions,
                                                _clock_inputs,
                                                _cmd_gait}, -1);
-    std::cout << obs_buf << std::endl;
+    at::Tensor output = _module->forward({obs_buf}).toTensor();
+    _actions = torch::clip(output, -100, 100);
+    for (int i = 0; i < 12; ++i) {
+        _rl_tau[i] = _Kp * _action_scale * _actions[i].item<double>();
+    }
+//    std::cout << getTimeStamp() << std::endl;
 }
