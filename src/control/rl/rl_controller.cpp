@@ -43,10 +43,10 @@ RLController::RLController(const std::shared_ptr<LowState> &low_state, const std
     }
     _rl_target_vel = Vec12::Zero();
     _Kp = 20.0;
-    _Kd = 0.5;
+    _Kd = 1.0;
     // torch
     std::string pt_path = CONFIG_PATH;
-    pt_path += "robot.pt";
+    pt_path += "policy_1.pt";
     _module = std::make_shared<Module>(torch::jit::load(pt_path));
     _module->eval();
     _module->to(at::kCPU);
@@ -115,7 +115,6 @@ void RLController::computeObservations() {
     _cmd_gait[ID_STANCE_RATIO] = 0.5; // 站立比例[0~1]
     // 组合观测量
     torch::Tensor obs_buf = torch::cat({
-                                               _base_lin_vel * _lin_vel_scale,
                                                _base_ang_vel * _ang_vel_scale,
                                                _projected_gravity,
                                                torch::mul(_cmd_vel, _cmd_vel_scale),

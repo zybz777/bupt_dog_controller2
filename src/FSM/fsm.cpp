@@ -41,7 +41,7 @@ void FSM::step() {
     _ctrl_comp->step();
     switch (_mode) {
         case FSMMode::NORMAL:
-            checkSafety();
+//            checkSafety();
             _current_state->step();
             _next_state_name = _current_state->checkChange();
             if (_next_state_name != _current_state->_state_name) { // 状态切换

@@ -69,8 +69,8 @@ private:
     Vec12 _rl_tau;
     Vec12 _rl_target_pos;
     Vec12 _rl_target_vel;
-    double _Kp = 20.0;
-    double _Kd = 0.5;
+    double _Kp;
+    double _Kd;
     // thread
     int _ms;
     std::thread _rl_thread;
