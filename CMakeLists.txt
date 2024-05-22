@@ -6,12 +6,11 @@ set(CMAKE_BUILD_TYPE "Release")
 # 设置 仿真模式(ON)或实物模式(OFF)
 set(SIM_MODE ON)# 设置为 ON 或者 OFF
 set(REAL_MODE OFF)
-set(RL_CTRL OFF)
 # 设置 状态估计标定噪声(ON OFF)
 set(CALIBRATE_MODE OFF)
 
 set(hpipm-cpp_DIR "/usr/local/share/hpipm-cpp/cmake/hpipm-cpp-config.cmake")
-set(Torch_DIR "/opt/libtorch/share/cmake/Torch/")
+#set(Torch_DIR "/opt/libtorch/share/cmake/Torch/")
 add_definitions(-DCONFIG_PATH="${CMAKE_SOURCE_DIR}/config/")
 add_definitions(-DROBOT_PATH="${CMAKE_SOURCE_DIR}/config/")
 
@@ -22,13 +21,13 @@ find_package(yaml-cpp REQUIRED)
 find_package(blasfeo REQUIRED)
 find_package(hpipm REQUIRED)
 find_package(hpipm-cpp REQUIRED)
-find_package(Torch REQUIRED)
+#find_package(Torch REQUIRED)
 
-message(STATUS "Torch library status:")
-message(STATUS "    version: ${TORCH_VERSION}")
-message(STATUS "    libraries: ${TORCH_LIBS}")
-message(STATUS "    include path: ${TORCH_INCLUDE_DIRS}")
-message(STATUS "    torch lib : ${TORCH_LIBRARIES} ")
+#message(STATUS "Torch library status:")
+#message(STATUS "    version: ${TORCH_VERSION}")
+#message(STATUS "    libraries: ${TORCH_LIBS}")
+#message(STATUS "    include path: ${TORCH_INCLUDE_DIRS}")
+#message(STATUS "    torch lib : ${TORCH_LIBRARIES} ")
 
 include_directories(
         include
@@ -52,7 +51,6 @@ add_executable(${PROJECT_NAME}
         src/control/mpc/mpc_controller.cpp
         src/control/wbc/wbc_controller.cpp
         src/control/wbc/wbc_optimizer.cpp
-        src/control/rl/rl_controller.cpp
 )
 # 动态库路径
 link_directories(
@@ -68,7 +66,6 @@ target_link_libraries(${PROJECT_NAME}
         blasfeo
         hpipm-cpp::hpipm-cpp
         -lpthread
-        ${TORCH_LIBRARIES}
 )
 
 if (SIM_MODE)
@@ -79,7 +76,4 @@ if (REAL_MODE)
 endif ()
 if (CALIBRATE_MODE)
     add_compile_definitions(USE_CALIBRATE)
-endif ()
-if (RL_CTRL)
-    add_compile_definitions(USE_RL_CTRL)
 endif ()
