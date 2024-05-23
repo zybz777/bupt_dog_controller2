@@ -35,7 +35,6 @@ void MpcController::init() {
     _X.setZero();
     /*mpc output*/
     _mpc_f.setZero();
-    _mpc_f_last.setZero();
     /*mpc 权重*/
 #ifdef USE_SIM
     _L_diag << 0.4, 0.4, 0.8, // 角度
@@ -43,14 +42,12 @@ void MpcController::init() {
         0.2, 0.2, 0.2, // 角速度
         0.8, 0.8, 0.8; // simulink weight
     _K = 5.0e-6;       // 1e-6
-    _S = 0;
 #else
     _L_diag << 0.5, 0.8, 0.8, // 角度
         0.0, 0.0, 0.8,
         0.5, 0.5, 0.5, // 角速度
         0.8, 0.8, 0.8; // simulink weight
     _K = 5.0e-5;       // 1e-6
-    _S = 0;
 #endif
     /*矩阵*/
     initMat();
@@ -102,20 +99,15 @@ void MpcController::initSolver() {
     _solver->setupStateMat_B(_B_dt);
     _solver->setupStateVec_b(_g_dt);
     // 损失函数初始化
-    Mat12 Q, R, S;
+    Mat12 Q, R;
     Q.setZero();
     Q.diagonal() << _L_diag;
-    S.setIdentity();
-    S << _S * S;
-    Vec12 r = -S * _mpc_f_last; // r = -S * u_last
     R.setIdentity();
     R << _K * R;
-    R += S;
     Vec12 q = -Q * Vec12::Zero(); // q = -Q * x_ref
     _solver->setupLossMat_Q(Q);
     _solver->setupLossMat_R(R);
     _solver->setupLossVec_q(q);
-    _solver->setupLossVec_r(r);
     // 约束条件初始化
     _solver->setupConstraintMat_C(MatX::Zero(20, 12));
     _solver->setupConstraintMat_D(_D[0]);
@@ -189,16 +181,11 @@ void MpcController::solve() {
     _solver->updateConstraintVec_ug(_D_max);
     // 更新损失函数
     _solver->updateLossVec_q(_mrt->getXtraj());
-    Mat12 S;
-    S.setIdentity();
-    S << _S * S;
-    _solver->updateLossVec_r(_mpc_f, S);
     // solver
     _X << _robot->getRpy(),
         _estimator->getPosition(),
         _robot->getAngularVelocity_inWorld(),
         _estimator->getLpVelocity();
-    _mpc_f_last = _mpc_f;
     _mpc_f = _solver->solve(_X);
 }
 

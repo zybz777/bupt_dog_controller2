@@ -65,11 +65,9 @@ private:
     Vec12 _X;
     /*mpc output*/
     Vec12 _mpc_f;
-    Vec12 _mpc_f_last;
     /*mpc 权重*/
     Vec12 _L_diag; // 状态量x的权重
     double _K = 1e-6; // 输入量u的权重
-    double _S = 0; // u-u_last的权重
     /*离散矩阵*/
     Mat12 _A_dt;
     Mat12 _B_dt;

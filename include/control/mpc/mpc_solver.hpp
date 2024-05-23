@@ -58,7 +58,7 @@ public:
         for (int i = 0; i < N_; ++i) {
             qp_[i].S = S;
             qp_[i].q = q;
-            // qp_[i].r = r;
+             qp_[i].r = r;
         }
         qp_[N_].q = q;
     }
