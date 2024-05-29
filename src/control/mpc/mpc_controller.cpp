@@ -7,13 +7,13 @@
 #include "utils/real_time.hpp"
 
 
-MpcController::MpcController(const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait,
-    const std::shared_ptr<Estimator>& estimator) {
+MpcController::MpcController(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+                             const std::shared_ptr<Estimator> &estimator) {
     _robot = robot;
     _gait = gait;
     _estimator = estimator;
     _mrt = std::make_shared<MrtGenerator>();
-    _dt = (double)1.0 / MPC_FREQUENCY;
+    _dt = (double) 1.0 / MPC_FREQUENCY;
     _ms = int(_dt * 1000.0);
     init();
     _mpc_thread = std::thread([this] { run(_ms); });
@@ -26,22 +26,25 @@ void MpcController::begin() {
 
 void MpcController::init() {
     /*机器人物理属性*/
-    _M = M;
+    _M = _robot->getRobotMass();
+    _mu = mu;
+    _f_min = f_min;
+    _f_max = f_max;
     _I_body << I_diag[0], 0, 0,
-        0, I_diag[1], 0,
-        0, 0, I_diag[2];
-    _body_com << Body_Com[0], Body_Com[1], Body_Com[2];
+            0, I_diag[1], 0,
+            0, 0, I_diag[2];
+    _body_com = _robot->getRobotStdCom();
     /*mpc input*/
     _X.setZero();
     /*mpc output*/
     _mpc_f.setZero();
     /*mpc 权重*/
 #ifdef USE_SIM
-    _L_diag << 0.4, 0.4, 0.8, // 角度
-        0.0, 0.0, 0.8,
-        0.2, 0.2, 0.2, // 角速度
-        0.8, 0.8, 0.8; // simulink weight
-    _K = 5.0e-6;       // 1e-6
+    _L_diag << 0.5, 0.8, 0.8, // 角度
+            0.0, 0.0, 2.0,
+            0.5, 0.5, 0.5, // 角速度
+            0.8, 0.8, 0.8; // simulink weight
+    _K = 5.0e-5;       // 1e-6
 #else
     _L_diag << 0.5, 0.8, 0.8, // 角度
         0.0, 0.0, 0.8,
@@ -55,7 +58,7 @@ void MpcController::init() {
     initSolver();
     // lcm
     _mpc_topic_name = "mpc_output";
-    for (double& force : _mpc_output.force) {
+    for (double &force: _mpc_output.force) {
         force = 0.0;
     }
 }
@@ -79,10 +82,10 @@ void MpcController::initMat() {
         _D[i].setZero();
         for (int leg_id = 0; leg_id < 4; ++leg_id) {
             _D[i].block<5, 3>(5 * leg_id, 3 * leg_id) << 1., 0., 0.,
-                -1., 0., 0.,
-                0., 1., 0.,
-                0., -1., 0.,
-                0., 0., 1.;
+                    -1., 0., 0.,
+                    0., 1., 0.,
+                    0., -1., 0.,
+                    0., 0., 1.;
         }
         _D_min[i] = VecX::Zero(20);
         _D_max[i] = VecX::Zero(20);
@@ -161,8 +164,7 @@ void MpcController::updateConstraint() {
                 _D[i].block<4, 1>(5 * leg_id + 0, 3 * leg_id + 2) << -_mu, -_mu, -_mu, -_mu;
                 _D_min[i].segment<5>(5 * leg_id) << -inf, -inf, -inf, -inf, _f_min;
                 _D_max[i](5 * leg_id + 4) = _f_max;
-            }
-            else {
+            } else {
                 _D[i].block<4, 1>(5 * leg_id + 0, 3 * leg_id + 2) << 0, 0, 0, 0;
                 _D_min[i].segment<5>(5 * leg_id) << 0., 0., 0., 0., 0.;
                 _D_max[i](5 * leg_id + 4) = 0.;
@@ -183,9 +185,9 @@ void MpcController::solve() {
     _solver->updateLossVec_q(_mrt->getXtraj());
     // solver
     _X << _robot->getRpy(),
-        _estimator->getPosition(),
-        _robot->getAngularVelocity_inWorld(),
-        _estimator->getLpVelocity();
+            _estimator->getPosition(),
+            _robot->getAngularVelocity_inWorld(),
+            _estimator->getLpVelocity();
     _mpc_f = _solver->solve(_X);
 }
 

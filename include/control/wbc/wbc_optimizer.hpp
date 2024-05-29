@@ -9,6 +9,7 @@
 #include "common/robot.hpp"
 #include "gait/gait.hpp"
 #include "dense_qp_solver.hpp"
+#include "doglcm/MpcOutput_t.hpp"
 
 class WbcOptimizer {
 public:
@@ -35,8 +36,8 @@ private:
     VecX _b;
     MatX _Sf;
     // 不等式约束
-    double _mu = 0.4;
-    double _f_min = 10.0, _f_max = 120.0;
+    double _mu;
+    double _f_min, _f_max;
     MatX _C;
     VecX _lg;
     VecX _ug;
@@ -44,6 +45,10 @@ private:
     VecX _ug_mask;
     // output
     VecX _cmd_tau;
+
+    lcm::LCM _lcm;
+    std::string _mpc_topic_name;
+    doglcm::MpcOutput_t _mpc_output;
 };
 
 

@@ -3,6 +3,7 @@
 //
 
 #include "control/wbc/wbc_optimizer.hpp"
+#include "control/mpc/mpc_param.hpp"
 
 WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait) {
     _robot = robot;
@@ -28,6 +29,9 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot> &robot, const std::share
         _Sf(i, i) = 1;
     }
     /* 不等式约束 */
+    _mu = mu;
+    _f_min = f_min;
+    _f_max = f_max;
     _lg = VecX::Zero(_ng);
     _ug = VecX::Zero(_ng);
     _lg_mask = VecX::Ones(_ng);
@@ -48,6 +52,8 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot> &robot, const std::share
     _qp_solver->DenseQpSetMat_C(_C);
     _qp_solver->DenseQpSetVec_lg_mask(_lg_mask);
     _qp_solver->DenseQpSetVec_ug_mask(_ug_mask);
+    // output
+    _mpc_topic_name = "wbc_mpc_output";
 }
 
 const VecX &WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
@@ -62,6 +68,10 @@ const VecX &WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
             f_mpc.segment<3>(3 * i) += _qp_solver->getOutput().segment<3>(6 + 3 * i);
         }
     }
+    for (int i = 0; i < 12; ++i) {
+        _mpc_output.force[i] = f_mpc[i];
+    }
+    _lcm.publish(_mpc_topic_name, &_mpc_output);
     _cmd_tau = -_robot->getJ_FeetPosition().transpose() * f_mpc +
                _robot->getNoLinearTorque() +
                _robot->getMassMat() * cmd_ddq; // WBC优化后的力矩

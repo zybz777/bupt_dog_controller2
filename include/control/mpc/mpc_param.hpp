@@ -14,17 +14,12 @@
 
 #ifndef BUPT_DOG_CONTROLLER2_MPC_PARAM_HPP
 #define BUPT_DOG_CONTROLLER2_MPC_PARAM_HPP
-#define MPC_FREQUENCY 100
-#define HORIZON 80
+#define MPC_FREQUENCY 50
+#define HORIZON 50
 
 const double inf = 1e6;
-const double M = 15.851; // 不含4条腿是13.895   15.851
-//const double M = 13.895f;
-//const double M_BODY = 7.863f;
-//const double M_LEG = 1.937f;
-// 0.037221 0.145629 0.16547 origin
-// 0.0309164, 0.360289, 0.375206 13.895kg cal
+const double mu = 0.5;
 const double I_diag[3] = {0.126958, 0.439839, 0.546138};
-//const double Body_Com[3] = {-0.00580, 0.0, -0.0158041};
-const double Body_Com[3] = {-0.00994354, 0.0, -0.0175776};
+const double f_min = 10;
+const double f_max = 120;
 #endif //BUPT_DOG_CONTROLLER2_MPC_PARAM_HPP

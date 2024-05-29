@@ -57,10 +57,10 @@ private:
     std::shared_ptr<MpcSolver> _solver;
     /*机器人物理属性*/
     Mat3 _I_body, _I_world;               // 惯性矩阵
-    double _M = 15.891;                    // 质量
-    double _f_min = 10.0, _f_max = 100.0; // 摩擦力约束
+    double _M;                    // 质量
+    double _f_min, _f_max; // 摩擦力约束
     Vec3 _body_com;                       // 质心位置
-    double _mu = 0.4;                     // 摩擦系数
+    double _mu;                     // 摩擦系数
     /*mpc input*/
     Vec12 _X;
     /*mpc output*/

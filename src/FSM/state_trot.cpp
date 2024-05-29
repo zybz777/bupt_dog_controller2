@@ -80,7 +80,7 @@ void State_Trot::swingGainMpcWbcTrot() {
         if (_ctrl_comp->getGait()->getContact(i) == SWING) {
             _ctrl_comp->getLowCmd()->setSimSwingGain(i);
         } else {
-            _ctrl_comp->getLowCmd()->setSimSwingGain(i);
+            _ctrl_comp->getLowCmd()->setSimFreeStanceGain(i);
         }
 #else
         if (_ctrl_comp->getGait()->getContact(i) == SWING) {

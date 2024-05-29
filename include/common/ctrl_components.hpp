@@ -67,6 +67,7 @@ public:
     const std::shared_ptr<MpcController> &getMpcController() { return _mpc; }
 
     const std::shared_ptr<WbcController> &getWbcController() { return _wbc; }
+
 private:
     // common
     std::shared_ptr<LowCmd> _low_cmd; // 底层电机控制接口

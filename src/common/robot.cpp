@@ -4,7 +4,7 @@
 
 #include "common/robot.hpp"
 
-Robot::Robot(const std::shared_ptr<LowState>& low_state, int ms) {
+Robot::Robot(const std::shared_ptr<LowState> &low_state, int ms) {
     _low_state = low_state;
     _ms = ms;
     init();
@@ -28,6 +28,18 @@ void Robot::init() {
     // 关节参数初始化
     _q = VecX::Zero(_robot_model->nq);
     _dq = VecX::Zero(_robot_model->nv);
+    // 物理参数初始化
+    _mass = 0.0;
+    for (auto &inertia: _robot_model->inertias) {
+        _mass += inertia.mass();
+    }
+    VecX q = _q;
+    q << 0, 0, 0,
+            0, 0, 0, 1,
+            0.0, 0.81521, -1.57079, 0.0, 0.81521, -1.57079,
+            0.0, 0.81521, -1.57079, 0.0, 0.81521, -1.57079;
+    pinocchio::centerOfMass(*_robot_model, *_robot_data, q);
+    _com = _robot_data->com[0];
     // 运动学参数初始化
     _foot_pos_inWorld.setZero();
     _foot_pos_inBody.setZero();
@@ -60,8 +72,8 @@ void Robot::init() {
     }
     // filter
     for (int i = 0; i < DOF_NUM; ++i) {
-        _foot_vel_inBody_filter[i] = std::make_unique<LPFilter>((double)_ms / 1000.0, 10);
-        _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double)_ms / 1000.0, 50);
+        _foot_vel_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 10);
+        _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 50);
     }
 }
 
@@ -93,7 +105,7 @@ void Robot::step() {
 }
 
 void Robot::forwardKinematics() {
-    const RotMat& R = _low_state->getRotMat();
+    const RotMat &R = _low_state->getRotMat();
     pinocchio::framesForwardKinematics(*_robot_model, *_robot_data, _q);
     pinocchio::computeJointJacobiansTimeVariation(*_robot_model, *_robot_data, _q, _dq);
     Vec3 com_pos_inWorld = _robot_data->oMf[_robot_model->getFrameId("body")].translation();
@@ -108,12 +120,12 @@ void Robot::forwardKinematics() {
         _foot_pos_inBody_filter[3 * i + 1]->addValue(foot_pos_inBody[1]);
         _foot_pos_inBody_filter[3 * i + 2]->addValue(foot_pos_inBody[2]);
         _foot_pos_inBody.col(i) << _foot_pos_inBody_filter[3 * i + 0]->getValue(),
-            _foot_pos_inBody_filter[3 * i + 1]->getValue(),
-            _foot_pos_inBody_filter[3 * i + 2]->getValue();
+                _foot_pos_inBody_filter[3 * i + 1]->getValue(),
+                _foot_pos_inBody_filter[3 * i + 2]->getValue();
         // 足端雅可比矩阵
         J.setZero();
         pinocchio::computeFrameJacobian(*_robot_model, *_robot_data, _q, _robot_model->getFrameId(foot_link[i]),
-            pinocchio::LOCAL_WORLD_ALIGNED, J);
+                                        pinocchio::LOCAL_WORLD_ALIGNED, J);
         _J_Foot_Position.block<3, 18>(3 * i, 0) << J.block<3, 18>(0, 0);     // pin该雅可比矩阵为世界系足端速度=J * (质心系 线速度 角速度 关节速度)
         _foot_jaco_inBody[i] << R.transpose() * J.block<3, 3>(0, 6 + 3 * i); // 将雅可比矩阵由世界系转为质心系
         // 质心坐标系下足端速度 =J*质心系关节速度
@@ -124,32 +136,32 @@ void Robot::forwardKinematics() {
         _foot_vel_inBody_filter[3 * i + 2]->addValue(foot_vel_inBody[2]);
         _foot_vel_inBody.col(i) << foot_vel_inBody;
         _foot_vel_filtered_inBody.col(i) << _foot_vel_inBody_filter[3 * i + 0]->getValue(),
-            _foot_vel_inBody_filter[3 * i + 1]->getValue(),
-            _foot_vel_inBody_filter[3 * i + 2]->getValue();
+                _foot_vel_inBody_filter[3 * i + 1]->getValue(),
+                _foot_vel_inBody_filter[3 * i + 2]->getValue();
         // 足端雅可比矩阵导数
         dJ.setZero();
         pinocchio::getFrameJacobianTimeVariation(*_robot_model, *_robot_data, _robot_model->getFrameId(foot_link[i]),
-            pinocchio::LOCAL_WORLD_ALIGNED, dJ);
+                                                 pinocchio::LOCAL_WORLD_ALIGNED, dJ);
         _dJ_Foot_Position.block<3, 18>(3 * i, 0) << dJ.block<3, 18>(0, 0);
         // lcm
-        _foot_data[i].joint_data[0].Pos = (float)_foot_pos_inBody.col(i)[0];
-        _foot_data[i].joint_data[1].Pos = (float)_foot_pos_inBody.col(i)[1];
-        _foot_data[i].joint_data[2].Pos = (float)_foot_pos_inBody.col(i)[2];
-        _foot_data[i].joint_data[0].W = (float)_foot_vel_inBody.col(i)[0];
-        _foot_data[i].joint_data[1].W = (float)_foot_vel_inBody.col(i)[1];
-        _foot_data[i].joint_data[2].W = (float)_foot_vel_inBody.col(i)[2];
+        _foot_data[i].joint_data[0].Pos = (float) _foot_pos_inBody.col(i)[0];
+        _foot_data[i].joint_data[1].Pos = (float) _foot_pos_inBody.col(i)[1];
+        _foot_data[i].joint_data[2].Pos = (float) _foot_pos_inBody.col(i)[2];
+        _foot_data[i].joint_data[0].W = (float) _foot_vel_inBody.col(i)[0];
+        _foot_data[i].joint_data[1].W = (float) _foot_vel_inBody.col(i)[1];
+        _foot_data[i].joint_data[2].W = (float) _foot_vel_inBody.col(i)[2];
         _lcm.publish(_foot_data_topic_name[i], &_foot_data[i]);
     }
     /*得到质心线速度的雅可比矩阵*/
     J.setZero();
     pinocchio::computeFrameJacobian(*_robot_model, *_robot_data, _q, _robot_model->getFrameId("body"),
-        pinocchio::LOCAL_WORLD_ALIGNED, J);
+                                    pinocchio::LOCAL_WORLD_ALIGNED, J);
     _J_Body_Position << J.block<3, 18>(0, 0); // 世界系速度 = J * 质心系速度
     _J_Body_Orientation << J.block<3, 18>(3, 0); // 世界系角速度 = J * 质心系角速度
     /*质心线速度雅可比矩阵的导数*/
     dJ.setZero();
     pinocchio::getFrameJacobianTimeVariation(*_robot_model, *_robot_data, _robot_model->getFrameId("body"),
-        pinocchio::LOCAL_WORLD_ALIGNED, dJ);
+                                             pinocchio::LOCAL_WORLD_ALIGNED, dJ);
     _dJ_Body_Position << dJ.block<3, 18>(0, 0);
     _dJ_Body_Orientation << dJ.block<3, 18>(3, 0);
 }

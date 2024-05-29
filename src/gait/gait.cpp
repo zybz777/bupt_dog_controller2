@@ -31,7 +31,7 @@ void Gait::step() {
 }
 
 void Gait::checkGaitChange() {
-// 步态重叠，退出
+    // 步态重叠，退出
     if (_user_cmd->gait_type == (int8_t) _gait_type) {
         return;
     }
@@ -57,7 +57,7 @@ void Gait::checkGaitChange() {
             setGaitType(GaitType::FIXEDDOWN, FIXEDDOWN_T);
             break;
         case GaitType::TROTTING:
-            setGaitType(GaitType::TROTTING, 0.7);
+            setGaitType(GaitType::TROTTING, 0.6);
             break;
         case GaitType::FREESTAND:
             setGaitType(GaitType::FREESTAND, 0.6);

@@ -119,11 +119,11 @@ void State_FreeStand::swingGainMpcWbcStand() {
     _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
     _cmd_tau = _ctrl_comp->getWbcController()->getLegCmdTau();
 #ifdef USE_SIM
-    //    _ctrl_comp->getLowCmd()->setSimSwingGain(0);
-    //    _ctrl_comp->getLowCmd()->setSimSwingGain(1);
-    //    _ctrl_comp->getLowCmd()->setSimSwingGain(2);
-    //    _ctrl_comp->getLowCmd()->setSimSwingGain(3);
-    _ctrl_comp->getLowCmd()->setZeroGain();
+        _ctrl_comp->getLowCmd()->setSimFreeStanceGain(0);
+        _ctrl_comp->getLowCmd()->setSimFreeStanceGain(1);
+        _ctrl_comp->getLowCmd()->setSimFreeStanceGain(2);
+        _ctrl_comp->getLowCmd()->setSimFreeStanceGain(3);
+//    _ctrl_comp->getLowCmd()->setZeroGain();
 #else
     _ctrl_comp->getLowCmd()->setRealFreeStanceGain();
     for (int i = 0; i < LEG_NUM; ++i) {
