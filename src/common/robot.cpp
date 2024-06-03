@@ -30,16 +30,35 @@ void Robot::init() {
     _dq = VecX::Zero(_robot_model->nv);
     // 物理参数初始化
     _mass = 0.0;
-    for (auto &inertia: _robot_model->inertias) {
-        _mass += inertia.mass();
-    }
     VecX q = _q;
     q << 0, 0, 0,
             0, 0, 0, 1,
             0.0, 0.81521, -1.57079, 0.0, 0.81521, -1.57079,
             0.0, 0.81521, -1.57079, 0.0, 0.81521, -1.57079;
-    pinocchio::centerOfMass(*_robot_model, *_robot_data, q);
-    _com = _robot_data->com[0];
+    _com = pinocchio::centerOfMass(*_robot_model, *_robot_data, q);
+    pinocchio::forwardKinematics(*_robot_model, *_robot_data, q);
+    _body_inertial.setZero();
+    std::vector<std::string> body_joint_names{"root_joint", "FL_X_joint", "FR_X_joint", "HL_X_joint", "HR_X_joint"};
+    std::vector<Mat3> body_inertial_mat = std::vector<Mat3>(body_joint_names.size());
+    std::vector<double> body_mass = std::vector<double>(body_joint_names.size());
+    std::vector<Vec3> body_com = std::vector<Vec3>(body_joint_names.size());
+    for (int i = 0; i < body_inertial_mat.size(); ++i) {
+        body_inertial_mat[i] = _robot_model->inertias[_robot_model->getJointId(body_joint_names[i])].inertia().matrix();
+        body_mass[i] = _robot_model->inertias[_robot_model->getJointId(body_joint_names[i])].mass();
+        body_com[i] = _robot_model->inertias[_robot_model->getJointId(body_joint_names[i])].lever()
+                      + _robot_data->oMi[_robot_model->getJointId(body_joint_names[i])].translation();
+//        std::cout << body_joint_names[i] << std::endl;
+//        std::cout << body_inertial_mat[i] << std::endl;
+//        std::cout << body_mass[i] << std::endl;
+//        std::cout << "com " << body_com[i].transpose() << std::endl;
+        _body_inertial += body_inertial_mat[i] + body_mass[i] *
+                                                 (body_com[i].transpose() * body_com[i] * _I3 -
+                                                  body_com[i] * body_com[i].transpose());
+        _mass += body_mass[i];
+    }
+    std::cout << "[Robot] body inertial " << std::endl << _body_inertial << std::endl;
+    std::cout << "[Robot] body mass " << _mass << std::endl;
+    std::cout << "[Robot] body com " << _com.transpose() << std::endl;
     // 运动学参数初始化
     _foot_pos_inWorld.setZero();
     _foot_pos_inBody.setZero();

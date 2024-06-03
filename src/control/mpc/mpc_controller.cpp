@@ -30,9 +30,7 @@ void MpcController::init() {
     _mu = mu;
     _f_min = f_min;
     _f_max = f_max;
-    _I_body << I_diag[0], 0, 0,
-            0, I_diag[1], 0,
-            0, 0, I_diag[2];
+    _I_body << _robot->getRobotInertial();
     _body_com = _robot->getRobotStdCom();
     /*mpc input*/
     _X.setZero();

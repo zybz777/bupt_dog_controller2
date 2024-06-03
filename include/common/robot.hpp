@@ -64,6 +64,8 @@ public:
 
     const Vec3 &getRobotStdCom() { return _com; }
 
+    const Mat3 &getRobotInertial() { return _body_inertial; }
+
     // 足端运动学数据
     Vec3 getFootPosition_inBody(int leg_id) { return _foot_pos_inBody.col(leg_id); }
 
@@ -149,6 +151,7 @@ private:
     // 物理参数
     double _mass;
     Vec3 _com;
+    Mat3 _body_inertial;
     // 运动学足端数据
     Vec34 _foot_pos_inWorld;   // 世界坐标系下足端位置
     Vec34 _foot_pos_inBody;    // 质心坐标系下足端位置

@@ -19,7 +19,6 @@
 
 const double inf = 1e6;
 const double mu = 0.5;
-const double I_diag[3] = {0.126958, 0.439839, 0.546138};
 const double f_min = 10;
 const double f_max = 120;
 #endif //BUPT_DOG_CONTROLLER2_MPC_PARAM_HPP
