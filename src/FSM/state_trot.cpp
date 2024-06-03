@@ -26,8 +26,7 @@ void State_Trot::enter() {
 }
 
 void State_Trot::step() {
-    //    swingGainMpcTrot();
-//    swingGainMpcWbcTrot();
+//        swingGainMpcTrot();
     swingGainMpcWbcTrot();
 }
 
@@ -58,9 +57,8 @@ void State_Trot::swingGainMpcTrot() {
         if (_ctrl_comp->getGait()->getContact(i) == SWING) {
             _cmd_tau.segment<3>(3 * i) = _ctrl_comp->getRobot()->getLegNoLinearTorque().segment<3>(3 * i);
         } else {
-            _ctrl_comp->getLowCmd()->setZeroGain(i);
+            _ctrl_comp->getLowCmd()->setSimSwingGain(i);
             _cmd_tau.segment<3>(3 * i) = cmd_tau.segment<3>(6 + 3 * i);
-            //            _cmd_tau.segment<3>(3 * i) = _ctrl_comp->getRobot()->getLegNoLinearTorque().segment<3>(3 * i);
         }
     }
     _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
