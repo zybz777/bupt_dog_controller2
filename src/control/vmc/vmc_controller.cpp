@@ -25,6 +25,7 @@ void VmcController::step(const std::shared_ptr<Robot> &robot, const std::shared_
                          const std::shared_ptr<Estimator> &estimator,
                          const std::shared_ptr<doglcm::UserCmd_t> &user_cmd) {
     // 数据同步
+    _vmc_data->std_foot_pos = robot->getRobotStdFootPos_inBody();
     _vmc_data->curr_foot_pos = robot->getFootPositions_inBody();
     _vmc_data->curr_foot_vel = robot->getFootVelocities_inBody();
     for (int i = 0; i < 4; ++i) {

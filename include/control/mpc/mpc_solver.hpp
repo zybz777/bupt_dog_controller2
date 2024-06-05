@@ -100,7 +100,7 @@ public:
         // solver setting 初始化
         solver_settings_.mode = hpipm::HpipmMode::SpeedAbs;
         solver_settings_.iter_max = 200;
-//        solver_settings_.warm_start = 1;
+        solver_settings_.warm_start = 1;
 //        solver_settings_.alpha_min = 1e-12;
 //        solver_settings_.mu0 = 1e4;
 //        solver_settings_.tol_stat = 1e-04;
@@ -110,7 +110,7 @@ public:
 //        solver_settings_.reg_prim = 1e-12;
 //        solver_settings_.pred_corr = 1;
 //        solver_settings_.ric_alg = 1;
-//        solver_settings_.split_step = 1;
+        solver_settings_.split_step = 1;
         // solution 初始化
         solution_ = std::vector<hpipm::OcpQpSolution>(N_ + 1);
         for (int i = 0; i < N_; ++i) {

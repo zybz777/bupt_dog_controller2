@@ -37,6 +37,11 @@ void Robot::init() {
             0.0, 0.81521, -1.57079, 0.0, 0.81521, -1.57079;
     _com = pinocchio::centerOfMass(*_robot_model, *_robot_data, q);
     pinocchio::forwardKinematics(*_robot_model, *_robot_data, q);
+    pinocchio::updateFramePlacements(*_robot_model, *_robot_data);
+    for (int i = 0; i < LEG_NUM; ++i) {
+        _std_foot_pos_inBody.col(i) << _robot_data->oMf[_robot_model->getFrameId(foot_link[i])].translation();
+    }
+    std::cout << "[Robot] std foot pos " << std::endl << _std_foot_pos_inBody << std::endl;
     _body_inertial.setZero();
     std::vector<std::string> body_joint_names{"root_joint", "FL_X_joint", "FR_X_joint", "HL_X_joint", "HR_X_joint"};
     std::vector<Mat3> body_inertial_mat = std::vector<Mat3>(body_joint_names.size());
