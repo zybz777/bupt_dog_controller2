@@ -17,12 +17,26 @@ add_definitions(-DROBOT_PATH="${CMAKE_SOURCE_DIR}/config/")
 find_package(lcm REQUIRED)
 find_package(Eigen3 REQUIRED)
 #find_package(pinocchio REQUIRED)
-find_package(yaml-cpp REQUIRED)
 find_package(blasfeo REQUIRED)
 find_package(hpipm REQUIRED)
 find_package(hpipm-cpp REQUIRED)
-#find_package(Torch REQUIRED)
 
+include(FetchContent)
+FetchContent_Declare(
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+  GIT_TAG yaml-cpp-0.7.0 # Replace with the desired tag, commit hash, or branch
+)
+FetchContent_GetProperties(yaml-cpp)
+if(NOT yaml-cpp_POPULATED)
+  message(STATUS "Fetching yaml-cpp...")
+  FetchContent_Populate(yaml-cpp)
+  add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+  message(STATUS "yaml-cpp Source Dir: ${yaml-cpp_SOURCE_DIR}")
+  message(STATUS "yaml-cpp Binary Dir: ${yaml-cpp_BINARY_DIR}")
+endif()
+
+#find_package(Torch REQUIRED)
 #message(STATUS "Torch library status:")
 #message(STATUS "    version: ${TORCH_VERSION}")
 #message(STATUS "    libraries: ${TORCH_LIBS}")
