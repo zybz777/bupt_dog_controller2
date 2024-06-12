@@ -1,9 +1,8 @@
 //
 // Created by zyb on 24-4-26.
 //
-
-#ifndef BUPT_DOG_CONTROLLER2_MPC_CONTROLLER_HPP
-#define BUPT_DOG_CONTROLLER2_MPC_CONTROLLER_HPP
+#ifndef BUPT_DOG_CONTROLLER2_MPC_CONTROLLER2_HPP
+#define BUPT_DOG_CONTROLLER2_MPC_CONTROLLER2_HPP
 
 #include "common/estimator.hpp"
 #include "common/robot.hpp"
@@ -19,11 +18,13 @@ class MpcController {
 
     void begin();
 
-    const Vec12& getMpcOutput() { return _mpc_f; }
+    const Vec6& getMpcOutput() {
+        return _mpc_f;
+    }
 
-    Vec3 getMpcOutput(int leg_id) { return _mpc_f.segment<3>(3 * leg_id); }
-
-    const std::shared_ptr<MrtGenerator>& getMrtGenerator() { return _mrt; }
+    const std::shared_ptr<MrtGenerator>& getMrtGenerator() {
+        return _mrt;
+    }
 
   private:
     void init();
@@ -62,13 +63,13 @@ class MpcController {
     /*mpc input*/
     Vec12 _X;
     /*mpc output*/
-    Vec12 _mpc_f;
+    Vec6 _mpc_f;
     /*mpc 权重*/
     Vec12 _L_diag;    // 状态量x的权重
     double _K = 1e-6; // 输入量u的权重
     /*离散矩阵*/
     Mat12 _A_dt;
-    Mat12 _B_dt;
+    MatX _B_dt; // 12x6
     Vec12 _g_dt;
     /*约束条件：摩擦锥 lg <= D u <= ug*/
     vector<MatX> _D;
@@ -81,5 +82,4 @@ class MpcController {
     std::string _mpc_topic_name;
     doglcm::MpcOutput_t _mpc_output;
 };
-
-#endif // BUPT_DOG_CONTROLLER2_MPC_CONTROLLER_HPP
+#endif

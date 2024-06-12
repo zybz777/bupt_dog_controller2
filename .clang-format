@@ -1,0 +1,20 @@
+---
+Language:        Cpp
+BasedOnStyle:  Microsoft
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+BreakBeforeBraces: Attach
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AlignAfterOpenBracket: true
+AlignTrailingComments: true
+AlwaysBreakTemplateDeclarations: Yes
+BreakConstructorInitializers: AfterColon
+ColumnLimit: 0
+PointerAlignment: Left
+SortIncludes: true
+SpaceAfterTemplateKeyword: true
+SpacesInParentheses: false
+Standard: Cpp11

@@ -3,6 +3,7 @@ project(bupt_dog_controller2)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # 设置 仿真模式(ON)或实物模式(OFF)
 set(SIM_MODE ON)# 设置为 ON 或者 OFF
 set(REAL_MODE OFF)
