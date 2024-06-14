@@ -4,8 +4,10 @@
 #ifndef BUPT_DOG_CONTROLLER2_MPC_CONTROLLER2_HPP
 #define BUPT_DOG_CONTROLLER2_MPC_CONTROLLER2_HPP
 
+#include "centroidal_force_mapper.hpp"
 #include "common/estimator.hpp"
 #include "common/robot.hpp"
+#include "control/mpc/centroidal_force_mapper.hpp"
 #include "doglcm/MpcOutput_t.hpp"
 #include "gait/gait.hpp"
 #include "mpc_solver.hpp"
@@ -21,7 +23,9 @@ class MpcController2 {
     const Vec6& getMpcOutput() {
         return _mpc_f;
     }
-
+    Vec12 getContactForce() {
+        return _force_mapper->getContactForce();
+    }
     const std::shared_ptr<MrtGenerator>& getMrtGenerator() {
         return _mrt;
     }
@@ -45,11 +49,15 @@ class MpcController2 {
 
     void publishMpcOutput();
 
+    [[noreturn]] void run_force_mapper(int ms);
+
     std::thread _mpc_thread;
+    std::thread _force_mapper_thread;
     std::shared_ptr<Robot> _robot;
     std::shared_ptr<Gait> _gait;
     std::shared_ptr<MrtGenerator> _mrt;
     std::shared_ptr<Estimator> _estimator;
+    std::shared_ptr<CentroidalForceMapper> _force_mapper;
     double _dt;
     int _ms;
     /*mpc solver*/

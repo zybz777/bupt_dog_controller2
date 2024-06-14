@@ -22,7 +22,12 @@ WbcController::WbcController(int ms, const std::shared_ptr<Robot>& robot, const 
     _mpc2 = mpc2;
     _vmc = vmc;
     _user_cmd = _robot->getLowState()->getUserCmd();
+#ifdef USE_MPC1
     _mrt = _mpc->getMrtGenerator();
+#endif
+#ifdef USE_MPC2
+    _mrt = _mpc2->getMrtGenerator();
+#endif
     // task
     _task_list.push_back(&_task_contact_foot);
     _task_list.push_back(&_task_swing_foot);
@@ -43,38 +48,7 @@ WbcController::WbcController(int ms, const std::shared_ptr<Robot>& robot, const 
     _f_mpc.setZero();
     // qp solver
     _optimizer = std::make_shared<WbcOptimizer>(_robot, _gait);
-    int nv = 12, ne = 6, ng = 20;
-    double K = 1.0e-5;
-    _mpc2_qp_solver = std::make_shared<DenseQpSolver>(nv, ne, ng);
-    _mpc2_contact_force.setZero();
-    _mpc2_H = MatX::Identity(nv, nv);
-    _mpc2_H *= K;
-    _mpc2_g = VecX::Zero(nv);
-    _mpc2_A = MatX::Zero(ne, nv);
-    _mpc2_b = VecX::Zero(ne);
-    _mpc2_lg = VecX::Zero(ng);
-    _mpc2_ug = VecX::Zero(ng);
-    _mpc2_lg_mask = VecX::Ones(ng);
-    _mpc2_ug_mask = VecX::Ones(ng);
-    _mpc2_C = MatX::Zero(ng, nv);
-    MatX C_leg = MatX::Zero(5, 3); // 一条腿
-    C_leg << 1, 0, 0,
-        -1, 0, 0,
-        0, 1, 0,
-        0, -1, 0,
-        0, 0, 1;
-    for (int i = 0; i < 4; ++i) {
-        _mpc2_C.block<5, 3>(5 * i, 3 * i) << C_leg;
-    }
-    _mpc2_qp_solver->DenseQpSetMat_H(_mpc2_H);
-    _mpc2_qp_solver->DenseQpSetVec_g(_mpc2_g);
-    _mpc2_qp_solver->DenseQpSetMat_A(_mpc2_A);
-    _mpc2_qp_solver->DenseQpSetVec_b(_mpc2_b);
-    _mpc2_qp_solver->DenseQpSetMat_C(_mpc2_C);
-    _mpc2_qp_solver->DenseQpSetVec_lg_mask(_mpc2_lg_mask);
-    _mpc2_qp_solver->DenseQpSetVec_ug_mask(_mpc2_ug_mask);
-    std::cout
-        << "[WBC] Init Successful!" << std::endl;
+    std::cout << "[WBC] Init Successful!" << std::endl;
 }
 
 void WbcController::step() {
@@ -90,7 +64,12 @@ void WbcController::updateData() {
     _com_rpy = _robot->getRpy();
     _com_omega_inBody = _robot->getAngularVelocity();
     _feet_positions_inBody = _robot->getFootPositions_inBody();
+#ifdef USE_MPC1
     _f_mpc = _mpc->getMpcOutput();
+#endif
+#ifdef USE_MPC2
+    _f_mpc = _mpc2->getContactForce();
+#endif
 }
 
 void WbcController::updateTask() {
@@ -234,56 +213,5 @@ void WbcController::solve() {
     _cmd_q += cmd_delta_q; // 位置任务解算的关节角
     _cmd_dq = cmd_dq;
     _cmd_ddq = cmd_ddq;
-    // _cmd_tau = _optimizer->calcCmdTau(_cmd_ddq, _f_mpc);
-    _cmd_tau = _optimizer->calcCmdTau(_cmd_ddq, mpc2ForceSolve());
-}
-
-Vec12 WbcController::mpc2ForceSolve() {
-    Vec3 r;
-    Vec6 s;
-    Vec12 w, u;
-    MatX S, W, U;
-    double alpha, beta;
-    s << 20, 20, 50, 450, 450, 450;
-    S = s.asDiagonal(); // (Af-b)S(Af-b)
-    w << 10, 10, 4, 10, 10, 4, 10, 10, 4, 10, 10, 4;
-    W = w.asDiagonal(); // f alpha W f
-    alpha = 0.001;
-    beta = 0.1;
-    Mat12 belta_U = 0 * Mat12::Identity(); // (f-f_prev) belta_U (f-f_prev)
-    for (int i = 0; i < LEG_NUM; ++i) {
-        _mpc2_A.block<3, 3>(0, 3 * i) << _I3;
-        r = _rot_mat * (_robot->getFootPosition_inBody(i) - _robot->getRobotStdCom());
-        _mpc2_A.block<3, 3>(3, 3 * i) << skew(r);
-        if (_gait->getContact(i) == CONTACT) {
-            _mpc2_lg.segment<5>(5 * i) << -inf, -inf, -inf, -inf, f_min;
-            _mpc2_ug.segment<5>(5 * i) << 0, 0, 0, 0, f_max;
-            _mpc2_C.block<4, 1>(5 * i, 2 + 3 * i) << -mu, -mu, -mu, -mu;
-        } else {
-            _mpc2_C.block<4, 1>(5 * i, 2 + 3 * i).setZero();
-            _mpc2_lg.segment<5>(5 * i).setZero();
-            _mpc2_ug.segment<5>(5 * i).setZero();
-        }
-    }
-    _mpc2_b = _mpc2->getMpcOutput();
-
-    _mpc2_H = _mpc2_A.transpose() * S * _mpc2_A + alpha * W + belta_U;
-    _mpc2_g = -_mpc2_A.transpose() * S * _mpc2_b - belta_U * Vec12::Zero(); // -A.TxSxb - belta_Uxf_prev
-
-    _mpc2_qp_solver->DenseQpSetMat_C(_mpc2_C);
-    _mpc2_qp_solver->DenseQpSetVec_lg(_mpc2_lg);
-    _mpc2_qp_solver->DenseQpSetVec_ug(_mpc2_ug);
-    _mpc2_qp_solver->DenseQpSetMat_H(_mpc2_H);
-    _mpc2_qp_solver->DenseQpSetVec_g(_mpc2_g);
-    _mpc2_qp_solver->DenseQpSolve();
-    _mpc2_contact_force = _mpc2_qp_solver->getOutput();
-    // std::cout << "H " << _mpc2_H << std::endl;
-    // std::cout << "g " << _mpc2_g.transpose() << std::endl;
-    std::cout << "b " << _mpc2_b.transpose() << std::endl;
-    // std::cout << "C " << _mpc2_C << std::endl;
-    // std::cout << "lg " << _mpc2_lg.transpose() << std::endl;
-    // std::cout << "ug " << _mpc2_ug.transpose() << std::endl;
-    std::cout << "mpc force " << _mpc2_contact_force.transpose() << std::endl;
-    std::cout << "Ax " << _mpc2_A * _mpc2_contact_force << std::endl;
-    return _mpc2_contact_force;
+    _cmd_tau = _optimizer->calcCmdTau(_cmd_ddq, _f_mpc);
 }

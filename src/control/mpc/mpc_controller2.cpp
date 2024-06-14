@@ -10,13 +10,20 @@ MpcController2::MpcController2(const std::shared_ptr<Robot>& robot, const std::s
     _mrt = std::make_shared<MrtGenerator>();
     _dt = (double)1.0 / MPC_FREQUENCY;
     _ms = int(_dt * 1000.0);
+    _force_mapper = std::make_shared<CentroidalForceMapper>(_robot, _gait);
     init();
+#ifdef USE_MPC2
     _mpc_thread = std::thread([this] { run(_ms); });
+    _force_mapper_thread = std::thread([this] { run_force_mapper(1); });
+#endif
     std::cout << "[MpcController2] Init Successful!" << std::endl;
 }
 
 void MpcController2::begin() {
+#ifdef USE_MPC2
     _mpc_thread.join();
+    _force_mapper_thread.join();
+#endif
 }
 
 void MpcController2::init() {
@@ -145,4 +152,17 @@ void MpcController2::solve() {
         _estimator->getLpVelocity();
     _mpc_f = _solver->solve(_X);
     // std::cout << "mpc2 f " << _mpc_f.transpose() << std::endl;
+}
+
+void MpcController2::run_force_mapper(int ms) {
+    std::cout << "[MPC Mapper] Task Run!" << std::endl;
+    // assignTask2Cpu(2);
+    std::chrono::microseconds period(ms * 1000);
+    std::chrono::microseconds zero_us(0);
+    auto start_time = std::chrono::high_resolution_clock::now();
+    while (true) {
+        _force_mapper->solve(_mpc_f);
+        start_time += period;
+        std::this_thread::sleep_until(start_time);
+    }
 }

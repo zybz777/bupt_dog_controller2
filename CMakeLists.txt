@@ -9,6 +9,9 @@ set(SIM_MODE ON)# 设置为 ON 或者 OFF
 set(REAL_MODE OFF)
 # 设置 状态估计标定噪声(ON OFF)
 set(CALIBRATE_MODE OFF)
+# 设置 MPC1 MPC2
+set(MPC_MODE1 OFF)
+set(MPC_MODE2 ON)
 
 set(hpipm-cpp_DIR "/usr/local/share/hpipm-cpp/cmake/hpipm-cpp-config.cmake")
 #set(Torch_DIR "/opt/libtorch/share/cmake/Torch/")
@@ -65,6 +68,7 @@ add_executable(${PROJECT_NAME}
         src/control/mpc/mrt_generator.cpp
         src/control/mpc/mpc_controller.cpp
         src/control/mpc/mpc_controller2.cpp
+        src/control/mpc/centroidal_force_mapper.cpp
         src/control/wbc/wbc_controller.cpp
         src/control/wbc/wbc_optimizer.cpp
 )
@@ -92,4 +96,10 @@ if (REAL_MODE)
 endif ()
 if (CALIBRATE_MODE)
     add_compile_definitions(USE_CALIBRATE)
+endif ()
+if (MPC_MODE1)
+    add_compile_definitions(USE_MPC1)
+endif ()
+if (MPC_MODE2)
+    add_compile_definitions(USE_MPC2)
 endif ()

@@ -45,8 +45,6 @@ class WbcController {
 
     void updateSwingFootTask(WbcTask_FootPos& task);
 
-    Vec12 mpc2ForceSolve();
-
     void solve();
 
     // common
@@ -81,18 +79,6 @@ class WbcController {
     Vec12 _f_mpc;
     // qp solver
     std::shared_ptr<WbcOptimizer> _optimizer;
-    // mpc2 use qp solver
-    std::shared_ptr<DenseQpSolver> _mpc2_qp_solver;
-    MatX _mpc2_H;
-    VecX _mpc2_g;
-    MatX _mpc2_A;
-    VecX _mpc2_b;
-    VecX _mpc2_lg;
-    VecX _mpc2_ug;
-    MatX _mpc2_C;
-    VecX _mpc2_lg_mask;
-    VecX _mpc2_ug_mask;
-    Vec12 _mpc2_contact_force;
 };
 
 #endif //BUPT_DOG_CONTROLLER2_WBC_CONTROLLER_HPP

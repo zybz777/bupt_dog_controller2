@@ -6,22 +6,25 @@
 #include "control/mpc/mpc_param.hpp"
 #include "utils/real_time.hpp"
 
-
-MpcController::MpcController(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
-                             const std::shared_ptr<Estimator> &estimator) {
+MpcController::MpcController(const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait,
+                             const std::shared_ptr<Estimator>& estimator) {
     _robot = robot;
     _gait = gait;
     _estimator = estimator;
     _mrt = std::make_shared<MrtGenerator>();
-    _dt = (double) 1.0 / MPC_FREQUENCY;
+    _dt = (double)1.0 / MPC_FREQUENCY;
     _ms = int(_dt * 1000.0);
     init();
+#ifdef USE_MPC1
     _mpc_thread = std::thread([this] { run(_ms); });
+#endif
     std::cout << "[MpcController] Init Successful!" << std::endl;
 }
 
 void MpcController::begin() {
+#ifdef USE_MPC1
     _mpc_thread.join();
+#endif
 }
 
 void MpcController::init() {
@@ -39,9 +42,9 @@ void MpcController::init() {
     /*mpc 权重*/
 #ifdef USE_SIM
     _L_diag << 0.5, 0.8, 0.8, // 角度
-            0.0, 0.0, 5.0,
-            1.0, 1.0, 1.0, // 角速度
-            2.0, 2.0, 2.0; // simulink weight
+        0.0, 0.0, 5.0,
+        1.0, 1.0, 1.0, // 角速度
+        2.0, 2.0, 2.0; // simulink weight
     _K = 1.0e-6;       // 1e-6
 #else
     _L_diag << 0.5, 0.8, 0.8, // 角度
@@ -56,7 +59,7 @@ void MpcController::init() {
     initSolver();
     // lcm
     _mpc_topic_name = "mpc_output";
-    for (double &force: _mpc_output.force) {
+    for (double& force : _mpc_output.force) {
         force = 0.0;
     }
 }
@@ -80,10 +83,10 @@ void MpcController::initMat() {
         _D[i].setZero();
         for (int leg_id = 0; leg_id < 4; ++leg_id) {
             _D[i].block<5, 3>(5 * leg_id, 3 * leg_id) << 1., 0., 0.,
-                    -1., 0., 0.,
-                    0., 1., 0.,
-                    0., -1., 0.,
-                    0., 0., 1.;
+                -1., 0., 0.,
+                0., 1., 0.,
+                0., -1., 0.,
+                0., 0., 1.;
         }
         _D_min[i] = VecX::Zero(20);
         _D_max[i] = VecX::Zero(20);
@@ -183,9 +186,9 @@ void MpcController::solve() {
     _solver->updateLossVec_q(_mrt->getXtraj());
     // solver
     _X << _robot->getRpy(),
-            _estimator->getPosition(),
-            _robot->getAngularVelocity_inWorld(),
-            _estimator->getLpVelocity();
+        _estimator->getPosition(),
+        _robot->getAngularVelocity_inWorld(),
+        _estimator->getLpVelocity();
     _mpc_f = _solver->solve(_X);
 }
 

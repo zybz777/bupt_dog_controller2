@@ -8,10 +8,10 @@
  *
  * Copyright (c) 2024 by BUPT RobotTeam, All Rights Reserved.
  */
-#include <iostream>
-#include "common/ctrl_components.hpp"
 #include "FSM/fsm.hpp"
+#include "common/ctrl_components.hpp"
 #include "utils/real_time.hpp"
+#include <iostream>
 
 int main() {
 #ifdef USE_SIM
@@ -24,6 +24,12 @@ int main() {
     std::cout << "#### CALIBRATE MODE ON ####" << std::endl;
 #else
     std::cout << "#### CALIBRATE MODE OFF ####" << std::endl;
+#endif
+#ifdef USE_MPC1
+    std::cout << "#### MPC MODE1 ON ####" << std::endl;
+#endif
+#ifdef USE_MPC2
+    std::cout << "#### MPC MODE2 ON ####" << std::endl;
 #endif
     setPriority();
     int ms = 1;
