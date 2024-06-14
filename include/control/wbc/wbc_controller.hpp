@@ -5,21 +5,24 @@
 #ifndef BUPT_DOG_CONTROLLER2_WBC_CONTROLLER_HPP
 #define BUPT_DOG_CONTROLLER2_WBC_CONTROLLER_HPP
 
-
 #include "common/robot.hpp"
 #include "control/mpc/mpc_controller.hpp"
+#include "control/mpc/mpc_controller2.hpp"
+#include "control/mpc/mpc_param.hpp"
 #include "control/vmc/vmc_controller.hpp"
+#include "control/wbc/dense_qp_solver.hpp"
 #include "control/wbc/task/wbc_task.hpp"
+#include "control/wbc/task/wbc_task_body_orientation.hpp"
 #include "control/wbc/task/wbc_task_body_pos.hpp"
 #include "control/wbc/task/wbc_task_foot_pos.hpp"
-#include "control/wbc/task/wbc_task_body_orientation.hpp"
 #include "wbc_optimizer.hpp"
 
 class WbcController {
-public:
-    WbcController(int ms, const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
-                  const std::shared_ptr<Estimator> &estimator,
-                  const std::shared_ptr<MpcController> &mpc, const std::shared_ptr<VmcController> &vmc);
+  public:
+    WbcController(int ms, const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait,
+                  const std::shared_ptr<Estimator>& estimator,
+                  const std::shared_ptr<MpcController>& mpc,
+                  const std::shared_ptr<MpcController2>& mpc2, const std::shared_ptr<VmcController>& vmc);
 
     void step();
 
@@ -29,18 +32,20 @@ public:
 
     Vec12 getLegCmdTau() { return _cmd_tau.segment<12>(6); }
 
-private:
+  private:
     void updateData();
 
     void updateTask();
 
-    void updateContactFootTask(WbcTask_FootPos &task);
+    void updateContactFootTask(WbcTask_FootPos& task);
 
-    void updateBodyPosTask(WbcTask_BodyPos &task);
+    void updateBodyPosTask(WbcTask_BodyPos& task);
 
-    void updateBodyOrientationTask(WbcTask_BodyOrientation &task);
+    void updateBodyOrientationTask(WbcTask_BodyOrientation& task);
 
-    void updateSwingFootTask(WbcTask_FootPos &task);
+    void updateSwingFootTask(WbcTask_FootPos& task);
+
+    Vec12 mpc2ForceSolve();
 
     void solve();
 
@@ -49,12 +54,13 @@ private:
     std::shared_ptr<Estimator> _estimator;
     std::shared_ptr<Gait> _gait;
     std::shared_ptr<MpcController> _mpc;
+    std::shared_ptr<MpcController2> _mpc2;
     std::shared_ptr<VmcController> _vmc;
     std::shared_ptr<MrtGenerator> _mrt;
     std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
     double _dt;
     /* 任务空间 */
-    std::vector<WbcTask *> _task_list;
+    std::vector<WbcTask*> _task_list;
     WbcTask_BodyPos _task_body_pos;
     WbcTask_BodyOrientation _task_body_orientation;
     WbcTask_FootPos _task_swing_foot;
@@ -75,7 +81,18 @@ private:
     Vec12 _f_mpc;
     // qp solver
     std::shared_ptr<WbcOptimizer> _optimizer;
+    // mpc2 use qp solver
+    std::shared_ptr<DenseQpSolver> _mpc2_qp_solver;
+    MatX _mpc2_H;
+    VecX _mpc2_g;
+    MatX _mpc2_A;
+    VecX _mpc2_b;
+    VecX _mpc2_lg;
+    VecX _mpc2_ug;
+    MatX _mpc2_C;
+    VecX _mpc2_lg_mask;
+    VecX _mpc2_ug_mask;
+    Vec12 _mpc2_contact_force;
 };
-
 
 #endif //BUPT_DOG_CONTROLLER2_WBC_CONTROLLER_HPP

@@ -64,6 +64,7 @@ add_executable(${PROJECT_NAME}
         src/control/vmc/vmc_controller.cpp
         src/control/mpc/mrt_generator.cpp
         src/control/mpc/mpc_controller.cpp
+        src/control/mpc/mpc_controller2.cpp
         src/control/wbc/wbc_controller.cpp
         src/control/wbc/wbc_optimizer.cpp
 )

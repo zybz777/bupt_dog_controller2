@@ -11,10 +11,10 @@
 #include "mpc_solver.hpp"
 #include "mrt_generator.hpp"
 
-class MpcController {
+class MpcController2 {
   public:
-    MpcController(const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait,
-                  const std::shared_ptr<Estimator>& estimator);
+    MpcController2(const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait,
+                   const std::shared_ptr<Estimator>& estimator);
 
     void begin();
 
@@ -65,8 +65,9 @@ class MpcController {
     /*mpc output*/
     Vec6 _mpc_f;
     /*mpc 权重*/
-    Vec12 _L_diag;    // 状态量x的权重
-    double _K = 1e-6; // 输入量u的权重
+    Vec12 _L_diag; // 状态量x的权重
+    double _K1 = 1e-6;
+    double _K2 = 1e-6; // 输入量u的权重
     /*离散矩阵*/
     Mat12 _A_dt;
     MatX _B_dt; // 12x6
