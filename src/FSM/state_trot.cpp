@@ -14,9 +14,9 @@
 
 #include "FSM/state_trot.hpp"
 
-State_Trot::State_Trot(const std::shared_ptr<CtrlComponents> &ctrl_comp)
-        : FSMState(ctrl_comp, FSMStateName::TROTTING,
-                   "trotting") {}
+State_Trot::State_Trot(const std::shared_ptr<CtrlComponents>& ctrl_comp) :
+    FSMState(ctrl_comp, FSMStateName::TROTTING,
+             "trotting") {}
 
 void State_Trot::enter() {
     _cmd_q = _ctrl_comp->getLowState()->getQ();
@@ -26,7 +26,7 @@ void State_Trot::enter() {
 }
 
 void State_Trot::step() {
-//        swingGainMpcTrot();
+    // swingGainMpcTrot();
     swingGainMpcWbcTrot();
 }
 
@@ -35,29 +35,35 @@ void State_Trot::exit() {
 
 FSMStateName State_Trot::checkChange() {
     switch (_ctrl_comp->getGait()->getGaitType()) {
-        case GaitType::PASSIVE:
-            return FSMStateName::PASSIVE;
-        case GaitType::FIXEDDOWN:
-            return FSMStateName::FIXEDDOWN;
-        case GaitType::FIXEDSTAND:
-            return FSMStateName::FIXEDSTAND;
-        case GaitType::FREESTAND:
-            return FSMStateName::FREESTAND;
-        default:
-            return FSMStateName::TROTTING;
+    case GaitType::PASSIVE:
+        return FSMStateName::PASSIVE;
+    case GaitType::FIXEDDOWN:
+        return FSMStateName::FIXEDDOWN;
+    case GaitType::FIXEDSTAND:
+        return FSMStateName::FIXEDSTAND;
+    case GaitType::FREESTAND:
+        return FSMStateName::FREESTAND;
+    default:
+        return FSMStateName::TROTTING;
     }
 }
 
 void State_Trot::swingGainMpcTrot() {
-    auto cmd_tau =
-            -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() +
-            _ctrl_comp->getRobot()->getNoLinearTorque();
+    Vec18 cmd_tau;
+#ifdef USE_MPC1
+    cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() +
+              _ctrl_comp->getRobot()->getNoLinearTorque();
+#endif
+#ifdef USE_MPC2
+    cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController2()->getContactForce() +
+              _ctrl_comp->getRobot()->getNoLinearTorque();
+#endif
     for (int i = 0; i < 4; ++i) {
         _ctrl_comp->getLowCmd()->setSimSwingGain(i);
         if (_ctrl_comp->getGait()->getContact(i) == SWING) {
             _cmd_tau.segment<3>(3 * i) = _ctrl_comp->getRobot()->getLegNoLinearTorque().segment<3>(3 * i);
         } else {
-            _ctrl_comp->getLowCmd()->setSimSwingGain(i);
+            _ctrl_comp->getLowCmd()->setZeroGain(i);
             _cmd_tau.segment<3>(3 * i) = cmd_tau.segment<3>(6 + 3 * i);
         }
     }
@@ -83,8 +89,7 @@ void State_Trot::swingGainMpcWbcTrot() {
 #else
         if (_ctrl_comp->getGait()->getContact(i) == SWING) {
             _ctrl_comp->getLowCmd()->setRealSwingGain(i);
-        }
-        else {
+        } else {
             _ctrl_comp->getLowCmd()->setRealFreeStanceGain(i);
             // _cmd_tau[2 + 3 * i] = _cmd_tau[2 + 3 * i] / pow(sin(_ctrl_comp->getLowState()->getQ()[2 + 3 * i]), 2);
         }

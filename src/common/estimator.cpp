@@ -47,7 +47,7 @@ void Estimator::init() {
     // Q init
     for (int i = 0; i < _Q_diag.rows(); ++i) {
         if (i < 3) {  // 位置估计 建模误差较小
-            _Q_diag[i] = 0.001;
+            _Q_diag[i] = 0.002;
         } else if (i < 6) { // 速度估计 建模误差较小
             _Q_diag[i] = 0.002;
         } else {    // 足端位置估计 足端触地时抖动带来较大误差
@@ -95,7 +95,7 @@ void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Ro
             _R.block<3, 3>(12 + 3 * i, 12 + 3 * i) = _large_variance * _I3; // 摆动腿速度测量 大噪声
             _R(24 + i, 24 + i) = _large_variance;                           // 摆动腿高度测量 大噪声
         } else {
-            _trust = windowFunc2(gait->getPhase(i), 0.3, 0.05);
+            _trust = windowFunc2(gait->getPhase(i), 0.2, 0.05);
             // 摆动腿位置估计噪声随触地相位增大而变小
             _Q.block<3, 3>(6 + 3 * i, 6 + 3 * i) =
                     (1 + (1 - _trust) * _large_variance) * _Q_init.block<3, 3>(6 + 3 * i, 6 + 3 * i);

@@ -218,17 +218,17 @@ public:
             case 0:
                 break;
             case 1:
-                std::cout << "[WBC SOLVER] MaxIterReached" << std::endl;
+                std::cout << "[SOLVER] MaxIterReached" << std::endl;
                 return false;
             case 2:
-                std::cout << "[WBC SOLVER] MinStepLengthReached" << std::endl;
+                std::cout << "[SOLVER] MinStepLengthReached" << std::endl;
                 return false;
             case 3:
-                std::cout << "[WBC SOLVER] NaNDetected" << std::endl;
+                std::cout << "[SOLVER] NaNDetected" << std::endl;
                 return false;
             case 4:
             default:
-                std::cout << "[WBC SOLVER] UnknownFailure" << std::endl;
+                std::cout << "[SOLVER] UnknownFailure" << std::endl;
                 return false;
         }
         /************************************************
@@ -300,7 +300,7 @@ private:
     /* mode */
     hpipm_mode mode = hpipm_mode::SPEED_ABS;
     /* iter_max */
-    int iter_max = 200;
+    int iter_max = 300;
     /* alpha_min */
     double alpha_min = 1.000000000000000e-12;
     /* mu0 */

@@ -10,8 +10,8 @@ set(REAL_MODE OFF)
 # 设置 状态估计标定噪声(ON OFF)
 set(CALIBRATE_MODE OFF)
 # 设置 MPC1 MPC2
-set(MPC_MODE1 OFF)
-set(MPC_MODE2 ON)
+set(MPC_MODE1 ON)
+set(MPC_MODE2 OFF)
 
 set(hpipm-cpp_DIR "/usr/local/share/hpipm-cpp/cmake/hpipm-cpp-config.cmake")
 #set(Torch_DIR "/opt/libtorch/share/cmake/Torch/")

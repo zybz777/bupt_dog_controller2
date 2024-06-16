@@ -4,8 +4,8 @@
 
 #include "FSM/state_free_stand.hpp"
 
-State_FreeStand::State_FreeStand(const std::shared_ptr<CtrlComponents>& ctrl_comp)
-    : FSMState(ctrl_comp, FSMStateName::FREESTAND, "freestand") {}
+State_FreeStand::State_FreeStand(const std::shared_ptr<CtrlComponents>& ctrl_comp) :
+    FSMState(ctrl_comp, FSMStateName::FREESTAND, "freestand") {}
 
 void State_FreeStand::enter() {
     _cmd_q = _ctrl_comp->getLowState()->getQ();
@@ -16,14 +16,13 @@ void State_FreeStand::enter() {
 
 void State_FreeStand::step() {
     //    zeroGainMpcWbcStand();
-    //    zeroGainStand();
+    // zeroGainStand();
     //    swingGainStand();
     //    balanceSoftTest();
     swingGainMpcWbcStand();
 }
 
 void State_FreeStand::exit() {
-
 }
 
 FSMStateName State_FreeStand::checkChange() {
@@ -41,11 +40,8 @@ FSMStateName State_FreeStand::checkChange() {
     }
 }
 
-
 void State_FreeStand::swingGainStand() {
-    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
-        * _ctrl_comp->getMpcController()->getMpcOutput()
-        + _ctrl_comp->getRobot()->getNoLinearTorque();
+    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() + _ctrl_comp->getRobot()->getNoLinearTorque();
     //    _cmd_tau = cmd_tau.segment<12>(6);
     _cmd_tau = _ctrl_comp->getRobot()->getLegNoLinearTorque();
     _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
@@ -65,10 +61,13 @@ void State_FreeStand::swingGainStand() {
 }
 
 void State_FreeStand::zeroGainStand() {
-    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose()
-        * _ctrl_comp->getMpcController()->getMpcOutput()
-        + _ctrl_comp->getRobot()->getNoLinearTorque();
-
+    Vec18 cmd_tau;
+#ifdef USE_MPC1
+    cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() + _ctrl_comp->getRobot()->getNoLinearTorque();
+#endif
+#ifdef USE_MPC2
+    cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController2()->getContactForce() + _ctrl_comp->getRobot()->getNoLinearTorque();
+#endif
     _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
     _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
     _cmd_tau = cmd_tau.segment<12>(6);
@@ -119,10 +118,10 @@ void State_FreeStand::swingGainMpcWbcStand() {
     _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
     _cmd_tau = _ctrl_comp->getWbcController()->getLegCmdTau();
 #ifdef USE_SIM
-        _ctrl_comp->getLowCmd()->setSimFreeStanceGain(0);
-        _ctrl_comp->getLowCmd()->setSimFreeStanceGain(1);
-        _ctrl_comp->getLowCmd()->setSimFreeStanceGain(2);
-        _ctrl_comp->getLowCmd()->setSimFreeStanceGain(3);
+    _ctrl_comp->getLowCmd()->setSimFreeStanceGain(0);
+    _ctrl_comp->getLowCmd()->setSimFreeStanceGain(1);
+    _ctrl_comp->getLowCmd()->setSimFreeStanceGain(2);
+    _ctrl_comp->getLowCmd()->setSimFreeStanceGain(3);
 //    _ctrl_comp->getLowCmd()->setZeroGain();
 #else
     _ctrl_comp->getLowCmd()->setRealFreeStanceGain();

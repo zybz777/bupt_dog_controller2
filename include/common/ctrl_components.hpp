@@ -69,6 +69,8 @@ class CtrlComponents {
 
     const std::shared_ptr<MpcController>& getMpcController() { return _mpc; }
 
+    const std::shared_ptr<MpcController2>& getMpcController2() { return _mpc2; }
+
     const std::shared_ptr<WbcController>& getWbcController() { return _wbc; }
 
   private:

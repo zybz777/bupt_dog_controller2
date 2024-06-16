@@ -38,9 +38,8 @@ CentroidalForceMapper::CentroidalForceMapper(const std::shared_ptr<Robot>& robot
     w << 10, 10, 4, 10, 10, 4, 10, 10, 4, 10, 10, 4;
     _W = w.asDiagonal();
     _alpha = 1e-3;
-    _beta = 0.1;
+    _beta = 0.01;
     u << 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3;
-    u.setZero(); // temp
     _U = u.asDiagonal();
     // output
     _contact_force.setZero();
@@ -64,15 +63,18 @@ void CentroidalForceMapper::solve(const Vec6& F) {
         }
     }
     _b = F;
-    _H = _A.transpose() * _S * _A + _alpha * _W + _U;
-    _g = -_A.transpose() * _S * _b - _U * Vec12::Zero(); // -A.TxSxb - belta_Uxf_prev
+    _H = _A.transpose() * _S * _A + _alpha * _W + _beta * _U;
+    _g = -_A.transpose() * _S * _b - _beta * _U * _contact_force; // -A.TxSxb - belta_Uxf_prev
 
     _qp_solver->DenseQpSetMat_H(_H);
     _qp_solver->DenseQpSetVec_g(_g);
     _qp_solver->DenseQpSetMat_C(_C);
     _qp_solver->DenseQpSetVec_lg(_lg);
     _qp_solver->DenseQpSetVec_ug(_ug);
-    _qp_solver->DenseQpSolve();
+    if (!_qp_solver->DenseQpSolve()) {
+        std::cout << "[CentroidalForceMapper] solve error" << std::endl;
+    }
+
     _contact_force = _qp_solver->getOutput();
-    std::cout << "contact_force " << _contact_force.transpose() << std::endl;
+    // std::cout << "contact_force " << _contact_force.transpose() << std::endl;
 }

@@ -36,12 +36,11 @@ void MpcController2::init() {
     /*mpc output*/
     _mpc_f.setZero();
     /*mpc 权重*/
-    _L_diag << 0.5, 0.8, 0.8, // 角度
-        0.0, 0.0, 5.0,
-        1.0, 1.0, 1.0, // 角速度
-        2.0, 2.0, 2.0; // simulink weight
-    _K1 = 1.0e-4;      // 1e-6
-    _K2 = 1.0;
+    _L_diag << 10.0, 10.0, 10.0, // 角度
+        0.0, 0.0, 10.0,
+        0.01, 0.01, 1.0, // 角速度
+        5.0, 5.0, 0.01; // simulink weight
+    _K_diag << 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6, 1.0e-6;
     /*矩阵*/
     initMat();
     /*solver*/
@@ -89,8 +88,7 @@ void MpcController2::initSolver() {
     Q.setZero();
     Q.diagonal() << _L_diag;
     R.setIdentity();
-    R.block<3, 3>(0, 0) = _K1 * _I3;
-    R.block<3, 3>(3, 3) = _K2 * _I3;
+    R.diagonal() << _K_diag;
     Vec12 q = -Q * Vec12::Zero(); // q = -Q * x_ref
     _solver->setupLossMat_Q(Q);
     _solver->setupLossMat_R(R);
@@ -121,18 +119,17 @@ void MpcController2::step() {
     _mrt->step(_robot, _gait, _estimator);
     updateMat();
     solve();
-    // publishMpcOutput();
+    publishMpcOutput();
 }
 
 void MpcController2::updateMat() {
     _R = _robot->getRotMat();
     _inv_Rw = invRotMatW(_robot->getRpy());
     _I_world = _R * _I_body * _R.transpose();
-    Mat3 I_world_inv = _I_world.inverse();
     // A
     _A_dt.block<3, 3>(0, 6) << _inv_Rw * _dt;
     // B
-    _B_dt.block<3, 3>(6, 3) << I_world_inv * _dt;
+    _B_dt.block<3, 3>(6, 3) << _I_world.inverse() * _dt;
 }
 
 void MpcController2::solve() {
@@ -152,6 +149,13 @@ void MpcController2::solve() {
         _estimator->getLpVelocity();
     _mpc_f = _solver->solve(_X);
     // std::cout << "mpc2 f " << _mpc_f.transpose() << std::endl;
+}
+
+void MpcController2::publishMpcOutput() {
+    for (int i = 0; i < 12; ++i) {
+        _mpc_output.force[i] = getContactForce()[i];
+    }
+    _lcm.publish(_mpc_topic_name, &_mpc_output);
 }
 
 void MpcController2::run_force_mapper(int ms) {

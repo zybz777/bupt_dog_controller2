@@ -9,7 +9,7 @@
 #include "utils/math_types.hpp"
 
 class MpcSolver {
-public:
+  public:
     MpcSolver(int h) {
         N_ = h;
         // qp 初始化
@@ -17,53 +17,53 @@ public:
     }
 
     // 初始化离散形式状态方程 x(k+1) = A x(k) + B u(k) + b
-    void setupStateMat_A(const MatX &A) {
+    void setupStateMat_A(const MatX& A) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].A = A;
         }
-        X_NUM_ = (int) A.rows();
+        X_NUM_ = (int)A.rows();
     }
 
-    void setupStateMat_B(const MatX &B) {
+    void setupStateMat_B(const MatX& B) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].B = B;
         }
-        U_NUM_ = (int) B.cols();
+        U_NUM_ = (int)B.cols();
         u_output_ = VecX::Zero(U_NUM_);
     }
 
-    void setupStateVec_b(const VecX &b) {
+    void setupStateVec_b(const VecX& b) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].b = b;
         }
     }
 
     // 初始化损失函数 Q R q； Q R 分别为x和u的权重矩阵 q=-Q * x_ref
-    void setupLossMat_Q(const MatX &Q) {
+    void setupLossMat_Q(const MatX& Q) {
         for (int i = 0; i < N_ + 1; ++i) {
             qp_[i].Q = Q;
         }
     }
 
-    void setupLossMat_R(const MatX &R) {
+    void setupLossMat_R(const MatX& R) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].R = R;
         }
     }
 
-    void setupLossVec_q(const VecX &q) {
+    void setupLossVec_q(const VecX& q) {
         MatX S(U_NUM_, X_NUM_);
         S.setZero();
         VecX r = VecX::Zero(U_NUM_);
         for (int i = 0; i < N_; ++i) {
             qp_[i].S = S;
             qp_[i].q = q;
-             qp_[i].r = r;
+            qp_[i].r = r;
         }
         qp_[N_].q = q;
     }
 
-    void setupLossVec_r(const VecX &r) {
+    void setupLossVec_r(const VecX& r) {
         qp_[0].r = r;
         for (int i = 1; i < N_; ++i) {
             qp_[i].r = VecX::Zero(U_NUM_);
@@ -71,25 +71,25 @@ public:
     }
 
     // 约束条件 lg < C x + D u < ug
-    void setupConstraintMat_C(const MatX &C) {
+    void setupConstraintMat_C(const MatX& C) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].C = C;
         }
     }
 
-    void setupConstraintMat_D(const MatX &D) {
+    void setupConstraintMat_D(const MatX& D) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].D = D;
         }
     }
 
-    void setupConstraintVec_lg(const VecX &lg) {
+    void setupConstraintVec_lg(const VecX& lg) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].lg = lg;
         }
     }
 
-    void setupConstraintVec_ug(const VecX &ug) {
+    void setupConstraintVec_ug(const VecX& ug) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].ug = ug;
         }
@@ -101,15 +101,15 @@ public:
         solver_settings_.mode = hpipm::HpipmMode::SpeedAbs;
         solver_settings_.iter_max = 200;
         solver_settings_.warm_start = 1;
-//        solver_settings_.alpha_min = 1e-12;
-//        solver_settings_.mu0 = 1e4;
-//        solver_settings_.tol_stat = 1e-04;
-//        solver_settings_.tol_eq = 1e-05;
-//        solver_settings_.tol_ineq = 1e-05;
-//        solver_settings_.tol_comp = 1e-05;
-//        solver_settings_.reg_prim = 1e-12;
-//        solver_settings_.pred_corr = 1;
-//        solver_settings_.ric_alg = 1;
+        //        solver_settings_.alpha_min = 1e-12;
+        //        solver_settings_.mu0 = 1e4;
+        //        solver_settings_.tol_stat = 1e-04;
+        //        solver_settings_.tol_eq = 1e-05;
+        //        solver_settings_.tol_ineq = 1e-05;
+        //        solver_settings_.tol_comp = 1e-05;
+        //        solver_settings_.reg_prim = 1e-12;
+        //        solver_settings_.pred_corr = 1;
+        //        solver_settings_.ric_alg = 1;
         solver_settings_.split_step = 1;
         // solution 初始化
         solution_ = std::vector<hpipm::OcpQpSolution>(N_ + 1);
@@ -123,92 +123,101 @@ public:
     }
 
     // 更新离散形式状态方程
-    void updateStateMat_A(const MatX &A) {
+    void updateStateMat_A(const MatX& A) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].A = A;
         }
     }
 
-    void updateStateMat_B(const MatX &B) {
+    void updateStateMat_B(const MatX& B) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].B = B;
         }
     }
 
-    void updateStateVec_b(const VecX &b) {
+    void updateStateVec_b(const VecX& b) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].b = b;
         }
     }
 
+    void updateStateMat_A(const MatX& A, int n) {
+        qp_[n].A = A;
+    }
+    void updateStateMat_B(const MatX& B, int n) {
+        qp_[n].B = B;
+    }
     // 更新损失函数
     // void updateLossMat_Q(const MatX &Q);
     // void updateLossMat_R(const MatX &R);
-    void updateLossVec_q(const std::vector<VecX> &X_ref) {
+    void updateLossVec_q(const std::vector<VecX>& X_ref) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].q = -qp_[i].Q * X_ref[i];
         }
     }
 
-    void updateLossVec_r(const Vec12 &u_last, const MatX &S) {
+    void updateLossVec_r(const Vec12& u_last, const MatX& S) {
         qp_[0].r = -S * u_last;
     }
 
     // 更新约束条件
     // void updateConstraintMat_C(const MatX &C);
-    void updateConstraintMat_D(const std::vector<MatX> &D) {
+    void updateConstraintMat_D(const std::vector<MatX>& D) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].D = D[i];
         }
     }
 
-    void updateConstraintVec_lg(const std::vector<VecX> &lg) {
+    void updateConstraintVec_lg(const std::vector<VecX>& lg) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].lg = lg[i];
         }
     }
 
-    void updateConstraintVec_ug(const std::vector<VecX> &ug) {
+    void updateConstraintVec_ug(const std::vector<VecX>& ug) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].ug = ug[i];
         }
     }
 
     // 求解结果
-    const VecX &solve(const VecX &x) {
+    const VecX& solve(const VecX& x) {
         auto state = solver_->solve(x, qp_, solution_);
         switch (state) {
-            case hpipm::HpipmStatus::Success:
-                u_output_ << solution_[0].u;
-                break;
-            case hpipm::HpipmStatus::MaxIterReached:
-                std::cout << "[MPC SOLVER] MaxIterReached" << std::endl;
-                break;
-            case hpipm::HpipmStatus::MinStepLengthReached:
-                std::cout << "[MPC SOLVER] MinStepLengthReached" << std::endl;
-                break;
-            case hpipm::HpipmStatus::NaNDetected:
-                std::cout << "[MPC SOLVER] NaNDetected" << std::endl;
-                break;
-            case hpipm::HpipmStatus::UnknownFailure:
-                std::cout << "[MPC SOLVER] UnknownFailure" << std::endl;
-                break;
+        case hpipm::HpipmStatus::Success:
+            u_output_ << solution_[0].u;
+            break;
+        case hpipm::HpipmStatus::MaxIterReached:
+            std::cout << "[MPC SOLVER] MaxIterReached" << std::endl;
+            break;
+        case hpipm::HpipmStatus::MinStepLengthReached:
+            std::cout << "[MPC SOLVER] MinStepLengthReached" << std::endl;
+            break;
+        case hpipm::HpipmStatus::NaNDetected:
+            std::cout << "[MPC SOLVER] NaNDetected" << std::endl;
+            break;
+        case hpipm::HpipmStatus::UnknownFailure:
+            std::cout << "[MPC SOLVER] UnknownFailure" << std::endl;
+            break;
         }
         return u_output_;
     }
 
-private:
+    const std::vector<hpipm::OcpQpSolution>& getSolution() {
+        return solution_;
+    }
+
+  private:
     int N_; // 预测步长
     /* hpipm solver */
     std::vector<hpipm::OcpQp> qp_;
     hpipm::OcpQpIpmSolverSettings solver_settings_;
     std::vector<hpipm::OcpQpSolution> solution_;
-    hpipm::OcpQpIpmSolver *solver_;
+    hpipm::OcpQpIpmSolver* solver_;
     // 状态空间变量
     int X_NUM_, U_NUM_;
     // solve 结果
     VecX u_output_;
 };
-
 
 #endif //BUPT_DOG_CONTROLLER2_MPC_SOLVER_HPP
