@@ -97,7 +97,7 @@ void Robot::init() {
     // filter
     for (int i = 0; i < DOF_NUM; ++i) {
         _foot_vel_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 10);
-        _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 50);
+        _foot_pos_inBody_filter[i] = std::make_unique<LPFilter>((double) _ms / 1000.0, 20);
     }
 }
 

@@ -37,7 +37,7 @@ public:
             _user_cmd->cmd_linear_velocity[i] = 0.0;
         }
         for (int i = 0; i < 3; ++i) {
-            _rpy_filter[i] = std::make_shared<LPFilter>(0.005, 20);
+            _rpy_filter[i] = std::make_shared<LPFilter>(0.005, 10);
         }
         _recv_thread = std::thread([this] { run(); });
         std::cout << "[LowState] Init Success!" << std::endl;
