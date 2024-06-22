@@ -68,7 +68,9 @@ class WbcController {
     Vec18 _cmd_dq;  // 速度关节指令
     Vec18 _cmd_ddq; // 加速度关节指令
     Vec18 _cmd_tau; // 力矩关节指令
-    Vec12 _joint_friction_torque;
+    std::shared_ptr<LPFilter> _cmd_q_filter[18];
+    std::shared_ptr<LPFilter> _cmd_dq_filter[18];
+    std::shared_ptr<LPFilter> _cmd_ddq_filter[18];
     /* 机器人数据 */
     RotMat _rot_mat; // 旋转矩阵
     Vec3 _com_pos_inWorld;

@@ -38,6 +38,11 @@ WbcController::WbcController(int ms, const std::shared_ptr<Robot>& robot, const 
     _cmd_dq.setZero();
     _cmd_ddq.setZero();
     _cmd_tau.setZero();
+    for (int i = 0; i < 18; ++i) {
+        _cmd_q_filter[i] = std::make_shared<LPFilter>(_dt, 20);
+        _cmd_dq_filter[i] = std::make_shared<LPFilter>(_dt, 20);
+        _cmd_ddq_filter[i] = std::make_shared<LPFilter>(_dt, 20);
+    }
     // 机器人数据
     _rot_mat.setIdentity();
     _com_pos_inWorld.setZero();
@@ -209,9 +214,23 @@ void WbcController::solve() {
         cmd_ddq << cmd_ddq + pinv_J_pre * (_task_list[i]->getTask_ddx() - _task_list[i]->getTask_dJ() * _robot->getFloatBaseDq() - _task_list[i]->getTask_J() * cmd_ddq);
         N *= I18 - pinv_J_pre * J_pre;
     }
-    _cmd_q << _com_pos_inWorld, _com_rpy, _robot->getQ();
-    _cmd_q += cmd_delta_q; // 位置任务解算的关节角
-    _cmd_dq = cmd_dq;
-    _cmd_ddq = cmd_ddq;
+    Vec18 cmd_q;
+    cmd_q << _com_pos_inWorld, _com_rpy, _robot->getQ();
+    cmd_q += cmd_delta_q;
+    // _cmd_q
+    //     << _com_pos_inWorld,
+    //     _com_rpy, _robot->getQ();
+    // _cmd_q += cmd_delta_q; // 位置任务解算的关节角
+    // _cmd_dq = cmd_dq;
+    // _cmd_ddq = cmd_ddq;
+    for (int i = 0; i < 18; ++i) {
+        _cmd_q_filter[i]->addValue(cmd_q[i]);
+        _cmd_dq_filter[i]->addValue(cmd_dq[i]);
+        _cmd_ddq_filter[i]->addValue(cmd_ddq[i]);
+
+        _cmd_q[i] = _cmd_q_filter[i]->getValue();
+        _cmd_dq[i] = _cmd_dq_filter[i]->getValue();
+        _cmd_ddq[i] = _cmd_ddq_filter[i]->getValue();
+    }
     _cmd_tau = _optimizer->calcCmdTau(_cmd_ddq, _f_mpc);
 }

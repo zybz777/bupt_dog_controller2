@@ -5,19 +5,18 @@
 #ifndef BUPT_DOG_CONTROLLER2_WBC_OPTIMIZER_HPP
 #define BUPT_DOG_CONTROLLER2_WBC_OPTIMIZER_HPP
 
-
 #include "common/robot.hpp"
-#include "gait/gait.hpp"
 #include "dense_qp_solver.hpp"
 #include "doglcm/MpcOutput_t.hpp"
+#include "gait/gait.hpp"
 
 class WbcOptimizer {
-public:
-    WbcOptimizer(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait);
+  public:
+    WbcOptimizer(const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait);
 
-    const VecX &calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc);
+    const VecX& calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc);
 
-private:
+  private:
     void updateDenseQpEqualityConstraints(Vec18 cmd_ddq, Vec12 f_mpc);
 
     void updateDenseQpInequalityConstraints(Vec12 f_mpc);
@@ -31,6 +30,9 @@ private:
     int _ng = 20; // 不等式约束
     MatX _H;
     VecX _g;
+    Vec6 _Q1;
+    Vec12 _Q2;
+    Vec12 _Q3;
     // 等式约束
     MatX _A;
     VecX _b;
@@ -45,11 +47,10 @@ private:
     VecX _ug_mask;
     // output
     VecX _cmd_tau;
-
+    Vec12 _last_contact_force;
     lcm::LCM _lcm;
     std::string _mpc_topic_name;
     doglcm::MpcOutput_t _mpc_output;
 };
-
 
 #endif //BUPT_DOG_CONTROLLER2_WBC_OPTIMIZER_HPP
