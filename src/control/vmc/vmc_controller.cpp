@@ -29,12 +29,12 @@ void VmcController::step(const std::shared_ptr<Robot> &robot, const std::shared_
     _vmc_data->curr_foot_pos = robot->getFootPositions_inBody();
     _vmc_data->curr_foot_vel = robot->getFootVelocities_inBody();
     for (int i = 0; i < 4; ++i) {
-        _vmc_data->curr_foot_pos_in_world.col(i) << estimator->getFootPos_inWorld(i);
+        _vmc_data->curr_foot_pos_in_world.col(i) << robot->getFootPosition_inWorld(i);
         _vmc_data->curr_foot_vel_in_world.col(i) << estimator->getLpVelocity() +
                                                     robot->getRotMat() * (_vmc_data->curr_foot_vel.col(i) +
                                                                           skew(robot->getAngularVelocity()) *
                                                                           _vmc_data->curr_foot_pos.col(i));
-        _vmc_data->std_foot_pos_in_world.col(i) << estimator->getPosition() +
+        _vmc_data->std_foot_pos_in_world.col(i) << estimator->getLpPosition() +
                                                    robot->getRotMat() * _vmc_data->std_foot_pos.col(i);
     }
     // 记录足端起点 终点
@@ -85,12 +85,12 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
                 double theta_f = robot->getRpy()[2] + _theta0[i] + w * (1 - gait->getPhase(i)) * gait->getTswing() +
                                  0.5 * w * gait->getTstance() + kw * (w - cmd_omega_in_world[2]);
                 // x y
-                _vmc_data->end_foot_pos_in_world(0, i) = estimator->getPosition()[0] + _r * cos(theta_f)
+                _vmc_data->end_foot_pos_in_world(0, i) = estimator->getLpPosition()[0] + _r * cos(theta_f)
                                                          + v[0] * (1 - gait->getPhase(i)) * gait->getTswing()
                                                          + 0.5 * v[0] * gait->getTstance()
                                                          + kx * (estimator->getLpVelocity()[0] - cmd_vel_in_world[0]);
 
-                _vmc_data->end_foot_pos_in_world(1, i) = estimator->getPosition()[1] + _r * sin(theta_f)
+                _vmc_data->end_foot_pos_in_world(1, i) = estimator->getLpPosition()[1] + _r * sin(theta_f)
                                                          + v[1] * (1 - gait->getPhase(i)) * gait->getTswing()
                                                          + 0.5 * v[1] * gait->getTstance()
                                                          + ky * (estimator->getLpVelocity()[1] - cmd_vel_in_world[1]);

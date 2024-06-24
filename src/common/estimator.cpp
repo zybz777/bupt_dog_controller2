@@ -47,26 +47,31 @@ void Estimator::init() {
     // Q init
     for (int i = 0; i < _Q_diag.rows(); ++i) {
         if (i < 3) {  // 位置估计 建模误差较小
-            _Q_diag[i] = 0.002;
+            _Q_diag[i] = 2e-5;
         } else if (i < 6) { // 速度估计 建模误差较小
-            _Q_diag[i] = 0.002;
+            _Q_diag[i] = 2e-6;
         } else {    // 足端位置估计 足端触地时抖动带来较大误差
-            _Q_diag[i] = 0.02;
+            _Q_diag[i] = 2e-4;
         }
     }
     _Q_init = _Q_diag.asDiagonal();       // 建模与离散化产生的过程噪声
     _Q_init += _B * _Cu * _B.transpose(); // 测量到的输入量过程噪声
+    // R init
+    _R_init(24, 24) = 1e-10;
+    _R_init(25, 25) = 1e-10;
+    _R_init(26, 26) = 1e-10;
+    _R_init(27, 27) = 1e-10;
     // std::cout << "Q init " << std::endl
     //           << _Q_init << std::endl;
-    // R init
-    _R_init(24, 24) = 0.0001;
-    _R_init(25, 25) = 0.0001;
-    _R_init(26, 26) = 0.0001;
-    _R_init(27, 27) = 0.0001;
+    // std::cout << "R init " << std::endl
+    //           << _R_init << std::endl;
     // LP filter
-    _vx_filter = std::make_shared<LPFilter>(_dt, 5.0);
-    _vy_filter = std::make_shared<LPFilter>(_dt, 5.0);
-    _vz_filter = std::make_shared<LPFilter>(_dt, 5.0);
+    _vx_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _vy_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _vz_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _px_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _py_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _pz_filter = std::make_shared<LPFilter>(_dt, 3.0);
     // lcm
     _es_data_topic_name = "es_data";
 }
@@ -95,7 +100,7 @@ void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Ro
             _R.block<3, 3>(12 + 3 * i, 12 + 3 * i) = _large_variance * _I3; // 摆动腿速度测量 大噪声
             _R(24 + i, 24 + i) = _large_variance;                           // 摆动腿高度测量 大噪声
         } else {
-            _trust = windowFunc2(gait->getPhase(i), 0.2, 0.05);
+            _trust = windowFunc2(gait->getPhase(i), 0.25, 0.1);
             // 摆动腿位置估计噪声随触地相位增大而变小
             _Q.block<3, 3>(6 + 3 * i, 6 + 3 * i) =
                     (1 + (1 - _trust) * _large_variance) * _Q_init.block<3, 3>(6 + 3 * i, 6 + 3 * i);
@@ -123,11 +128,14 @@ void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Ro
     _xhat += _Ppriori * _C.transpose() * _Sy;
     _P = _IKC * _Ppriori;
     // lp filter
+    _px_filter->addValue(_xhat[0]);
+    _py_filter->addValue(_xhat[1]);
+    _pz_filter->addValue(_xhat[2]);
     _vx_filter->addValue(_xhat[3]);
     _vy_filter->addValue(_xhat[4]);
     _vz_filter->addValue(_xhat[5]);
     // robot set estimator
-    robot->setComPosition_inWorld(getPosition());
+    robot->setComPosition_inWorld(getLpPosition());
     robot->setComVelocity_inWorld(getVelocity());
     robot->setComLpVelocity_inWorld(getLpVelocity());
     // lcm
@@ -137,7 +145,7 @@ void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Ro
 void Estimator::publishEsData() {
     memcpy(_es_data.pos, getPosition().data(), sizeof(_es_data.pos));
     memcpy(_es_data.vel, getVelocity().data(), sizeof(_es_data.vel));
-    memcpy(_es_data.lp_vel, getLpVelocity().data(), sizeof(_es_data.lp_vel));
+    memcpy(_es_data.lp_vel, getLpPosition().data(), sizeof(_es_data.lp_vel));
     _lcm.publish(_es_data_topic_name, &_es_data);
 }
 

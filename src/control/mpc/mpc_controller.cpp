@@ -188,7 +188,7 @@ void MpcController::solve() {
     _solver->updateLossVec_q(_mrt->getXtraj());
     // solver
     _X << _robot->getRpy(),
-        _estimator->getPosition(),
+        _estimator->getLpPosition(),
         _robot->getAngularVelocity_inWorld(),
         _estimator->getLpVelocity();
     _mpc_f = _solver->solve(_X);

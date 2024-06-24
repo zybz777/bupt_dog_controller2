@@ -40,7 +40,7 @@ void MrtGenerator::resetXtraj(const Vec12 &X) {
 void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
                         const std::shared_ptr<Estimator> &estimator) {
     _X << robot->getRpy(),
-            estimator->getPosition(),
+            estimator->getLpPosition(),
             robot->getAngularVelocity_inWorld(),
             estimator->getLpVelocity();
     auto user_cmd = robot->getLowState()->getUserCmd();

@@ -64,7 +64,7 @@ void WbcController::step() {
 
 void WbcController::updateData() {
     _rot_mat = _robot->getRotMat();
-    _com_pos_inWorld = _estimator->getPosition();
+    _com_pos_inWorld = _estimator->getLpPosition();
     _com_vel_inWorld = _estimator->getLpVelocity();
     _com_rpy = _robot->getRpy();
     _com_omega_inBody = _robot->getAngularVelocity();
@@ -143,7 +143,7 @@ void WbcController::updateContactFootTask(WbcTask_FootPos& task) {
     Vec12 target_pos, target_vel = Vec12::Zero(), target_acc = Vec12::Zero(), curr_pos, curr_vel;
     curr_vel = _robot->getJ_FeetPosition() * _robot->getFloatBaseDq();
     for (int i = 0; i < LEG_NUM; ++i) {
-        curr_pos.segment<3>(3 * i) << _estimator->getFootPos_inWorld(i);
+        curr_pos.segment<3>(3 * i) << _robot->getFootPosition_inWorld(i);
         target_pos.segment<3>(3 * i) << curr_pos.segment<3>(3 * i);
     }
     task.updateTask(target_pos, target_vel, target_acc, curr_pos, curr_vel);
@@ -171,7 +171,7 @@ void WbcController::updateSwingFootTask(WbcTask_FootPos& task) {
     Vec12 target_acc;
     curr_vel = _robot->getJ_FeetPosition() * _robot->getFloatBaseDq();
     for (int i = 0; i < 4; ++i) {
-        curr_pos.segment<3>(3 * i) << _estimator->getFootPos_inWorld(i);
+        curr_pos.segment<3>(3 * i) << _robot->getFootPosition_inWorld(i);
         if (_gait->getContact(i) == SWING) // VMC
         {
             target_pos.segment<3>(3 * i) << _vmc->getCmdFootPos_inWorld(i);

@@ -28,13 +28,15 @@ public:
 
     void step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Robot> &robot);
 
-    Vec3 getPosition() { return _xhat.segment<3>(0); }
+    Vec3 getPosition() { return _xhat.segment<3>(0); };
+    
+    Vec3 getLpPosition() { return Vec3(_px_filter->getValue(), _py_filter->getValue(), _pz_filter->getValue()); };
 
     Vec3 getVelocity() { return _xhat.segment<3>(3); };
 
     Vec3 getLpVelocity() { return Vec3(_vx_filter->getValue(), _vy_filter->getValue(), _vz_filter->getValue()); };
 
-    Vec3 getFootPos_inWorld(int leg_id) { return _xhat.segment<3>(6 + 3 * leg_id); }
+    Vec3 getFootPos_inWorld(int leg_id) { return _xhat.segment<3>(6 + 3 * leg_id); };
 
 private:
     void init();
@@ -87,6 +89,7 @@ private:
     double _large_variance = 100;
     // Low pass filter
     std::shared_ptr<LPFilter> _vx_filter, _vy_filter, _vz_filter;
+    std::shared_ptr<LPFilter> _px_filter, _py_filter, _pz_filter;
     // lcm
     lcm::LCM _lcm;
     std::string _es_data_topic_name;

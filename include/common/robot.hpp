@@ -69,6 +69,9 @@ public:
     const Vec34 &getRobotStdFootPos_inBody() { return _std_foot_pos_inBody; };
 
     // 足端运动学数据
+
+    Vec3 getFootPosition_inWorld(int leg_id) { return _foot_pos_inWorld.col(leg_id);  }
+
     Vec3 getFootPosition_inBody(int leg_id) { return _foot_pos_inBody.col(leg_id); }
 
     Vec3 getFootVelocity_inBody(int leg_id) { return _foot_vel_inBody.col(leg_id); }
