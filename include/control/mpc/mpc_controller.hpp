@@ -66,6 +66,7 @@ class MpcController {
     /*mpc 权重*/
     Vec12 _L_diag;    // 状态量x的权重
     double _K = 1e-6; // 输入量u的权重
+    Vec12 _M_diag;    // u - ulast
     /*离散矩阵*/
     Mat12 _A_dt;
     Mat12 _B_dt;

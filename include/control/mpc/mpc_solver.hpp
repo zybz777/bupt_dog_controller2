@@ -63,9 +63,8 @@ class MpcSolver {
         qp_[N_].q = q;
     }
 
-    void setupLossVec_r(const VecX& r) {
-        qp_[0].r = r;
-        for (int i = 1; i < N_; ++i) {
+    void setupLossVec_r() {
+        for (int i = 0; i < N_; ++i) {
             qp_[i].r = VecX::Zero(U_NUM_);
         }
     }
@@ -156,8 +155,10 @@ class MpcSolver {
         }
     }
 
-    void updateLossVec_r(const Vec12& u_last, const MatX& S) {
-        qp_[0].r = -S * u_last;
+    void updateLossVec_r(const MatX& S) {
+        for (int i = 0; i < N_; ++i) {
+            qp_[i].r = -S * solution_[i].u;
+        }
     }
 
     // 更新约束条件

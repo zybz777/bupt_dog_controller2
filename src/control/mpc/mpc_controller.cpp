@@ -41,17 +41,19 @@ void MpcController::init() {
     _mpc_f.setZero();
     /*mpc 权重*/
 #ifdef USE_SIM
-    _L_diag << 0.5, 0.8, 0.8, // 角度
-        0.0, 0.0, 0.8,
-        0.5, 0.5, 0.5, // 角速度
-        0.8, 0.8, 0.8; // simulink weight
-    _K = 5.0e-5;       // 1e-6
+    _L_diag << 10.0, 10.0, 10.0, // 角度
+        0.0, 0.0, 10.0,
+        0.1, 0.1, 0.1, // 角速度
+        0.2, 0.2, 0.1; // simulink weight
+    _K = 1.0e-6;       // 1e-6
+    _M_diag << 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7;
 #else
-    _L_diag << 0.5, 0.8, 0.8, // 角度
-        0.0, 0.0, 0.8,
-        0.5, 0.5, 0.5, // 角速度
-        0.8, 0.8, 0.8; // simulink weight
-    _K = 5.0e-5;       // 1e-6
+    _L_diag << 10.0, 10.0, 10.0, // 角度
+        0.0, 0.0, 10.0,
+        0.1, 0.1, 0.1, // 角速度
+        0.2, 0.2, 0.1; // simulink weight
+    _K = 1.0e-6;       // 1e-6
+    _M_diag << 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7;
 #endif
     /*矩阵*/
     initMat();
@@ -107,7 +109,9 @@ void MpcController::initSolver() {
     Q.setZero();
     Q.diagonal() << _L_diag;
     R.setIdentity();
-    R << _K * R;
+    R *= _K;
+    R += _M_diag.asDiagonal();
+    std::cout << R << std::endl;
     Vec12 q = -Q * Vec12::Zero(); // q = -Q * x_ref
     _solver->setupLossMat_Q(Q);
     _solver->setupLossMat_R(R);
@@ -143,10 +147,10 @@ void MpcController::step() {
 }
 
 void MpcController::updateMat() {
-    // _R = _robot->getRotMat();
-    _R = rotMatRz(_robot->getRpy()[2]);
-    // _inv_Rw = invRotMatW(_robot->getRpy());
-    _inv_Rw = _R.transpose();
+    _R = _robot->getRotMat();
+    _inv_Rw = invRotMatW(_robot->getRpy());
+    // _R = rotMatRz(_robot->getRpy()[2]);
+    // _inv_Rw = _R.transpose();
     _I_world = _R * _I_body * _R.transpose();
     Mat3 I_world_inv = _I_world.inverse();
     // A
@@ -186,6 +190,7 @@ void MpcController::solve() {
     _solver->updateConstraintVec_ug(_D_max);
     // 更新损失函数
     _solver->updateLossVec_q(_mrt->getXtraj());
+    _solver->updateLossVec_r(_M_diag.asDiagonal());
     // solver
     _X << _robot->getRpy(),
         _estimator->getLpPosition(),

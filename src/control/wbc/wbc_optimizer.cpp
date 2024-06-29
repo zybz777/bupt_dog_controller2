@@ -16,7 +16,7 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot>& robot, const std::share
     _Q1.setOnes(); // 质心加速度调整权重 1
     _Q1 = 1 * _Q1;
     _Q2.setOnes(); // 足端MPC力权重 0.1
-    _Q2 = 0.001 * _Q2;
+    _Q2 = 0.01 * _Q2;
     _Q3.setOnes(); // 两相邻时刻优化后足端力突变减小
     _Q3 = 0.001 * _Q3;
     _H.diagonal() << _Q1, _Q2 + _Q3;

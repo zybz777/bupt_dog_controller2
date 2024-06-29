@@ -31,6 +31,11 @@
   <material name="white">
     <color rgba="1.0 1.0 1.0 1.0"/>
   </material>
+  <link name="base_link"/>
+  <joint name="base" type="fixed">
+    <parent link="base_link"/>
+    <child link="body"/>
+  </joint>
   <link name="body">
     <visual>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0075"/>
@@ -79,7 +84,7 @@
     </inertial>
   </link>
   <joint name="FL_Y_joint" type="revolute">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.1216 0.0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.1171 0.0"/>
     <parent link="FL_X"/>
     <child link="FL_Y"/>
     <axis xyz="0 1 0"/>
@@ -87,26 +92,26 @@
   </joint>
   <link name="FL_Y">
     <visual>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1075"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.044 0.033 0.215"/>
+        <box size="0.044 0.033 0.18"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1075"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.044 0.033 0.215"/>
+        <box size="0.044 0.033 0.18"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.006097 -0.010857 -0.071153"/>
-      <mass value="0.272466"/>
-      <inertia ixx="0.00148" ixy="0.0" ixz="0.0" iyy="0.001544" iyz="0.0" izz="0.000108"/>
+      <origin rpy="0 0 0" xyz="-0.00212211 -0.00384371 -0.06050698"/>
+      <mass value="0.24385482"/>
+      <inertia ixx="0.00113247" ixy="-2.7e-06" ixz="1.15e-05" iyy="0.0011627" iyz="3.51e-06" izz="9.535e-05"/>
     </inertial>
   </link>
   <joint name="FL_KNEE_joint" type="revolute">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.215"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
     <parent link="FL_Y"/>
     <child link="FL_KNEE"/>
     <axis xyz="0 1 0"/>
@@ -114,47 +119,47 @@
   </joint>
   <link name="FL_KNEE">
     <visual>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.114"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.02977 0.0225 0.228"/>
+        <box size="0.02977 0.0225 0.18"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.114"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.02977 0.0225 0.228"/>
+        <box size="0.02977 0.0225 0.18"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.002252 0.0 -0.072067"/>
-      <mass value="0.22"/>
-      <inertia ixx="0.001255" ixy="0.0" ixz="0.0" iyy="0.001256" iyz="0.0" izz="3e-05"/>
+      <origin rpy="0 0 0" xyz="0.00724726 0.00053374 -0.07371072"/>
+      <mass value="0.14294956"/>
+      <inertia ixx="0.00069629" ixy="-5.5e-07" ixz="-1.936e-05" iyy="0.00070451" iyz="5.62e-06" izz="1.808e-05"/>
     </inertial>
   </link>
   <joint name="FL_FOOT_joint" type="fixed">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.24944"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
     <parent link="FL_KNEE"/>
     <child link="FL_FOOT"/>
   </joint>
   <link name="FL_FOOT">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <sphere radius="0.02144"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <sphere radius="0.02144"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
-      <mass value="0.025"/>
-      <inertia ixx="4.5967360000000005e-06" ixy="0.0" ixz="0.0" iyy="4.5967360000000005e-06" iyz="0.0" izz="4.5967360000000005e-06"/>
+      <origin rpy="0 0 0" xyz="-0.00208901 0.0 -0.00361864"/>
+      <mass value="0.009"/>
+      <inertia ixx="1.22e-06" ixy="0.0" ixz="-1.3e-07" iyy="6.6e-07" iyz="0.0" izz="1.36e-06"/>
     </inertial>
   </link>
   <joint name="FR_X_joint" type="revolute">
@@ -185,7 +190,7 @@
     </inertial>
   </link>
   <joint name="FR_Y_joint" type="revolute">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 -0.1216 0.0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 -0.1171 0.0"/>
     <parent link="FR_X"/>
     <child link="FR_Y"/>
     <axis xyz="0 1 0"/>
@@ -193,26 +198,26 @@
   </joint>
   <link name="FR_Y">
     <visual>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1075"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.044 0.033 0.215"/>
+        <box size="0.044 0.033 0.18"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1075"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.044 0.033 0.215"/>
+        <box size="0.044 0.033 0.18"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.006097 0.010857 -0.071153"/>
-      <mass value="0.272466"/>
-      <inertia ixx="0.00148" ixy="0.0" ixz="0.0" iyy="0.001544" iyz="0.0" izz="0.000108"/>
+      <origin rpy="0 0 0" xyz="-0.00212211 0.00384371 -0.06050698"/>
+      <mass value="0.24385482"/>
+      <inertia ixx="0.00113247" ixy="-2.7e-06" ixz="1.15e-05" iyy="0.0011627" iyz="3.51e-06" izz="9.535e-05"/>
     </inertial>
   </link>
   <joint name="FR_KNEE_joint" type="revolute">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.215"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
     <parent link="FR_Y"/>
     <child link="FR_KNEE"/>
     <axis xyz="0 1 0"/>
@@ -220,47 +225,47 @@
   </joint>
   <link name="FR_KNEE">
     <visual>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.114"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.02977 0.0225 0.228"/>
+        <box size="0.02977 0.0225 0.18"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.114"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.02977 0.0225 0.228"/>
+        <box size="0.02977 0.0225 0.18"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.002252 0.0 -0.072067"/>
-      <mass value="0.22"/>
-      <inertia ixx="0.001255" ixy="0.0" ixz="0.0" iyy="0.001256" iyz="0.0" izz="3e-05"/>
+      <origin rpy="0 0 0" xyz="0.00724726 0.00053374 -0.07371072"/>
+      <mass value="0.14294956"/>
+      <inertia ixx="0.00069629" ixy="-5.5e-07" ixz="-1.936e-05" iyy="0.00070451" iyz="5.62e-06" izz="1.808e-05"/>
     </inertial>
   </link>
   <joint name="FR_FOOT_joint" type="fixed">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.24944"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
     <parent link="FR_KNEE"/>
     <child link="FR_FOOT"/>
   </joint>
   <link name="FR_FOOT">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <sphere radius="0.02144"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <sphere radius="0.02144"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
-      <mass value="0.025"/>
-      <inertia ixx="4.5967360000000005e-06" ixy="0.0" ixz="0.0" iyy="4.5967360000000005e-06" iyz="0.0" izz="4.5967360000000005e-06"/>
+      <origin rpy="0 0 0" xyz="-0.00208901 0.0 -0.00361864"/>
+      <mass value="0.009"/>
+      <inertia ixx="1.22e-06" ixy="0.0" ixz="-1.3e-07" iyy="6.6e-07" iyz="0.0" izz="1.36e-06"/>
     </inertial>
   </link>
   <joint name="HL_X_joint" type="revolute">
@@ -291,7 +296,7 @@
     </inertial>
   </link>
   <joint name="HL_Y_joint" type="revolute">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.1216 0.0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.1171 0.0"/>
     <parent link="HL_X"/>
     <child link="HL_Y"/>
     <axis xyz="0 1 0"/>
@@ -299,26 +304,26 @@
   </joint>
   <link name="HL_Y">
     <visual>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1075"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.044 0.033 0.215"/>
+        <box size="0.044 0.033 0.18"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1075"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.044 0.033 0.215"/>
+        <box size="0.044 0.033 0.18"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.006097 -0.010857 -0.071153"/>
-      <mass value="0.272466"/>
-      <inertia ixx="0.00148" ixy="0.0" ixz="0.0" iyy="0.001544" iyz="0.0" izz="0.000108"/>
+      <origin rpy="0 0 0" xyz="-0.00212211 -0.00384371 -0.06050698"/>
+      <mass value="0.24385482"/>
+      <inertia ixx="0.00113247" ixy="-2.7e-06" ixz="1.15e-05" iyy="0.0011627" iyz="3.51e-06" izz="9.535e-05"/>
     </inertial>
   </link>
   <joint name="HL_KNEE_joint" type="revolute">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.215"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
     <parent link="HL_Y"/>
     <child link="HL_KNEE"/>
     <axis xyz="0 1 0"/>
@@ -326,47 +331,47 @@
   </joint>
   <link name="HL_KNEE">
     <visual>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.114"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.02977 0.0225 0.228"/>
+        <box size="0.02977 0.0225 0.18"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.114"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.02977 0.0225 0.228"/>
+        <box size="0.02977 0.0225 0.18"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.002252 0.0 -0.072067"/>
-      <mass value="0.22"/>
-      <inertia ixx="0.001255" ixy="0.0" ixz="0.0" iyy="0.001256" iyz="0.0" izz="3e-05"/>
+      <origin rpy="0 0 0" xyz="0.00724726 0.00053374 -0.07371072"/>
+      <mass value="0.14294956"/>
+      <inertia ixx="0.00069629" ixy="-5.5e-07" ixz="-1.936e-05" iyy="0.00070451" iyz="5.62e-06" izz="1.808e-05"/>
     </inertial>
   </link>
   <joint name="HL_FOOT_joint" type="fixed">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.24944"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
     <parent link="HL_KNEE"/>
     <child link="HL_FOOT"/>
   </joint>
   <link name="HL_FOOT">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <sphere radius="0.02144"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <sphere radius="0.02144"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
-      <mass value="0.025"/>
-      <inertia ixx="4.5967360000000005e-06" ixy="0.0" ixz="0.0" iyy="4.5967360000000005e-06" iyz="0.0" izz="4.5967360000000005e-06"/>
+      <origin rpy="0 0 0" xyz="-0.00208901 0.0 -0.00361864"/>
+      <mass value="0.009"/>
+      <inertia ixx="1.22e-06" ixy="0.0" ixz="-1.3e-07" iyy="6.6e-07" iyz="0.0" izz="1.36e-06"/>
     </inertial>
   </link>
   <joint name="HR_X_joint" type="revolute">
@@ -397,7 +402,7 @@
     </inertial>
   </link>
   <joint name="HR_Y_joint" type="revolute">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 -0.1216 0.0"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 -0.1171 0.0"/>
     <parent link="HR_X"/>
     <child link="HR_Y"/>
     <axis xyz="0 1 0"/>
@@ -405,26 +410,26 @@
   </joint>
   <link name="HR_Y">
     <visual>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1075"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.044 0.033 0.215"/>
+        <box size="0.044 0.033 0.18"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.1075"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.044 0.033 0.215"/>
+        <box size="0.044 0.033 0.18"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.006097 0.010857 -0.071153"/>
-      <mass value="0.272466"/>
-      <inertia ixx="0.00148" ixy="0.0" ixz="0.0" iyy="0.001544" iyz="0.0" izz="0.000108"/>
+      <origin rpy="0 0 0" xyz="-0.00212211 0.00384371 -0.06050698"/>
+      <mass value="0.24385482"/>
+      <inertia ixx="0.00113247" ixy="-2.7e-06" ixz="1.15e-05" iyy="0.0011627" iyz="3.51e-06" izz="9.535e-05"/>
     </inertial>
   </link>
   <joint name="HR_KNEE_joint" type="revolute">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.215"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
     <parent link="HR_Y"/>
     <child link="HR_KNEE"/>
     <axis xyz="0 1 0"/>
@@ -432,47 +437,47 @@
   </joint>
   <link name="HR_KNEE">
     <visual>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.114"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.02977 0.0225 0.228"/>
+        <box size="0.02977 0.0225 0.18"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.114"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.09"/>
       <geometry>
-        <box size="0.02977 0.0225 0.228"/>
+        <box size="0.02977 0.0225 0.18"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="-0.002252 0.0 -0.072067"/>
-      <mass value="0.22"/>
-      <inertia ixx="0.001255" ixy="0.0" ixz="0.0" iyy="0.001256" iyz="0.0" izz="3e-05"/>
+      <origin rpy="0 0 0" xyz="0.00724726 0.00053374 -0.07371072"/>
+      <mass value="0.14294956"/>
+      <inertia ixx="0.00069629" ixy="-5.5e-07" ixz="-1.936e-05" iyy="0.00070451" iyz="5.62e-06" izz="1.808e-05"/>
     </inertial>
   </link>
   <joint name="HR_FOOT_joint" type="fixed">
-    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.24944"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.18"/>
     <parent link="HR_KNEE"/>
     <child link="HR_FOOT"/>
   </joint>
   <link name="HR_FOOT">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <sphere radius="0.02144"/>
       </geometry>
       <material name="white"/>
     </visual>
     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <sphere radius="0.02144"/>
       </geometry>
     </collision>
     <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0.02144"/>
-      <mass value="0.025"/>
-      <inertia ixx="4.5967360000000005e-06" ixy="0.0" ixz="0.0" iyy="4.5967360000000005e-06" iyz="0.0" izz="4.5967360000000005e-06"/>
+      <origin rpy="0 0 0" xyz="-0.00208901 0.0 -0.00361864"/>
+      <mass value="0.009"/>
+      <inertia ixx="1.22e-06" ixy="0.0" ixz="-1.3e-07" iyy="6.6e-07" iyz="0.0" izz="1.36e-06"/>
     </inertial>
   </link>
 </robot>
