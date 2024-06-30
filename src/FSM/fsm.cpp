@@ -111,18 +111,18 @@ bool FSM::checkSafety() {
         return false;
     }
     // 检查电机角度是否超出限位
-    static Vec3 q_max(0.8 * MOTOR0_MAX_POS, 0.8 * MOTOR1_MAX_POS, 0.8 * MOTOR2_MAX_POS);
-    static Vec3 q_min(0.8 * MOTOR0_MIN_POS, 0.8 * MOTOR1_MIN_POS, 0.8 * MOTOR2_MIN_POS); // 关节限位最小值
+    static Vec3 q_max(0.9 * MOTOR0_MAX_POS, 0.9 * MOTOR1_MAX_POS, 0.9 * MOTOR2_MAX_POS);
+    static Vec3 q_min(0.9 * MOTOR0_MIN_POS, 0.9 * MOTOR1_MIN_POS, 0.9 * MOTOR2_MIN_POS); // 关节限位最小值
     Vec12 q = _ctrl_comp->getLowState()->getQ();
     for (int i = 0; i < LEG_NUM; ++i) {
         // 位置检测
         if (fabs(q[0 + 3 * i]) > q_max[0]) {
             _mode = FSMMode::ABNORMAL;
-            std::cout << "[ABNORMAL] q" << 0 + 3 * i << " " << q[2 + 3 * i] << " out of safe range" << std::endl;
+            std::cout << "[ABNORMAL] q" << 0 + 3 * i << " " << q[0 + 3 * i] << " out of safe range" << std::endl;
             return false;
         } else if (q[1 + 3 * i] < q_min[1] || q[1 + 3 * i] > q_max[1]) {
             _mode = FSMMode::ABNORMAL;
-            std::cout << "[ABNORMAL] q" << 1 + 3 * i << " " << q[2 + 3 * i] << " out of safe range" << std::endl;
+            std::cout << "[ABNORMAL] q" << 1 + 3 * i << " " << q[1 + 3 * i] << " out of safe range" << std::endl;
             return false;
         } else if (q[2 + 3 * i] < q_min[2] || q[2 + 3 * i] > q_max[2]) {
             _mode = FSMMode::ABNORMAL;

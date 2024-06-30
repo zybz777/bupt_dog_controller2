@@ -66,6 +66,9 @@ void State_Trot::swingGainMpcTrot() {
             _ctrl_comp->getLowCmd()->setSimFreeStanceGain(i);
             _cmd_tau.segment<3>(3 * i) = cmd_tau.segment<3>(6 + 3 * i);
         }
+#ifdef USE_REAL
+        _cmd_tau[2 + 3 * i] = _cmd_tau[2 + 3 * i] / pow(sin(_ctrl_comp->getLowState()->getQ()[2 + 3 * i]), 2);
+#endif
     }
     _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
     _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();

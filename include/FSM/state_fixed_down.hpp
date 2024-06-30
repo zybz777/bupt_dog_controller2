@@ -20,10 +20,10 @@ class State_FixedDown : public FSMState {
     FSMStateName checkChange() override;
 
   private:
-    const double _target_pos[12] = {19.68 / 180.0 * M_PI, 61.959 / 180.0 * M_PI, -151.641 / 180.0 * M_PI,
-                                    -19.68 / 180.0 * M_PI, 61.959 / 180.0 * M_PI, -151.641 / 180.0 * M_PI,
-                                    19.68 / 180.0 * M_PI, 61.959 / 180.0 * M_PI, -151.641 / 180.0 * M_PI,
-                                    -19.68 / 180.0 * M_PI, 61.959 / 180.0 * M_PI, -151.641 / 180.0 * M_PI};
+    const double _target_pos[12] = {JOINT0_DOWN_POS, JOINT1_DOWN_POS, JOINT2_DOWN_POS,
+                                    -JOINT0_DOWN_POS, JOINT1_DOWN_POS, JOINT2_DOWN_POS,
+                                    JOINT0_DOWN_POS, JOINT1_DOWN_POS, JOINT2_DOWN_POS,
+                                    -JOINT0_DOWN_POS, JOINT1_DOWN_POS, JOINT2_DOWN_POS};
     Vec12 _start_pos;
     double _percent = 0;
     double _duration = 2; // 单位 s ，完成站立的周期

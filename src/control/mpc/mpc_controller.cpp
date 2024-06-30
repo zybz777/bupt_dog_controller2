@@ -43,17 +43,17 @@ void MpcController::init() {
 #ifdef USE_SIM
     _L_diag << 10.0, 10.0, 10.0, // 角度
         0.0, 0.0, 10.0,
-        0.1, 0.1, 0.1, // 角速度
-        0.2, 0.2, 0.1; // simulink weight
-    _K = 1.0e-6;       // 1e-6
-    _M_diag << 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7;
+        0.01, 0.01, 0.01, // 角速度
+        0.2, 0.2, 0.1;    // simulink weight
+    _K_diag << 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6;
+    _M_diag << 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7;
 #else
     _L_diag << 10.0, 10.0, 10.0, // 角度
         0.0, 0.0, 10.0,
-        0.1, 0.1, 0.1, // 角速度
-        0.2, 0.2, 0.1; // simulink weight
-    _K = 1.0e-6;       // 1e-6
-    _M_diag << 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7, 1e-4, 1e-4, 1e-7;
+        0.01, 0.01, 0.01, // 角速度
+        0.2, 0.2, 0.1;    // simulink weight
+    _K_diag << 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6;
+    _M_diag << 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7;
 #endif
     /*矩阵*/
     initMat();
@@ -108,8 +108,8 @@ void MpcController::initSolver() {
     Mat12 Q, R;
     Q.setZero();
     Q.diagonal() << _L_diag;
-    R.setIdentity();
-    R *= _K;
+    R.setZero();
+    R += _K_diag.asDiagonal();
     R += _M_diag.asDiagonal();
     std::cout << R << std::endl;
     Vec12 q = -Q * Vec12::Zero(); // q = -Q * x_ref
