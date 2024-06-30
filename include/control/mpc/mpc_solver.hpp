@@ -155,6 +155,12 @@ class MpcSolver {
         }
     }
 
+    void updateLossVec_q(const std::vector<VecX>& X_ref, const MatX& N) {
+        for (int i = 0; i < N_; ++i) {
+            qp_[i].q = -qp_[i].Q * X_ref[i] - N * solution_[i].x;
+        }
+    }
+
     void updateLossVec_r(const MatX& S) {
         for (int i = 0; i < N_; ++i) {
             qp_[i].r = -S * solution_[i].u;

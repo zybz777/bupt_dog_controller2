@@ -47,13 +47,21 @@ void MpcController::init() {
         0.2, 0.2, 0.1;    // simulink weight
     _K_diag << 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6;
     _M_diag << 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7;
+    _N_diag << 1e-4, 1e-4, 1e-4,
+        0, 0, 1e-4,
+        0, 0, 1e-7,
+        5e-5, 5e-5, 1e-7;
 #else
     _L_diag << 10.0, 10.0, 10.0, // 角度
         0.0, 0.0, 10.0,
         0.01, 0.01, 0.01, // 角速度
         0.2, 0.2, 0.1;    // simulink weight
-    _K_diag << 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6;
-    _M_diag << 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7;
+    _K_diag << 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6;
+    _M_diag << 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7;
+    _N_diag << 1e-4, 1e-4, 1e-4,
+        0, 0, 1e-4,
+        0, 0, 1e-7,
+        5e-5, 5e-5, 1e-7;
 #endif
     /*矩阵*/
     initMat();
@@ -107,7 +115,8 @@ void MpcController::initSolver() {
     // 损失函数初始化
     Mat12 Q, R;
     Q.setZero();
-    Q.diagonal() << _L_diag;
+    Q += _L_diag.asDiagonal();
+    Q += _N_diag.asDiagonal();
     R.setZero();
     R += _K_diag.asDiagonal();
     R += _M_diag.asDiagonal();
@@ -189,7 +198,7 @@ void MpcController::solve() {
     _solver->updateConstraintVec_lg(_D_min);
     _solver->updateConstraintVec_ug(_D_max);
     // 更新损失函数
-    _solver->updateLossVec_q(_mrt->getXtraj());
+    _solver->updateLossVec_q(_mrt->getXtraj(), _N_diag.asDiagonal());
     _solver->updateLossVec_r(_M_diag.asDiagonal());
     // solver
     _X << _robot->getRpy(),
