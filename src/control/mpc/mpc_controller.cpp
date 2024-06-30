@@ -41,27 +41,35 @@ void MpcController::init() {
     _mpc_f.setZero();
     /*mpc 权重*/
 #ifdef USE_SIM
+    // x-xref L x-xref
     _L_diag << 10.0, 10.0, 10.0, // 角度
         0.0, 0.0, 10.0,
         0.01, 0.01, 0.01, // 角速度
         0.2, 0.2, 0.1;    // simulink weight
+    // uKu
     _K_diag << 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6;
+    // u-ulast M u-ulast
     _M_diag << 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7;
+    // x-xlast N x-xlast
     _N_diag << 1e-4, 1e-4, 1e-4,
         0, 0, 1e-4,
         0, 0, 1e-7,
-        5e-5, 5e-5, 1e-7;
+        1e-3, 1e-3, 1e-7;
 #else
+    // x-xref L x-xref
     _L_diag << 10.0, 10.0, 10.0, // 角度
         0.0, 0.0, 10.0,
         0.01, 0.01, 0.01, // 角速度
         0.2, 0.2, 0.1;    // simulink weight
+    // uKu
     _K_diag << 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6;
+    // u-ulast M u-ulast
     _M_diag << 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7;
+    // x-xlast N x-xlast
     _N_diag << 1e-4, 1e-4, 1e-4,
         0, 0, 1e-4,
         0, 0, 1e-7,
-        5e-5, 5e-5, 1e-7;
+        1e-3, 1e-3, 1e-7;
 #endif
     /*矩阵*/
     initMat();

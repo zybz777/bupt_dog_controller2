@@ -11,6 +11,7 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot>& robot, const std::share
     _qp_solver = std::make_shared<DenseQpSolver>(_nv, _ne, _ng);
     _cmd_tau = VecX::Zero(18);
     _last_contact_force.setZero();
+    _last_float_ddq.setZero();
     /* 二次型矩阵 */
     _H = MatX::Zero(_nv, _nv);
     // _Q1.setOnes(); // 质心加速度调整权重 1  lin ang
@@ -22,7 +23,10 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot>& robot, const std::share
     // _Q3.setOnes(); // 两相邻时刻优化后足端力突变减小
     // _Q3 = 0.001 * _Q3;
     _Q3 << 1e-3, 1e-3, 1e-7, 1e-3, 1e-3, 1e-7, 1e-3, 1e-3, 1e-7, 1e-3, 1e-3, 1e-7;
-    _H.diagonal() << _Q1, _Q2 + _Q3;
+    _Q4 << 1e-1, 1e-1, 1e-4, 1e-4, 1e-4, 1e-1;
+    _H.diagonal()
+        << _Q1 + _Q4,
+        _Q2 + _Q3;
     _g = VecX::Zero(_nv);
     _g.setZero();
     /* 等式约束 */
@@ -62,8 +66,10 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot>& robot, const std::share
 
 const VecX& WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
     Vec12 df = f_mpc - _last_contact_force;
+    Vec6 delta_ddq = cmd_ddq.segment<6>(0) - _last_float_ddq;
     updateDenseQpEqualityConstraints(cmd_ddq, f_mpc);
     updateDenseQpInequalityConstraints(f_mpc);
+    _g.segment<6>(0) << _Q4.asDiagonal() * delta_ddq;
     _g.segment<12>(6) << _Q3.asDiagonal() * df;
     _qp_solver->DenseQpSetVec_g(_g);
     _qp_solver->DenseQpSolve();
@@ -76,6 +82,7 @@ const VecX& WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
         }
     }
     _last_contact_force = f_mpc;
+    _last_float_ddq = cmd_ddq.segment<6>(0);
     for (int i = 0; i < 12; ++i) {
         _mpc_output.force[i] = f_mpc[i];
     }

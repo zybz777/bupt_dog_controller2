@@ -33,6 +33,7 @@ class WbcOptimizer {
     Vec6 _Q1;
     Vec12 _Q2;
     Vec12 _Q3;
+    Vec6 _Q4;
     // 等式约束
     MatX _A;
     VecX _b;
@@ -48,6 +49,7 @@ class WbcOptimizer {
     // output
     VecX _cmd_tau;
     Vec12 _last_contact_force;
+    Vec6 _last_float_ddq;
     lcm::LCM _lcm;
     std::string _mpc_topic_name;
     doglcm::MpcOutput_t _mpc_output;
