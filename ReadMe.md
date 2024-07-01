@@ -21,8 +21,12 @@ sudo apt install libboost-all-dev
 sudo apt install liburdfdom-dev
 sudo apt install liburdfdom-headers-dev 
 sudo apt install lib
-git clone --recursive https://github.com/stack-of-tasks/pinocchio
-cd pinocchio && mkdir build && cd build
+git clone https://github.com/stack-of-tasks/pinocchio
+cd pinocchio
+git checkout v2.7.1
+sed -i 's/OPTION(BUILD_PYTHON_INTERFACE "Build the Python bindings" ON)/OPTION(BUILD_PYTHON_INTERFACE "Build the Python bindings" OFF)/' CMakeLists.txt
+grep 'OPTION(BUILD_PYTHON_INTERFACE "Build the Python bindings" OFF)' CMakeLists.txt
+mkdir build && cd build
 # TODO: 将CMakeLists.txt中82行的BUILD_PYTHON_INTERFACE设置为OFF 清空build，重新cmake..
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
 make -j8 # 多次编译

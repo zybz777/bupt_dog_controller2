@@ -19,8 +19,7 @@ Robot::Robot(const std::shared_ptr<LowState>& low_state, int ms) {
 
 void Robot::init() {
     // pinocchio
-    string urdf_path = CONFIG_PATH;
-    urdf_path += "robot.urdf";
+    string urdf_path = CONFIG_PATH + string("robot.urdf");
     _robot_model = std::make_unique<pinocchio::Model>();
     pinocchio::JointModelFreeFlyer root_joint;
     pinocchio::urdf::buildModel(urdf_path, root_joint, *_robot_model);
@@ -44,9 +43,9 @@ void Robot::init() {
         _std_foot_pos_inBody.col(i) << _robot_data->oMf[_robot_model->getFrameId(foot_link[i])].translation();
     }
     std::cout << "[Robot] std foot pos " << std::endl
-              << _std_foot_pos_inBody << std::endl;
+        << _std_foot_pos_inBody << std::endl;
     _body_inertial.setZero();
-    std::vector<std::string> body_joint_names{"root_joint", "FL_X_joint", "FR_X_joint", "HL_X_joint", "HR_X_joint"};
+    std::vector<std::string> body_joint_names{ "root_joint", "FL_X_joint", "FR_X_joint", "HL_X_joint", "HR_X_joint" };
     std::vector<Mat3> body_inertial_mat = std::vector<Mat3>(body_joint_names.size());
     std::vector<double> body_mass = std::vector<double>(body_joint_names.size());
     std::vector<Vec3> body_com = std::vector<Vec3>(body_joint_names.size());
@@ -59,12 +58,12 @@ void Robot::init() {
         //        std::cout << body_mass[i] << std::endl;
         //        std::cout << "com " << body_com[i].transpose() << std::endl;
         _body_inertial += body_inertial_mat[i] + body_mass[i] *
-                                                     (body_com[i].transpose() * body_com[i] * _I3 -
-                                                      body_com[i] * body_com[i].transpose());
+            (body_com[i].transpose() * body_com[i] * _I3 -
+                body_com[i] * body_com[i].transpose());
         _mass += body_mass[i];
     }
     std::cout << "[Robot] body inertial " << std::endl
-              << _body_inertial << std::endl;
+        << _body_inertial << std::endl;
     std::cout << "[Robot] body mass " << _mass << std::endl;
     std::cout << "[Robot] body com " << _com.transpose() << std::endl;
     // 运动学参数初始化
@@ -152,7 +151,7 @@ void Robot::forwardKinematics() {
         // 足端雅可比矩阵
         J.setZero();
         pinocchio::computeFrameJacobian(*_robot_model, *_robot_data, _q, _robot_model->getFrameId(foot_link[i]),
-                                        pinocchio::LOCAL_WORLD_ALIGNED, J);
+            pinocchio::LOCAL_WORLD_ALIGNED, J);
         _J_Foot_Position.block<3, 18>(3 * i, 0) << J.block<3, 18>(0, 0);     // pin该雅可比矩阵为世界系足端速度=J * (质心系 线速度 角速度 关节速度)
         _foot_jaco_inBody[i] << R.transpose() * J.block<3, 3>(0, 6 + 3 * i); // 将雅可比矩阵由世界系转为质心系
         // 质心坐标系下足端速度 =J*质心系关节速度
@@ -168,7 +167,7 @@ void Robot::forwardKinematics() {
         // 足端雅可比矩阵导数
         dJ.setZero();
         pinocchio::getFrameJacobianTimeVariation(*_robot_model, *_robot_data, _robot_model->getFrameId(foot_link[i]),
-                                                 pinocchio::LOCAL_WORLD_ALIGNED, dJ);
+            pinocchio::LOCAL_WORLD_ALIGNED, dJ);
         _dJ_Foot_Position.block<3, 18>(3 * i, 0) << dJ.block<3, 18>(0, 0);
         // lcm
         _foot_data[i].joint_data[0].Pos = (float)_foot_pos_inBody.col(i)[0];
@@ -182,13 +181,13 @@ void Robot::forwardKinematics() {
     /*得到质心线速度的雅可比矩阵*/
     J.setZero();
     pinocchio::computeFrameJacobian(*_robot_model, *_robot_data, _q, _robot_model->getFrameId("body"),
-                                    pinocchio::LOCAL_WORLD_ALIGNED, J);
+        pinocchio::LOCAL_WORLD_ALIGNED, J);
     _J_Body_Position << J.block<3, 18>(0, 0);    // 世界系速度 = J * 质心系速度
     _J_Body_Orientation << J.block<3, 18>(3, 0); // 世界系角速度 = J * 质心系角速度
     /*质心线速度雅可比矩阵的导数*/
     dJ.setZero();
     pinocchio::getFrameJacobianTimeVariation(*_robot_model, *_robot_data, _robot_model->getFrameId("body"),
-                                             pinocchio::LOCAL_WORLD_ALIGNED, dJ);
+        pinocchio::LOCAL_WORLD_ALIGNED, dJ);
     _dJ_Body_Position << dJ.block<3, 18>(0, 0);
     _dJ_Body_Orientation << dJ.block<3, 18>(3, 0);
 }
