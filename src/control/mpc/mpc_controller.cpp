@@ -45,7 +45,7 @@ void MpcController::init() {
     _L_diag << 5.0, 5.0, 5.0, // 角度
         0.0, 0.0, 10.0,
         0.01, 0.01, 0.1, // 角速度
-        0.2, 0.2, 0.1;    // simulink weight
+        0.5, 0.5, 0.1;    // simulink weight
     // uKu
     _K_diag << 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6;
     // u-ulast M u-ulast

@@ -5,15 +5,14 @@
 #ifndef BUPT_DOG_CONTROLLER2_FSM_STATE_HPP
 #define BUPT_DOG_CONTROLLER2_FSM_STATE_HPP
 
-
 #include <utility>
 
 #include "common/ctrl_components.hpp"
 #include "fsm_enum.hpp"
 
 class FSMState {
-public:
-    FSMState(const std::shared_ptr<CtrlComponents> &ctrl_comp,
+  public:
+    FSMState(const std::shared_ptr<CtrlComponents>& ctrl_comp,
              FSMStateName state_name,
              std::string state_name_string) {
         _ctrl_comp = ctrl_comp;
@@ -29,13 +28,19 @@ public:
 
     virtual FSMStateName checkChange() { return FSMStateName::INVALID; }
 
+    bool checkNormal() {
+        if (_ctrl_comp->getGait()->getGaitType() != GaitType::PASSIVE) {
+            return false;
+        }
+        return true;
+    }
+
     FSMStateName _state_name;
     std::string _state_name_string;
 
-protected:
+  protected:
     std::shared_ptr<CtrlComponents> _ctrl_comp;
     FSMStateName _next_state_name;
 };
-
 
 #endif //BUPT_DOG_CONTROLLER2_FSM_STATE_HPP

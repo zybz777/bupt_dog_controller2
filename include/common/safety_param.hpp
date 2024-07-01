@@ -10,11 +10,11 @@
 #define DOF_NUM 12
 
 // 电机角度保护
-#define MOTOR0_MAX_POS (30.0f / 180.0f * M_PI)
-#define MOTOR0_MIN_POS (-30.0f / 180.0f * M_PI)
-#define MOTOR1_MAX_POS (100.0f / 180.0f * M_PI)
-#define MOTOR1_MIN_POS (0.0f / 180.0f * M_PI)
-#define MOTOR2_MAX_POS (-35.0f / 180.0f * M_PI)
+#define MOTOR0_MAX_POS (40.0f / 180.0f * M_PI)
+#define MOTOR0_MIN_POS (-40.0f / 180.0f * M_PI)
+#define MOTOR1_MAX_POS (120.0f / 180.0f * M_PI)
+#define MOTOR1_MIN_POS (-15.0f / 180.0f * M_PI)
+#define MOTOR2_MAX_POS (-30.0f / 180.0f * M_PI)
 #define MOTOR2_MIN_POS (-160.0f / 180.0f * M_PI)
 // 电机速度保护
 #define MOTOR_MAX_VEL (20.0f * M_PI)
@@ -31,4 +31,9 @@
 #define JOINT0_DOWN_POS (19.68 / 180.0 * M_PI)
 #define JOINT1_DOWN_POS (61.959 / 180.0 * M_PI)
 #define JOINT2_DOWN_POS (-151.641 / 180.0 * M_PI)
+// 质心最大期望速度
+#define BASE_MAX_CMD_VX (0.8)
+#define BASE_MIN_CMD_VX (-0.4)
+#define BASE_MAX_CMD_VY (0.2)
+#define BASE_MAX_CMD_DYAW (45.0 / 180.0 * M_PI)
 #endif //BUPT_DOG_CONTROLLER2_SAFETY_PARAM_HPP

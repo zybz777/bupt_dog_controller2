@@ -5,23 +5,23 @@
 #ifndef BUPT_DOG_CONTROLLER2_LOW_STATE_HPP
 #define BUPT_DOG_CONTROLLER2_LOW_STATE_HPP
 
-#include <thread>
 #include <chrono>
-#include <iostream>
 #include <functional>
+#include <iostream>
+#include <thread>
 // lcm
-#include <lcm/lcm-cpp.hpp>
 #include "doglcm/ImuData_t.hpp"
 #include "doglcm/LegData_t.hpp"
 #include "doglcm/UserCmd_t.hpp"
+#include <lcm/lcm-cpp.hpp>
 // utils
-#include "utils/math_types.hpp"
-#include "utils/math_tools.hpp"
 #include "safety_param.hpp"
+#include "utils/math_tools.hpp"
+#include "utils/math_types.hpp"
 #include "utils/timer.hpp"
 
 class LowState {
-public:
+  public:
     LowState() {
         // lcm
         _lcm.subscribe("imu", &LowState::handleImuMsg, this);
@@ -46,36 +46,36 @@ public:
     void begin() { _recv_thread.join(); }
 
     // user cmd
-    const std::shared_ptr<doglcm::UserCmd_t> &getUserCmd() { return _user_cmd; }
+    const std::shared_ptr<doglcm::UserCmd_t>& getUserCmd() { return _user_cmd; }
 
     // joint
-    const Vec12 &getQ() { return _q; }
+    const Vec12& getQ() { return _q; }
 
-    const Vec12 &getDq() { return _dq; }
+    const Vec12& getDq() { return _dq; }
 
-    const Vec12 &getTau() { return _tau; }
+    const Vec12& getTau() { return _tau; }
 
     // imu
-    const Vec3 &getRpy() { return _rpy_filtered; }
+    const Vec3& getRpy() { return _rpy_filtered; }
 
-    const RotMat &getRotMat() { return _rot_mat; }
+    const RotMat& getRotMat() { return _rot_mat; }
 
-    const Vec3 &getEulerAngularVelocity() { return _euler_angular_velocity; }
+    const Vec3& getEulerAngularVelocity() { return _euler_angular_velocity; }
 
-    const Vec3 &getAngularVelocity() { return _angular_velocity; }
+    const Vec3& getAngularVelocity() { return _angular_velocity; }
 
-    const Vec3 &getAngularVelocity_inWorld() { return _angular_velocity_in_world; }
+    const Vec3& getAngularVelocity_inWorld() { return _angular_velocity_in_world; }
 
-    const Vec3 &getLinearAccelerometer() { return _linear_accelerometer; }
+    const Vec3& getLinearAccelerometer() { return _linear_accelerometer; }
 
-    const Vec3 &getLinearAccelerometer_inWorld() { return _linear_accelerometer_in_world; }
+    const Vec3& getLinearAccelerometer_inWorld() { return _linear_accelerometer_in_world; }
 
-    const Quat &getQuaternion() { return _quat; }
+    const Quat& getQuaternion() { return _quat; }
 
     // gps
-    const Vec3 &getGpsVel() { return _gps_vel; }
+    const Vec3& getGpsVel() { return _gps_vel; }
 
-private:
+  private:
     std::thread _recv_thread;
     // lcm
     lcm::LCM _lcm;
@@ -105,7 +105,7 @@ private:
         }
     }
 
-    void handleImuMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::ImuData_t *msg) {
+    void handleImuMsg(const lcm::ReceiveBuffer*, const std::string&, const doglcm::ImuData_t* msg) {
         // rpy
         static double last_yaw = 0.0;
         double delta_yaw = msg->rpy[2] - last_yaw;
@@ -134,10 +134,12 @@ private:
                                         Eigen::AngleAxisd(getRpy()[0], Eigen::Vector3d::UnitX());
         _quat << quaternion.x(), quaternion.y(), quaternion.z(), quaternion.w();
         // gps_vel
+#ifdef USE_SIM
         memcpy(_gps_vel.data(), msg->gps_vel, sizeof(_gps_vel));
+#endif
     }
 
-    void handleLegMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::LegData_t *msg) {
+    void handleLegMsg(const lcm::ReceiveBuffer*, const std::string&, const doglcm::LegData_t* msg) {
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _q[3 * msg->leg_id + i] = msg->joint_data[i].Pos;
             _dq[3 * msg->leg_id + i] = msg->joint_data[i].W;
@@ -145,10 +147,12 @@ private:
         }
     }
 
-    void handleUserCmdMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::UserCmd_t *msg) {
+    void handleUserCmdMsg(const lcm::ReceiveBuffer*, const std::string&, const doglcm::UserCmd_t* msg) {
         memcpy(_user_cmd.get(), msg, sizeof(*_user_cmd));
+        _user_cmd->cmd_linear_velocity[0] = clip(msg->cmd_linear_velocity[0], Vec2(BASE_MAX_CMD_VX, BASE_MIN_CMD_VX));
+        _user_cmd->cmd_linear_velocity[1] = clip(msg->cmd_linear_velocity[1], Vec2(BASE_MAX_CMD_VY, -BASE_MAX_CMD_VY));
+        _user_cmd->cmd_angular_velocity[2] = clip(msg->cmd_angular_velocity[2], Vec2(BASE_MAX_CMD_DYAW, -BASE_MAX_CMD_DYAW));
     }
 };
-
 
 #endif //BUPT_DOG_CONTROLLER2_LOW_STATE_HPP
