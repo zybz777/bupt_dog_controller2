@@ -42,31 +42,31 @@ void MpcController::init() {
     /*mpc 权重*/
 #ifdef USE_SIM
     // x-xref L x-xref
-    _L_diag << 10.0, 10.0, 10.0, // 角度
+    _L_diag << 5.0, 5.0, 5.0, // 角度
         0.0, 0.0, 10.0,
-        0.01, 0.01, 0.01, // 角速度
+        0.01, 0.01, 0.1, // 角速度
         0.2, 0.2, 0.1;    // simulink weight
     // uKu
     _K_diag << 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6;
     // u-ulast M u-ulast
     _M_diag << 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7;
     // x-xlast N x-xlast
-    _N_diag << 1e-4, 1e-4, 1e-4,
+    _N_diag << 1e-3, 1e-3, 1e-4,
         0, 0, 1e-4,
         0, 0, 1e-7,
         1e-3, 1e-3, 1e-7;
 #else
     // x-xref L x-xref
-    _L_diag << 10.0, 10.0, 10.0, // 角度
+    _L_diag << 5.0, 5.0, 5.0, // 角度
         0.0, 0.0, 10.0,
-        0.01, 0.01, 0.01, // 角速度
+        0.01, 0.01, 0.1, // 角速度
         0.2, 0.2, 0.1;    // simulink weight
     // uKu
     _K_diag << 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6, 2.0e-4, 2.0e-4, 5.0e-6;
     // u-ulast M u-ulast
     _M_diag << 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7, 2e-4, 2e-4, 5e-7;
     // x-xlast N x-xlast
-    _N_diag << 1e-4, 1e-4, 1e-4,
+    _N_diag << 1e-3, 1e-3, 1e-4,
         0, 0, 1e-4,
         0, 0, 1e-7,
         1e-3, 1e-3, 1e-7;
@@ -128,7 +128,7 @@ void MpcController::initSolver() {
     R.setZero();
     R += _K_diag.asDiagonal();
     R += _M_diag.asDiagonal();
-    std::cout << R << std::endl;
+    // std::cout << R << std::endl;
     Vec12 q = -Q * Vec12::Zero(); // q = -Q * x_ref
     _solver->setupLossMat_Q(Q);
     _solver->setupLossMat_R(R);
