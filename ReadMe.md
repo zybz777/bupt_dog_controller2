@@ -8,7 +8,7 @@ sudo apt install cmake
 sudo apt install libglib2.0-dev
 sudo apt install default-jdk
 sudo apt install python3-dev
-git clone git@github.com:lcm-proj/lcm.git
+git clone https://github.com/lcm-proj/lcm.git
 cd lcm
 mkdir build && cd build
 cmake ..
@@ -56,7 +56,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j8
 sudo make install -j
 ```
-4. yaml-cpp
+4. yaml-cpp(跳过)
 ```bash
 git clone git@github.com:jbeder/yaml-cpp.git
 cd yaml-cpp && mkdir build && cd build
@@ -68,9 +68,18 @@ sudo make install -j
    1. https://pytorch.org/ 下载cxx11 ABI 2.3版本压缩包
    2. 移动libtorch文件夹到/opt/libtorch
    3. export LD_LIBRARY_PATH=/opt/libtorch/lib:$LD_LIBRARY_PATH
-6. 该库
+6. bupt_dog_msg
+```bash
+git clone https://github.com/zybz777/bupt_dog_msg.git
+cd bupt_dog_msg
+sudo chmod +x lcm_gen.sh
+sudo ./lcm_gen.sh
+echo 'export CLASSPATH=~/bupt_dog_msg/java/my_types.jar' >> ~/.bashrc
+```
+7. bupt_dog_controller2
 ```bash
 sudo apt install libarmadillo-dev
+git clone https://github.com/zybz777/bupt_dog_controller2.git
 cd ~/bupt_dog_controller2
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release

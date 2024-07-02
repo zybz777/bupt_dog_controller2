@@ -32,7 +32,7 @@ int main() {
     std::cout << "#### MPC MODE2 ON ####" << std::endl;
 #endif
     setPriority();
-    int ms = 1;
+    int ms = 2;
     auto ctrl_comp = std::make_shared<CtrlComponents>(ms);
     auto fsm = std::make_shared<FSM>(ctrl_comp, ms);
     ctrl_comp->begin();
