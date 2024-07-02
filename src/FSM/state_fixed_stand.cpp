@@ -8,16 +8,17 @@
  *
  * Copyright (c) 2024 by BUPT RobotTeam, All Rights Reserved.
  */
- //
- // Created by zyb on 24-4-23.
- //
+//
+// Created by zyb on 24-4-23.
+//
 
 #include "FSM/state_fixed_stand.hpp"
 
-State_FixedStand::State_FixedStand(const std::shared_ptr<CtrlComponents>& ctrl_comp) : FSMState(ctrl_comp,
-    FSMStateName::FIXEDSTAND,
-    "fixed stand") {
-    _freq = 500;
+State_FixedStand::State_FixedStand(const std::shared_ptr<CtrlComponents>& ctrl_comp) :
+    FSMState(ctrl_comp,
+             FSMStateName::FIXEDSTAND,
+             "fixed stand") {
+    _freq = 1.0 / (CONTROL_DT_MS / 1000.0);
     _percent = 0;
     _duration = FIXEDSTAND_T;
 }

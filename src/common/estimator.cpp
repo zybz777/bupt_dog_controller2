@@ -145,7 +145,7 @@ void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Ro
 void Estimator::publishEsData() {
     memcpy(_es_data.pos, getPosition().data(), sizeof(_es_data.pos));
     memcpy(_es_data.vel, getVelocity().data(), sizeof(_es_data.vel));
-    memcpy(_es_data.lp_vel, getLpPosition().data(), sizeof(_es_data.lp_vel));
+    memcpy(_es_data.lp_vel, getLpVelocity().data(), sizeof(_es_data.lp_vel));
     _lcm.publish(_es_data_topic_name, &_es_data);
 }
 
