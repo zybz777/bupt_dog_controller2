@@ -30,7 +30,7 @@
 #define JOINT1_STAND_POS (45.0 / 180.0 * M_PI)
 #define JOINT2_STAND_POS (-90.0 / 180.0 * M_PI)
 // 关节标准位置 趴下 左前腿三关节
-#define JOINT0_DOWN_POS (19.68 / 180.0 * M_PI)
+#define JOINT0_DOWN_POS (23.056 / 180.0 * M_PI)
 #define JOINT1_DOWN_POS (61.959 / 180.0 * M_PI)
 #define JOINT2_DOWN_POS (-151.641 / 180.0 * M_PI)
 // 质心最大期望速度
