@@ -13,7 +13,7 @@
 #include "utils/real_time.hpp"
 #include <iostream>
 
-int main() {
+void MACRO_PRINT() {
 #ifdef USE_SIM
     std::cout << "#### SIM MODE ON ####" << std::endl;
 #endif
@@ -31,6 +31,20 @@ int main() {
 #ifdef USE_MPC2
     std::cout << "#### MPC MODE2 ON ####" << std::endl;
 #endif
+#ifdef USE_WBC_THREAD
+    std::cout << "#### WBC THREAD ON ####" << std::endl;
+#else
+    std::cout << "#### WBC THREAD OFF ####" << std::endl;
+#endif
+#ifdef USE_PIN_THREAD
+    std::cout << "#### PINOCCHIO THREAD ON ####" << std::endl;
+#else
+    std::cout << "#### PINOCCHIO THREAD OFF ####" << std::endl;
+#endif
+}
+
+int main() {
+    MACRO_PRINT();
     setPriority();
     int ms = CONTROL_DT_MS;
     auto ctrl_comp = std::make_shared<CtrlComponents>(ms);

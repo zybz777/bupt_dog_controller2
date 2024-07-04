@@ -17,7 +17,7 @@
 #include "robot.hpp"
 
 class CtrlComponents {
-  public:
+public:
     explicit CtrlComponents(int ms) {
         // common
         _low_cmd = std::make_shared<LowCmd>();
@@ -37,47 +37,57 @@ class CtrlComponents {
 
     void begin() {
         _low_state->begin();
+#ifdef USE_PIN_THREAD
+        _robot->begin();
+#endif
         _mpc->begin();
         _mpc2->begin();
+#ifdef USE_WBC_THREAD
+        _wbc->begin();
+#endif
         std::cout << "[CtrlComponents] begin!" << std::endl;
     }
 
     void step() {
         _gait->step();
+#ifndef USE_PIN_THREAD
         _robot->step();
+#endif
         _estimator->step(_gait, _robot);
         _vmc->step(_robot, _gait, _estimator, _user_cmd);
+#ifndef USE_WBC_THREAD
         _wbc->step();
+#endif
     }
 
     // common
-    const std::shared_ptr<doglcm::UserCmd_t>& getUserCmd() { return _user_cmd; }
+    const std::shared_ptr<doglcm::UserCmd_t> &getUserCmd() { return _user_cmd; }
 
-    const std::shared_ptr<LowCmd>& getLowCmd() { return _low_cmd; }
+    const std::shared_ptr<LowCmd> &getLowCmd() { return _low_cmd; }
 
-    const std::shared_ptr<LowState>& getLowState() { return _low_state; }
+    const std::shared_ptr<LowState> &getLowState() { return _low_state; }
 
-    const std::shared_ptr<Robot>& getRobot() { return _robot; }
+    const std::shared_ptr<Robot> &getRobot() { return _robot; }
 
-    const std::shared_ptr<Estimator>& getEstimator() { return _estimator; }
+    const std::shared_ptr<Estimator> &getEstimator() { return _estimator; }
 
     // gait
-    const std::shared_ptr<Gait>& getGait() { return _gait; }
+    const std::shared_ptr<Gait> &getGait() { return _gait; }
 
     // control
-    const std::shared_ptr<VmcController>& getVmcController() { return _vmc; }
+    const std::shared_ptr<VmcController> &getVmcController() { return _vmc; }
 
-    const std::shared_ptr<MpcController>& getMpcController() { return _mpc; }
+    const std::shared_ptr<MpcController> &getMpcController() { return _mpc; }
 
-    const std::shared_ptr<MpcController2>& getMpcController2() { return _mpc2; }
+    const std::shared_ptr<MpcController2> &getMpcController2() { return _mpc2; }
 
-    const std::shared_ptr<WbcController>& getWbcController() { return _wbc; }
+    const std::shared_ptr<WbcController> &getWbcController() { return _wbc; }
 
-  private:
+private:
     // common
-    std::shared_ptr<LowCmd> _low_cmd;     // 底层电机控制接口
+    std::shared_ptr<LowCmd> _low_cmd; // 底层电机控制接口
     std::shared_ptr<LowState> _low_state; // 底层电机与IMU数据、手柄控制指令
-    std::shared_ptr<Robot> _robot;        // 机器人运动学与动力学接口，包含底层电机与IMU数据
+    std::shared_ptr<Robot> _robot; // 机器人运动学与动力学接口，包含底层电机与IMU数据
     std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
     std::shared_ptr<Estimator> _estimator;
     // gait

@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+##########################
+######### OPTION #########
+##########################
 # 设置 仿真模式(ON)或实物模式(OFF)
 set(SIM_MODE ON)# 设置为 ON 或者 OFF
 set(REAL_MODE OFF)
@@ -13,7 +16,17 @@ set(CALIBRATE_MODE OFF)
 # 设置 MPC1 MPC2
 set(MPC_MODE1 ON)
 set(MPC_MODE2 OFF)
+# 设置 WBC 独立子线程
+set(WBC_THREAD OFF) # 独立线程WBC好像不稳定
+# 设置 机器人学pinocchio 独立子线程
+set(PIN_THREAD ON)
+##########################
+######### OPTION #########
+##########################
 
+##############################
+######### DEPENDENCY #########
+##############################
 set(hpipm-cpp_DIR "/usr/local/share/hpipm-cpp/cmake/hpipm-cpp-config.cmake")
 #set(Torch_DIR "/opt/libtorch/share/cmake/Torch/")
 add_definitions(-DCONFIG_PATH="${CMAKE_SOURCE_DIR}/config/")
@@ -28,18 +41,18 @@ find_package(hpipm-cpp REQUIRED)
 
 include(FetchContent)
 FetchContent_Declare(
-  yaml-cpp
-  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-  GIT_TAG yaml-cpp-0.7.0 # Replace with the desired tag, commit hash, or branch
+        yaml-cpp
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+        GIT_TAG yaml-cpp-0.7.0 # Replace with the desired tag, commit hash, or branch
 )
 FetchContent_GetProperties(yaml-cpp)
-if(NOT yaml-cpp_POPULATED)
-  message(STATUS "Fetching yaml-cpp...")
-  FetchContent_Populate(yaml-cpp)
-  add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
-  message(STATUS "yaml-cpp Source Dir: ${yaml-cpp_SOURCE_DIR}")
-  message(STATUS "yaml-cpp Binary Dir: ${yaml-cpp_BINARY_DIR}")
-endif()
+if (NOT yaml-cpp_POPULATED)
+    message(STATUS "Fetching yaml-cpp...")
+    FetchContent_Populate(yaml-cpp)
+    add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+    message(STATUS "yaml-cpp Source Dir: ${yaml-cpp_SOURCE_DIR}")
+    message(STATUS "yaml-cpp Binary Dir: ${yaml-cpp_BINARY_DIR}")
+endif ()
 
 #find_package(Torch REQUIRED)
 #message(STATUS "Torch library status:")
@@ -47,6 +60,11 @@ endif()
 #message(STATUS "    libraries: ${TORCH_LIBS}")
 #message(STATUS "    include path: ${TORCH_INCLUDE_DIRS}")
 #message(STATUS "    torch lib : ${TORCH_LIBRARIES} ")
+
+##############################
+######### DEPENDENCY #########
+##############################
+
 
 include_directories(
         include
@@ -103,4 +121,10 @@ if (MPC_MODE1)
 endif ()
 if (MPC_MODE2)
     add_compile_definitions(USE_MPC2)
+endif ()
+if (WBC_THREAD)
+    add_compile_definitions(USE_WBC_THREAD)
+endif ()
+if (PIN_THREAD)
+    add_compile_definitions(USE_PIN_THREAD)
 endif ()

@@ -6,13 +6,13 @@
 #include "control/mpc/mpc_param.hpp"
 #include "utils/real_time.hpp"
 
-MpcController::MpcController(const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait,
-                             const std::shared_ptr<Estimator>& estimator) {
+MpcController::MpcController(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+                             const std::shared_ptr<Estimator> &estimator) {
     _robot = robot;
     _gait = gait;
     _estimator = estimator;
     _mrt = std::make_shared<MrtGenerator>();
-    _dt = (double)1.0 / MPC_FREQUENCY;
+    _dt = (double) 1.0 / MPC_FREQUENCY;
     _ms = int(_dt * 1000.0);
     init();
 #ifdef USE_MPC1
@@ -43,18 +43,18 @@ void MpcController::init() {
 #ifdef USE_SIM
     // x-xref L x-xref
     _L_diag << 5.0, 5.0, 5.0, // 角度
-        0.0, 0.0, 5.0,
-        0.5, 0.5, 0.5, // 角速度
-        0.5, 0.5, 0.5; // simulink weight
+            0.0, 0.0, 5.0,
+            0.1, 0.1, 0.1, // 角速度
+            0.5, 0.5, 0.5; // simulink weight
     // uKu
     _K_diag << 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6;
     // u-ulast M u-ulast
     _M_diag << 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7;
     // x-xlast N x-xlast
     _N_diag << 1e-3, 1e-3, 1e-4,
-        0, 0, 1e-4,
-        1e-7, 1e-7, 1e-7,
-        1e-4, 1e-4, 1e-7;
+            0, 0, 1e-4,
+            1e-7, 1e-7, 1e-7,
+            1e-4, 1e-4, 1e-7;
     // _M_diag.setZero();
     // _N_diag.setZero();
 #else
@@ -81,7 +81,7 @@ void MpcController::init() {
     initSolver();
     // lcm
     _mpc_topic_name = "mpc_output";
-    for (double& force : _mpc_output.force) {
+    for (double &force: _mpc_output.force) {
         force = 0.0;
     }
 }
@@ -105,16 +105,15 @@ void MpcController::initMat() {
         _D[i].setZero();
         for (int leg_id = 0; leg_id < 4; ++leg_id) {
             _D[i].block<5, 3>(5 * leg_id, 3 * leg_id) << 1., 0., 0.,
-                -1., 0., 0.,
-                0., 1., 0.,
-                0., -1., 0.,
-                0., 0., 1.;
+                    -1., 0., 0.,
+                    0., 1., 0.,
+                    0., -1., 0.,
+                    0., 0., 1.;
         }
         _D_min[i] = VecX::Zero(20);
         _D_max[i] = VecX::Zero(20);
     }
     /*旋转矩阵*/
-    _R.setIdentity();
     _inv_Rw.setIdentity();
 }
 
@@ -150,7 +149,6 @@ void MpcController::initSolver() {
     std::cout << "[MPC] Task Run!" << std::endl;
     // assignTask2Cpu(2);
     std::chrono::microseconds period(ms * 1000);
-    std::chrono::microseconds zero_us(0);
     auto start_time = std::chrono::high_resolution_clock::now();
     while (true) {
         step();
@@ -168,24 +166,21 @@ void MpcController::step() {
 }
 
 void MpcController::updateMat() {
-    _R = _robot->getRotMat();
+    const RotMat &R = _robot->getRotMat();
     _inv_Rw = invRotMatW(_robot->getRpy());
-    // _R = rotMatRz(_robot->getRpy()[2]);
-    // _inv_Rw = _R.transpose();
-    _I_world = _R * _I_body * _R.transpose();
+    _I_world = R * _I_body * R.transpose();
     Mat3 I_world_inv = _I_world.inverse();
     // A
     _A_dt.block<3, 3>(0, 6) << _inv_Rw * _dt;
     // B
-    Vec3 r;
     for (int i = 0; i < 4; ++i) {
-        r = _R * (_robot->getFootPosition_inBody(i) - _body_com);
+        Vec3 r = R * (_robot->getFootPosition_inBody(i) - _body_com);
         _B_dt.block<3, 3>(6, i * 3) << I_world_inv * skew(r) * _dt;
     }
 }
 
 void MpcController::updateConstraint() {
-    std::vector<Vec4_i8> gait_list = _gait->getGaitList();
+    const std::vector<Vec4_i8> &gait_list = _gait->getGaitList();
     for (int i = 0; i < HORIZON; ++i) {
         for (int leg_id = 0; leg_id < 4; ++leg_id) {
             if (gait_list[i](leg_id) == CONTACT) {
@@ -214,9 +209,9 @@ void MpcController::solve() {
     _solver->updateLossVec_r(_M_diag.asDiagonal());
     // solver
     _X << _robot->getRpy(),
-        _estimator->getLpPosition(),
-        _robot->getAngularVelocity_inWorld(),
-        _estimator->getLpVelocity();
+            _estimator->getLpPosition(),
+            _robot->getAngularVelocity_inWorld(),
+            _estimator->getLpVelocity();
     _mpc_f = _solver->solve(_X);
 }
 

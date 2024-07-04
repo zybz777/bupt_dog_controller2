@@ -15,6 +15,7 @@
 #include <utility>
 // common
 #include "low_state.hpp"
+#include "utils/real_time.hpp"
 // lcm
 #include "lcm/lcm-cpp.hpp"
 #include "doglcm/LegData_t.hpp"
@@ -26,8 +27,9 @@ const std::string foot_link[LEG_NUM] = {"FL_FOOT", "FR_FOOT", "HL_FOOT", "HR_FOO
 class Robot {
 public:
     Robot(const std::shared_ptr<LowState> &low_state, int ms);
-
-    //    void begin();
+#ifdef USE_PIN_THREAD
+    void begin();
+#endif
     void step();
 
     const std::shared_ptr<LowState> &getLowState() { return _low_state; };
@@ -70,7 +72,7 @@ public:
 
     // 足端运动学数据
 
-    Vec3 getFootPosition_inWorld(int leg_id) { return _foot_pos_inWorld.col(leg_id);  }
+    Vec3 getFootPosition_inWorld(int leg_id) { return _foot_pos_inWorld.col(leg_id); }
 
     Vec3 getFootPosition_inBody(int leg_id) { return _foot_pos_inBody.col(leg_id); }
 
@@ -137,21 +139,23 @@ public:
 
 private:
     void init();
-
-    //    [[noreturn]] void run(int ms);
-
+#ifdef USE_PIN_THREAD
+    [[noreturn]] void run(int ms);
+#endif
     void forwardKinematics();
 
     void inverseDynamics();
 
     std::shared_ptr<LowState> _low_state;
     int _ms;
-    //    std::thread _robot_thread;
+#ifdef USE_PIN_THREAD
+    std::thread _robot_thread;
+#endif
     // pinocchio
     std::unique_ptr<pinocchio::Model> _robot_model;
     std::unique_ptr<pinocchio::Data> _robot_data;
     // 关节参数
-    VecX _q;  //  关节角度
+    VecX _q; //  关节角度
     VecX _dq; //  关节速度
     // 物理参数
     double _mass;
@@ -159,16 +163,16 @@ private:
     Mat3 _body_inertial;
     Vec34 _std_foot_pos_inBody;
     // 运动学足端数据
-    Vec34 _foot_pos_inWorld;   // 世界坐标系下足端位置
-    Vec34 _foot_pos_inBody;    // 质心坐标系下足端位置
-    Vec34 _foot_vel_inBody;    // 质心坐标系下足端速度
+    Vec34 _foot_pos_inWorld; // 世界坐标系下足端位置
+    Vec34 _foot_pos_inBody; // 质心坐标系下足端位置
+    Vec34 _foot_vel_inBody; // 质心坐标系下足端速度
     Vec34 _foot_vel_filtered_inBody;
     Mat3 _foot_jaco_inBody[LEG_NUM]; // 质心坐标系下足端雅可比
     // 动力学参数
-    VecX _nle;              // 非线性力矩 重力+科势力
-    MatX _M;                // 广义质量矩阵
+    VecX _nle; // 非线性力矩 重力+科势力
+    MatX _M; // 广义质量矩阵
     MatX _M_inv;
-    MatX _J_contact;        // 足端雅可比矩阵 12x18
+    MatX _J_contact; // 足端雅可比矩阵 12x18
     Vec12 _friction_torque; // 摩擦力矩
     // WBC 雅可比矩阵
     MatX _J_Body_Orientation;

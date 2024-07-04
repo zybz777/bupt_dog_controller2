@@ -76,7 +76,6 @@ class MpcController {
     vector<MatX> _D;
     vector<VecX> _D_min, _D_max;
     /*旋转矩阵*/
-    RotMat _R;
     RotMat _inv_Rw;
     // lcm
     lcm::LCM _lcm;

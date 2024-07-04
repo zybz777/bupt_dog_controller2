@@ -9,11 +9,11 @@
 #include "utils/math_types.hpp"
 #include <memory>
 
-WbcController::WbcController(int ms, const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait,
-                             const std::shared_ptr<Estimator>& estimator,
-                             const std::shared_ptr<MpcController>& mpc,
-                             const std::shared_ptr<MpcController2>& mpc2,
-                             const std::shared_ptr<VmcController>& vmc) {
+WbcController::WbcController(int ms, const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+                             const std::shared_ptr<Estimator> &estimator,
+                             const std::shared_ptr<MpcController> &mpc,
+                             const std::shared_ptr<MpcController2> &mpc2,
+                             const std::shared_ptr<VmcController> &vmc) {
     _dt = double(ms / 1000.0);
     _robot = robot;
     _estimator = estimator;
@@ -53,7 +53,12 @@ WbcController::WbcController(int ms, const std::shared_ptr<Robot>& robot, const 
     _f_mpc.setZero();
     // qp solver
     _optimizer = std::make_shared<WbcOptimizer>(_robot, _gait);
+
+    _ms = ms;
+#ifdef USE_WBC_THREAD
+    _wbc_thread = std::thread([this] { run(_ms); });
     std::cout << "[WBC] Init Successful!" << std::endl;
+#endif
 }
 
 void WbcController::step() {
@@ -84,7 +89,7 @@ void WbcController::updateTask() {
     updateSwingFootTask(_task_swing_foot);
 }
 
-void WbcController::updateBodyPosTask(WbcTask_BodyPos& task) {
+void WbcController::updateBodyPosTask(WbcTask_BodyPos &task) {
     /*  工作空间： 世界系质心位置 世界系质心速度 世界系质心加速度
          关节空间q： 世界系质心位置 欧拉角 关节电机角度
          关节空间dq: 质心系质心速度 质心系角速度 关节电机角速度
@@ -103,7 +108,7 @@ void WbcController::updateBodyPosTask(WbcTask_BodyPos& task) {
     task.updateTask(target_pos, target_vel, target_acc, curr_pos, curr_vel);
 }
 
-void WbcController::updateBodyOrientationTask(WbcTask_BodyOrientation& task) {
+void WbcController::updateBodyOrientationTask(WbcTask_BodyOrientation &task) {
     /*  工作空间： 欧拉角 质心系角速度 质心系角加速度
        关节空间q： 世界系质心位置 欧拉角 关节电机角度
        关节空间dq: 质心系质心速度 质心系角速度 关节电机角速度
@@ -128,12 +133,13 @@ void WbcController::updateBodyOrientationTask(WbcTask_BodyOrientation& task) {
     task.updateTask(task_err, target_vel, target_acc, curr_vel);
 }
 
-void WbcController::updateContactFootTask(WbcTask_FootPos& task) {
+void WbcController::updateContactFootTask(WbcTask_FootPos &task) {
     // 更新雅可比矩阵
     auto J = _robot->getJ_FeetPosition();
     auto dJ = _robot->getDJ_FeetPosition();
     for (int i = 0; i < LEG_NUM; ++i) {
-        if (_gait->getContact(i) == SWING) { // 过滤摆动项
+        if (_gait->getContact(i) == SWING) {
+            // 过滤摆动项
             J.block<3, 18>(3 * i, 0).setZero();
             dJ.block<3, 18>(3 * i, 0).setZero();
         }
@@ -149,7 +155,7 @@ void WbcController::updateContactFootTask(WbcTask_FootPos& task) {
     task.updateTask(target_pos, target_vel, target_acc, curr_pos, curr_vel);
 }
 
-void WbcController::updateSwingFootTask(WbcTask_FootPos& task) {
+void WbcController::updateSwingFootTask(WbcTask_FootPos &task) {
     /*  工作空间： 世界系足端位置 世界系足端速度 世界系足端加速度
        关节空间q： 世界系质心位置 欧拉角 关节电机角度
        关节空间dq: 质心系质心速度 质心系角速度 关节电机角速度
@@ -159,7 +165,8 @@ void WbcController::updateSwingFootTask(WbcTask_FootPos& task) {
     auto J = _robot->getJ_FeetPosition();
     auto dJ = _robot->getDJ_FeetPosition();
     for (int i = 0; i < LEG_NUM; ++i) {
-        if (_gait->getContact(i) == CONTACT) { // 过滤支撑项
+        if (_gait->getContact(i) == CONTACT) {
+            // 过滤支撑项
             J.block<3, 18>(3 * i, 0).setZero();
             dJ.block<3, 18>(3 * i, 0).setZero();
         }
@@ -207,11 +214,13 @@ void WbcController::solve() {
         J_pre = _task_list[i]->getTask_J() * N;
         pinv_J_pre = pinv(J_pre);
         // 位置任务
-        cmd_delta_q << cmd_delta_q + pinv_J_pre * (_task_list[i]->getTask_e() - _task_list[i]->getTask_J() * cmd_delta_q);
+        cmd_delta_q << cmd_delta_q + pinv_J_pre * (
+            _task_list[i]->getTask_e() - _task_list[i]->getTask_J() * cmd_delta_q);
         // 速度任务
         cmd_dq << cmd_dq + pinv_J_pre * (_task_list[i]->getTask_dx() - _task_list[i]->getTask_J() * cmd_dq);
         // 加速度任务
-        cmd_ddq << cmd_ddq + pinv_J_pre * (_task_list[i]->getTask_ddx() - _task_list[i]->getTask_dJ() * _robot->getFloatBaseDq() - _task_list[i]->getTask_J() * cmd_ddq);
+        cmd_ddq << cmd_ddq + pinv_J_pre * (_task_list[i]->getTask_ddx() - _task_list[i]->getTask_dJ() * _robot->
+                                           getFloatBaseDq() - _task_list[i]->getTask_J() * cmd_ddq);
         N *= I18 - pinv_J_pre * J_pre;
     }
     Vec18 cmd_q;
@@ -234,3 +243,21 @@ void WbcController::solve() {
     }
     _cmd_tau = _optimizer->calcCmdTau(_cmd_ddq, _f_mpc);
 }
+#ifdef USE_WBC_THREAD
+[[noreturn]] void WbcController::run(int ms) {
+    std::cout << "[WBC] Task Run!" << std::endl;
+    std::chrono::microseconds period(ms * 1000);
+    auto start_time = std::chrono::high_resolution_clock::now();
+    while (true) {
+        step();
+        start_time += period;
+        std::this_thread::sleep_until(start_time);
+    }
+}
+#endif
+#ifdef USE_WBC_THREAD
+void WbcController::begin() {
+    while (!_wbc_thread.joinable()) {}
+    _wbc_thread.join();
+}
+#endif

@@ -46,15 +46,18 @@ void Estimator::init() {
     readQR(_Cu, _R_init);
     // Q init
     for (int i = 0; i < _Q_diag.rows(); ++i) {
-        if (i < 3) {  // 位置估计 建模误差较小
+        if (i < 3) {
+            // 位置估计 建模误差较小
             _Q_diag[i] = 2e-5;
-        } else if (i < 6) { // 速度估计 建模误差较小
+        } else if (i < 6) {
+            // 速度估计 建模误差较小
             _Q_diag[i] = 2e-6;
-        } else {    // 足端位置估计 足端触地时抖动带来较大误差
+        } else {
+            // 足端位置估计 足端触地时抖动带来较大误差
             _Q_diag[i] = 2e-4;
         }
     }
-    _Q_init = _Q_diag.asDiagonal();       // 建模与离散化产生的过程噪声
+    _Q_init = _Q_diag.asDiagonal(); // 建模与离散化产生的过程噪声
     _Q_init += _B * _Cu * _B.transpose(); // 测量到的输入量过程噪声
     // R init
     _R_init(24, 24) = 1e-10;
@@ -77,13 +80,13 @@ void Estimator::init() {
 }
 
 void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Robot> &robot) {
-    _rotMat_B2W = robot->getRotMat();
+    const RotMat &R = robot->getRotMat();
     /* 观测量更新 */
     for (int i = 0; i < 4; ++i) {
-        _feetPos2Body_inWorld.segment<3>(3 * i) = _rotMat_B2W * robot->getFootPosition_inBody(i);
-        _feetVel2Body_inWorld.segment<3>(3 * i) = _rotMat_B2W * (robot->getFootVelocityFiltered_inBody(i) +
-                                                                 skew(robot->getAngularVelocity()) *
-                                                                 robot->getFootPosition_inBody(i));
+        _feetPos2Body_inWorld.segment<3>(3 * i) = R * robot->getFootPosition_inBody(i);
+        _feetVel2Body_inWorld.segment<3>(3 * i) = R * (robot->getFootVelocityFiltered_inBody(i) +
+                                                       skew(robot->getAngularVelocity()) *
+                                                       robot->getFootPosition_inBody(i));
     }
     _y << _feetPos2Body_inWorld, _feetVel2Body_inWorld, _feetH_inWorld;
     /* 输入量更新 */
@@ -96,9 +99,9 @@ void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Ro
     _R = _R_init;
     for (int i = 0; i < 4; ++i) {
         if (gait->getContact(i) == SWING) {
-            _Q.block<3, 3>(6 + 3 * i, 6 + 3 * i) = _large_variance * _I3;   // 摆动腿位置估计 大噪声
+            _Q.block<3, 3>(6 + 3 * i, 6 + 3 * i) = _large_variance * _I3; // 摆动腿位置估计 大噪声
             _R.block<3, 3>(12 + 3 * i, 12 + 3 * i) = _large_variance * _I3; // 摆动腿速度测量 大噪声
-            _R(24 + i, 24 + i) = _large_variance;                           // 摆动腿高度测量 大噪声
+            _R(24 + i, 24 + i) = _large_variance; // 摆动腿高度测量 大噪声
         } else {
             _trust = windowFunc2(gait->getPhase(i), 0.25, 0.1);
             // 摆动腿位置估计噪声随触地相位增大而变小
@@ -152,7 +155,7 @@ void Estimator::publishEsData() {
 void Estimator::calibrateQR() {
     bool u_flag = false;
     bool R_flag = false;
-    std::map<std::string, std::vector<double>> data;
+    std::map<std::string, std::vector<double> > data;
     if (_u_check->measure(_u)) {
         data["u_cov"] = _u_check->getCov();
         u_flag = true;
@@ -186,7 +189,7 @@ void Estimator::calibrateQR() {
 }
 
 void Estimator::readQR(Mat3 &Cu, Eigen::Matrix<double, 28, 28> &R_init) {
-// 从YAML文件加载配置
+    // 从YAML文件加载配置
     std::string es_config_path = CONFIG_PATH;
 #ifdef USE_SIM
     es_config_path += "sim_es_config.yaml";
@@ -196,10 +199,10 @@ void Estimator::readQR(Mat3 &Cu, Eigen::Matrix<double, 28, 28> &R_init) {
     YAML::Node node = YAML::LoadFile(es_config_path);
     if (node["u_cov"]) {
         // 读取对应的数组
-        auto buffer = node["u_cov"].as<std::vector<double>>();
+        auto buffer = node["u_cov"].as<std::vector<double> >();
         memcpy(Cu.data(), buffer.data(), sizeof(Cu));
-        std::cout << "Cu: " << std::endl
-                  << Cu << std::endl;
+        // std::cout << "Cu: " << std::endl
+        //         << Cu << std::endl;
     } else {
         Cu.setZero();
         std::cerr << "The YAML file does not contain a u_cov key." << std::endl;
@@ -207,7 +210,7 @@ void Estimator::readQR(Mat3 &Cu, Eigen::Matrix<double, 28, 28> &R_init) {
 
     if (node["R_cov"]) {
         // 读取
-        auto buffer = node["R_cov"].as<std::vector<double>>();
+        auto buffer = node["R_cov"].as<std::vector<double> >();
         memcpy(R_init.data(), buffer.data(), sizeof(R_init));
     } else {
         R_init.setZero();
