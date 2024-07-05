@@ -20,6 +20,8 @@ set(MPC_MODE2 OFF)
 set(WBC_THREAD OFF) # 独立线程WBC好像不稳定
 # 设置 机器人学pinocchio 独立子线程
 set(PIN_THREAD ON)
+# 设置 状态估计器 独立子线程
+set(ES_THREAD ON)
 ##########################
 ######### OPTION #########
 ##########################
@@ -113,18 +115,26 @@ endif ()
 if (REAL_MODE)
     add_compile_definitions(USE_REAL)
 endif ()
+
 if (CALIBRATE_MODE)
     add_compile_definitions(USE_CALIBRATE)
 endif ()
+
 if (MPC_MODE1)
     add_compile_definitions(USE_MPC1)
 endif ()
 if (MPC_MODE2)
     add_compile_definitions(USE_MPC2)
 endif ()
+
 if (WBC_THREAD)
     add_compile_definitions(USE_WBC_THREAD)
 endif ()
+
 if (PIN_THREAD)
     add_compile_definitions(USE_PIN_THREAD)
+endif ()
+
+if (ES_THREAD)
+    add_compile_definitions(USE_ES_THREAD)
 endif ()

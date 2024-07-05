@@ -24,9 +24,13 @@
 
 class Estimator {
 public:
-    explicit Estimator(int ms);
+    explicit Estimator(int ms, const std::shared_ptr<Gait> &gait, const std::shared_ptr<Robot> &robot);
 
-    void step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Robot> &robot);
+#ifdef USE_ES_THREAD
+    void begin();
+#endif
+
+    void step();
 
     Vec3 getPosition() { return _xhat.segment<3>(0); }
 
@@ -47,6 +51,9 @@ private:
     void calibrateQR();
 
     static void readQR(Mat3 &Cu, Eigen::Matrix<double, Y_NUM, Y_NUM> &R_init);
+
+    std::shared_ptr<Gait> _gait;
+    std::shared_ptr<Robot> _robot;
 
     // measure Q R
     std::shared_ptr<AvgCov> _R_check, _u_check;
@@ -93,6 +100,13 @@ private:
     lcm::LCM _lcm;
     std::string _es_data_topic_name;
     doglcm::EstimatorData_t _es_data{};
+
+    int _ms;
+#ifdef USE_ES_THREAD
+    std::thread _thread;
+
+    [[noreturn]] void run(int ms);
+#endif
 };
 
 

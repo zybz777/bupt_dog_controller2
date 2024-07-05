@@ -4,9 +4,15 @@
 
 #include "common/estimator.hpp"
 
-Estimator::Estimator(int ms) {
+Estimator::Estimator(int ms, const std::shared_ptr<Gait> &gait, const std::shared_ptr<Robot> &robot) {
+    _ms = ms;
     _dt = (double) ms / 1000.0;
+    _gait = gait;
+    _robot = robot;
     init();
+#ifdef USE_ES_THREAD
+    _thread = std::thread([this] { run(_ms); });
+#endif
     std::cout << "[Estimator] Init Success!" << std::endl;
 }
 
@@ -78,19 +84,35 @@ void Estimator::init() {
     // lcm
     _es_data_topic_name = "es_data";
 }
+#ifdef USE_ES_THREAD
+void Estimator::begin() {
+    while (!_thread.joinable()) {}
+    _thread.join();
+}
+[[noreturn]] void Estimator::run(int ms) {
+    std::cout << "[Estimator] Task Run!" << std::endl;
+    std::chrono::microseconds period(ms * 1000);
+    auto start_time = std::chrono::high_resolution_clock::now();
+    while (true) {
+        step();
+        start_time += period;
+        std::this_thread::sleep_until(start_time);
+    }
+}
+#endif
 
-void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Robot> &robot) {
-    const RotMat &R = robot->getRotMat();
+void Estimator::step() {
+    const RotMat &R = _robot->getRotMat();
     /* 观测量更新 */
     for (int i = 0; i < 4; ++i) {
-        _feetPos2Body_inWorld.segment<3>(3 * i) = R * robot->getFootPosition_inBody(i);
-        _feetVel2Body_inWorld.segment<3>(3 * i) = R * (robot->getFootVelocityFiltered_inBody(i) +
-                                                       skew(robot->getAngularVelocity()) *
-                                                       robot->getFootPosition_inBody(i));
+        _feetPos2Body_inWorld.segment<3>(3 * i) = R * _robot->getFootPosition_inBody(i);
+        _feetVel2Body_inWorld.segment<3>(3 * i) = R * (_robot->getFootVelocityFiltered_inBody(i) +
+                                                       skew(_robot->getAngularVelocity()) *
+                                                       _robot->getFootPosition_inBody(i));
     }
     _y << _feetPos2Body_inWorld, _feetVel2Body_inWorld, _feetH_inWorld;
     /* 输入量更新 */
-    _u = robot->getLinearAccelerometer_inWorld() + _g;
+    _u = _robot->getLinearAccelerometer_inWorld() + _g;
 #ifdef USE_CALIBRATE
     calibrateQR(); // 标定噪声
 #endif
@@ -98,12 +120,12 @@ void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Ro
     _Q = _Q_init;
     _R = _R_init;
     for (int i = 0; i < 4; ++i) {
-        if (gait->getContact(i) == SWING) {
+        if (_gait->getContact(i) == SWING) {
             _Q.block<3, 3>(6 + 3 * i, 6 + 3 * i) = _large_variance * _I3; // 摆动腿位置估计 大噪声
             _R.block<3, 3>(12 + 3 * i, 12 + 3 * i) = _large_variance * _I3; // 摆动腿速度测量 大噪声
             _R(24 + i, 24 + i) = _large_variance; // 摆动腿高度测量 大噪声
         } else {
-            _trust = windowFunc2(gait->getPhase(i), 0.25, 0.1);
+            _trust = windowFunc2(_gait->getPhase(i), 0.25, 0.1);
             // 摆动腿位置估计噪声随触地相位增大而变小
             _Q.block<3, 3>(6 + 3 * i, 6 + 3 * i) =
                     (1 + (1 - _trust) * _large_variance) * _Q_init.block<3, 3>(6 + 3 * i, 6 + 3 * i);
@@ -138,9 +160,9 @@ void Estimator::step(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Ro
     _vy_filter->addValue(_xhat[4]);
     _vz_filter->addValue(_xhat[5]);
     // robot set estimator
-    robot->setComPosition_inWorld(getLpPosition());
-    robot->setComVelocity_inWorld(getVelocity());
-    robot->setComLpVelocity_inWorld(getLpVelocity());
+    _robot->setComPosition_inWorld(getLpPosition());
+    _robot->setComVelocity_inWorld(getVelocity());
+    _robot->setComLpVelocity_inWorld(getLpVelocity());
     // lcm
     publishEsData();
 }

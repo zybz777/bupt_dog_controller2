@@ -23,12 +23,12 @@ public:
         _low_cmd = std::make_shared<LowCmd>();
         _low_state = std::make_shared<LowState>();
         _robot = std::make_shared<Robot>(_low_state, ms);
-        _estimator = std::make_shared<Estimator>(ms);
         // gait
         _user_cmd = _low_state->getUserCmd();
         _gait = std::make_shared<Gait>(_user_cmd);
+        _estimator = std::make_shared<Estimator>(ms, _gait, _robot);
         // control
-        _vmc = std::make_shared<VmcController>(_robot);
+        _vmc = std::make_shared<VmcController>(_robot, _gait, _estimator, _user_cmd);
         _mpc = std::make_shared<MpcController>(_robot, _gait, _estimator);
         _mpc2 = std::make_shared<MpcController2>(_robot, _gait, _estimator);
         _wbc = std::make_shared<WbcController>(ms, _robot, _gait, _estimator, _mpc, _mpc2, _vmc);
@@ -39,6 +39,9 @@ public:
         _low_state->begin();
 #ifdef USE_PIN_THREAD
         _robot->begin();
+#endif
+#ifdef USE_ES_THREAD
+        _estimator->begin();
 #endif
         _mpc->begin();
         _mpc2->begin();
@@ -53,8 +56,10 @@ public:
 #ifndef USE_PIN_THREAD
         _robot->step();
 #endif
-        _estimator->step(_gait, _robot);
-        _vmc->step(_robot, _gait, _estimator, _user_cmd);
+#ifndef USE_ES_THREAD
+        _estimator->step();
+#endif
+        _vmc->step();
 #ifndef USE_WBC_THREAD
         _wbc->step();
 #endif

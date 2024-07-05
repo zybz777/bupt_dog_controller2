@@ -27,6 +27,7 @@ typedef struct VmcData {
     Vec34 std_foot_pos_in_world;
     Vec34 end_foot_pos_in_world;
 } VmcData;
+
 typedef struct VmcCmd {
     // 期望足端状态
     Vec34 cmd_foot_pos;
@@ -42,18 +43,17 @@ typedef struct VmcCmd {
 
 class VmcController {
 public:
-  VmcController(const std::shared_ptr<Robot>& robot);
+    VmcController(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+                  const std::shared_ptr<Estimator> &estimator,
+                  const std::shared_ptr<doglcm::UserCmd_t> &user_cmd);
 
-  void step(const std::shared_ptr<Robot>& robot,
-            const std::shared_ptr<Gait>& gait,
-            const std::shared_ptr<Estimator>& estimator,
-            const std::shared_ptr<doglcm::UserCmd_t>& user_cmd);
+    void step();
 
-  Vec3 getCmdFootPos_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_pos_in_world.col(leg_id); }
+    Vec3 getCmdFootPos_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_pos_in_world.col(leg_id); }
 
-  Vec3 getCmdFootVel_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_vel_in_world.col(leg_id); }
+    Vec3 getCmdFootVel_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_vel_in_world.col(leg_id); }
 
-  Vec3 getCmdFootAcc_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_acc_in_world.col(leg_id); }
+    Vec3 getCmdFootAcc_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_acc_in_world.col(leg_id); }
 
 private:
     void updateStartFeetPos_inWorld(const std::shared_ptr<Gait> &gait, const std::shared_ptr<Estimator> &estimator);
@@ -69,6 +69,10 @@ private:
     std::shared_ptr<VmcCmd> _vmc_cmd;
     Vec4 _theta0;
     double _r;
+    std::shared_ptr<Robot> _robot;
+    std::shared_ptr<Gait> _gait;
+    std::shared_ptr<Estimator> _estimator;
+    std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
 };
 
 

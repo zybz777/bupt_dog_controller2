@@ -41,6 +41,11 @@ void MACRO_PRINT() {
 #else
     std::cout << "#### PINOCCHIO THREAD OFF ####" << std::endl;
 #endif
+#ifdef USE_ES_THREAD
+    std::cout << "#### ESTIMATOR THREAD ON ####" << std::endl;
+#else
+    std::cout << "#### ESTIMATOR THREAD OFF ####" << std::endl;
+#endif
 }
 
 int main() {
