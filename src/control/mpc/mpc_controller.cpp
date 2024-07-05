@@ -44,8 +44,8 @@ void MpcController::init() {
     // x-xref L x-xref
     _L_diag << 5.0, 5.0, 5.0, // 角度
             0.0, 0.0, 5.0,
-            0.1, 0.1, 0.1, // 角速度
-            0.5, 0.5, 0.5; // simulink weight
+            0.05, 0.05, 0.05, // 角速度
+            0.5, 0.5, 0.1; // simulink weight
     // uKu
     _K_diag << 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6;
     // u-ulast M u-ulast
@@ -61,8 +61,8 @@ void MpcController::init() {
     // x-xref L x-xref
     _L_diag << 5.0, 5.0, 5.0, // 角度
         0.0, 0.0, 5.0,
-        0.5, 0.5, 0.5, // 角速度
-        0.5, 0.5, 0.5; // simulink weight
+        0.05, 0.05, 0.05, // 角速度
+        0.5, 0.5, 0.1; // simulink weight
     // uKu
     _K_diag << 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6, 1.0e-4, 1.0e-4, 5.0e-6;
     // u-ulast M u-ulast

@@ -12,8 +12,8 @@
 #define DOF_NUM 12
 
 // 电机角度保护
-#define MOTOR0_MAX_POS (40.0f / 180.0f * M_PI)
-#define MOTOR0_MIN_POS (-40.0f / 180.0f * M_PI)
+#define MOTOR0_MAX_POS (30.0f / 180.0f * M_PI)
+#define MOTOR0_MIN_POS (-30.0f / 180.0f * M_PI)
 #define MOTOR1_MAX_POS (120.0f / 180.0f * M_PI)
 #define MOTOR1_MIN_POS (-15.0f / 180.0f * M_PI)
 #define MOTOR2_MAX_POS (-30.0f / 180.0f * M_PI)
