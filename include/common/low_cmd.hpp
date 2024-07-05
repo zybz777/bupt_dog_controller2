@@ -5,8 +5,6 @@
 #ifndef BUPT_DOG_CONTROLLER2_LOW_CMD_HPP
 #define BUPT_DOG_CONTROLLER2_LOW_CMD_HPP
 
-#include <utility>
-
 #include "lcm/lcm-cpp.hpp"
 #include "doglcm/LegCmd_t.hpp"
 #include "utils/math_types.hpp"
@@ -18,9 +16,9 @@ public:
     LowCmd() {
         for (int leg_id = 0; leg_id < LEG_NUM; ++leg_id) {
             topic_names[leg_id] = "leg" + std::to_string(leg_id) + "/leg_cmd";
-            _leg_cmd[leg_id].leg_id = (int8_t) leg_id;
+            _leg_cmd[leg_id].leg_id = static_cast<int8_t>(leg_id);
             for (int motor_id = 0; motor_id < ONE_LEG_DOF_NUM; ++motor_id) {
-                _leg_cmd[leg_id].joint_cmd[motor_id].joint_id = (int8_t) motor_id;
+                _leg_cmd[leg_id].joint_cmd[motor_id].joint_id = static_cast<int8_t>(motor_id);
                 _leg_cmd[leg_id].joint_cmd[motor_id].mode = 0x0A;
                 _leg_cmd[leg_id].joint_cmd[motor_id].K_P = 0.0;
                 _leg_cmd[leg_id].joint_cmd[motor_id].K_W = 0.0;
@@ -37,15 +35,16 @@ public:
             _lcm.publish(topic_names[i], &_leg_cmd[i]);
         }
     }
+
     /**************************************/
     /**** Set Joint Command (q dq tau) ****/
     /**************************************/
-    void setQ(int leg_id, Vec3 q,
+    void setQ(const int leg_id, Vec3 q,
               Vec3 qMaxLimit = Vec3(MOTOR0_MAX_POS, MOTOR1_MAX_POS, MOTOR2_MAX_POS),
               Vec3 qMinLimit = Vec3(MOTOR0_MIN_POS, MOTOR1_MIN_POS, MOTOR2_MIN_POS)) {
-        _leg_cmd[leg_id].joint_cmd[0].Pos = clip((float) q[0], Vec2(qMinLimit[0], qMaxLimit[0]));
-        _leg_cmd[leg_id].joint_cmd[1].Pos = clip((float) q[1], Vec2(qMinLimit[1], qMaxLimit[1]));
-        _leg_cmd[leg_id].joint_cmd[2].Pos = clip((float) q[2], Vec2(qMinLimit[2], qMaxLimit[2]));
+        _leg_cmd[leg_id].joint_cmd[0].Pos = clip(static_cast<float>(q[0]), Vec2(qMinLimit[0], qMaxLimit[0]));
+        _leg_cmd[leg_id].joint_cmd[1].Pos = clip(static_cast<float>(q[1]), Vec2(qMinLimit[1], qMaxLimit[1]));
+        _leg_cmd[leg_id].joint_cmd[2].Pos = clip(static_cast<float>(q[2]), Vec2(qMinLimit[2], qMaxLimit[2]));
     }
 
     void setQ(Vec12 q) {
@@ -54,10 +53,10 @@ public:
         }
     }
 
-    void setDq(int leg_id, Vec3 dq, const Vec2 &dqLimit = Vec2(-0.8 * MOTOR_MAX_VEL, 0.8 * MOTOR_MAX_VEL)) {
-        _leg_cmd[leg_id].joint_cmd[0].W = clip((float) dq[0], dqLimit);
-        _leg_cmd[leg_id].joint_cmd[1].W = clip((float) dq[1], dqLimit);
-        _leg_cmd[leg_id].joint_cmd[2].W = clip((float) dq[2], dqLimit);
+    void setDq(const int leg_id, Vec3 dq, const Vec2 &dqLimit = Vec2(-0.8 * MOTOR_MAX_VEL, 0.8 * MOTOR_MAX_VEL)) {
+        _leg_cmd[leg_id].joint_cmd[0].W = clip(static_cast<float>(dq[0]), dqLimit);
+        _leg_cmd[leg_id].joint_cmd[1].W = clip(static_cast<float>(dq[1]), dqLimit);
+        _leg_cmd[leg_id].joint_cmd[2].W = clip(static_cast<float>(dq[2]), dqLimit);
     }
 
     void setDq(Vec12 dq) {
@@ -66,10 +65,10 @@ public:
         }
     }
 
-    void setTau(int leg_id, Vec3 tau, const Vec2 &torqueLimit = Vec2(-0.8 * MOTOR_MAX_TAU, 0.8 * MOTOR_MAX_TAU)) {
-        _leg_cmd[leg_id].joint_cmd[0].T = clip((float) tau[0], torqueLimit);
-        _leg_cmd[leg_id].joint_cmd[1].T = clip((float) tau[1], torqueLimit);
-        _leg_cmd[leg_id].joint_cmd[2].T = clip((float) tau[2], torqueLimit);
+    void setTau(const int leg_id, Vec3 tau, const Vec2 &torqueLimit = Vec2(-0.8 * MOTOR_MAX_TAU, 0.8 * MOTOR_MAX_TAU)) {
+        _leg_cmd[leg_id].joint_cmd[0].T = clip(static_cast<float>(tau[0]), torqueLimit);
+        _leg_cmd[leg_id].joint_cmd[1].T = clip(static_cast<float>(tau[1]), torqueLimit);
+        _leg_cmd[leg_id].joint_cmd[2].T = clip(static_cast<float>(tau[2]), torqueLimit);
     }
 
     void setTau(Vec12 tau, const Vec2 &torqueLimit = Vec2(-0.8 * MOTOR_MAX_TAU, 0.8 * MOTOR_MAX_TAU)) {
@@ -77,6 +76,7 @@ public:
             setTau(i, tau.segment<3>(3 * i), torqueLimit);
         }
     }
+
     /**************************************/
     /******** Set Real Motor Gain *********/
     /**************************************/
@@ -84,12 +84,12 @@ public:
      * @brief Robot Fixed Stand Use
      * @param leg_id
      */
-    void setRealStanceGain(int leg_id) {
+    void setRealStanceGain(const int leg_id) {
         static Vec3 Kp(0.15, 0.15, 0.15), Kd(2.5, 2.5, 2.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
-            _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
-            _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd(i);
+            _leg_cmd[leg_id].joint_cmd[i].K_P = static_cast<float>(Kp(i));
+            _leg_cmd[leg_id].joint_cmd[i].K_W = static_cast<float>(Kd(i));
         }
     }
 
@@ -97,12 +97,12 @@ public:
      * @brief Swing Leg Use (Trot)
      * @param leg_id
      */
-    void setRealSwingGain(int leg_id) {
+    void setRealSwingGain(const int leg_id) {
         static Vec3 Kp(0.00732422, 0.00732422, 0.00732422), Kd(2.0, 2.0, 2.0);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
-            _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
-            _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd(i);
+            _leg_cmd[leg_id].joint_cmd[i].K_P = static_cast<float>(Kp(i));
+            _leg_cmd[leg_id].joint_cmd[i].K_W = static_cast<float>(Kd(i));
         }
     }
 
@@ -110,31 +110,32 @@ public:
      * @brief Stance Leg Use (FreeStand)
      * @param leg_id
      */
-    void setRealFreeStanceGain(int leg_id) {
+    void setRealFreeStanceGain(const int leg_id) {
         static Vec3 Kp(0.00732422, 0.00732422, 0.00732422), Kd(1.5, 1.5, 1.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
-            _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
-            _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd(i);
+            _leg_cmd[leg_id].joint_cmd[i].K_P = static_cast<float>(Kp(i));
+            _leg_cmd[leg_id].joint_cmd[i].K_W = static_cast<float>(Kd(i));
         }
     }
 
-    /**
-     * @brief Stance Leg Use (FreeStand)
-     * @param leg_id
-     */
+
     void setRealFreeStanceGain() {
         for (int i = 0; i < LEG_NUM; ++i) {
             setRealFreeStanceGain(i);
         }
     }
 
-    void setPassiveGain(int leg_id) {
+    /**
+    * @brief Stance Leg Use (FreeStand)
+    * @param leg_id
+    */
+    void setPassiveGain(const int leg_id) {
         static Vec3 Kp(0, 0, 0), Kd(1.5, 1.5, 1.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
-            _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
-            _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd(i);
+            _leg_cmd[leg_id].joint_cmd[i].K_P = static_cast<float>(Kp(i));
+            _leg_cmd[leg_id].joint_cmd[i].K_W = static_cast<float>(Kd(i));
         }
     }
 
@@ -143,63 +144,65 @@ public:
             setPassiveGain(i);
         }
     }
-/**************************************/
+
+    /**************************************/
     /********* Set Sim Motor Gain *********/
     /**************************************/
-    void setSimStanceGain(int leg_id) {
+    void setSimStanceGain(const int leg_id) {
         static Vec3 Kp(300, 300, 300), Kd(4.0, 4.0, 4.0);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0B;
-            _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
-            _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd(i);
+            _leg_cmd[leg_id].joint_cmd[i].K_P = static_cast<float>(Kp(i));
+            _leg_cmd[leg_id].joint_cmd[i].K_W = static_cast<float>(Kd(i));
         }
     }
 
-    void setSimSwingGain(int leg_id) {
+    void setSimSwingGain(const int leg_id) {
         static Vec3 Kp(15, 15, 15), Kd(1.5, 1.5, 1.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
-            _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
-            _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd(i);
+            _leg_cmd[leg_id].joint_cmd[i].K_P = static_cast<float>(Kp(i));
+            _leg_cmd[leg_id].joint_cmd[i].K_W = static_cast<float>(Kd(i));
         }
     }
 
-    void setSimFreeStanceGain(int leg_id) {
+    void setSimFreeStanceGain(const int leg_id) {
         static Vec3 Kp(15, 15, 15), Kd(1.5, 1.5, 1.5);
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
-            _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp(i);
-            _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd(i);
+            _leg_cmd[leg_id].joint_cmd[i].K_P = static_cast<float>(Kp(i));
+            _leg_cmd[leg_id].joint_cmd[i].K_W = static_cast<float>(Kd(i));
         }
     }
 
-    void setSimRLGain(int leg_id, double Kp, double Kd) {
-        for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
-            _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
-            _leg_cmd[leg_id].joint_cmd[i].K_P = (float) Kp;
-            _leg_cmd[leg_id].joint_cmd[i].K_W = (float) Kd;
+    void setSimRLGain(const int leg_id, const double Kp, const double Kd) {
+        for (auto &joint_cmd: _leg_cmd[leg_id].joint_cmd) {
+            joint_cmd.mode = 0x0A;
+            joint_cmd.K_P = static_cast<float>(Kp);
+            joint_cmd.K_W = static_cast<float>(Kd);
         }
     }
+
     /**************************************/
     /********* Set Motor Cmd Zero *********/
     /**************************************/
-    void setZeroDq(int leg_id) {
+    void setZeroDq(const int leg_id) {
         _leg_cmd[leg_id].joint_cmd[0].W = 0;
         _leg_cmd[leg_id].joint_cmd[1].W = 0;
         _leg_cmd[leg_id].joint_cmd[2].W = 0;
     }
 
-    void setZeroTau(int leg_id) {
+    void setZeroTau(const int leg_id) {
         _leg_cmd[leg_id].joint_cmd[0].T = 0;
         _leg_cmd[leg_id].joint_cmd[1].T = 0;
         _leg_cmd[leg_id].joint_cmd[2].T = 0;
     }
 
-    void setZeroGain(int leg_id) {
-        for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
-            _leg_cmd[leg_id].joint_cmd[i].mode = 0x0A;
-            _leg_cmd[leg_id].joint_cmd[i].K_P = 0;
-            _leg_cmd[leg_id].joint_cmd[i].K_W = 0;
+    void setZeroGain(const int leg_id) {
+        for (auto &joint_cmd: _leg_cmd[leg_id].joint_cmd) {
+            joint_cmd.mode = 0x0A;
+            joint_cmd.K_P = 0;
+            joint_cmd.K_W = 0;
         }
     }
 

@@ -5,8 +5,6 @@
 #ifndef BUPT_DOG_CONTROLLER2_LOW_STATE_HPP
 #define BUPT_DOG_CONTROLLER2_LOW_STATE_HPP
 
-#include <chrono>
-#include <functional>
 #include <iostream>
 #include <thread>
 // lcm
@@ -21,7 +19,7 @@
 #include "utils/timer.hpp"
 
 class LowState {
-  public:
+public:
     LowState() {
         // lcm
         _lcm.subscribe("imu", &LowState::handleImuMsg, this);
@@ -36,8 +34,8 @@ class LowState {
             _user_cmd->cmd_angular_velocity[i] = 0.0;
             _user_cmd->cmd_linear_velocity[i] = 0.0;
         }
-        for (int i = 0; i < 3; ++i) {
-            _rpy_filter[i] = std::make_shared<LPFilter>(0.005, 5);
+        for (auto &filter: _rpy_filter) {
+            filter = std::make_shared<LPFilter>(0.005, 5);
         }
         _recv_thread = std::thread([this] { run(); });
         std::cout << "[LowState] Init Success!" << std::endl;
@@ -46,36 +44,36 @@ class LowState {
     void begin() { _recv_thread.join(); }
 
     // user cmd
-    const std::shared_ptr<doglcm::UserCmd_t>& getUserCmd() { return _user_cmd; }
+    const std::shared_ptr<doglcm::UserCmd_t> &getUserCmd() { return _user_cmd; }
 
     // joint
-    const Vec12& getQ() { return _q; }
+    const Vec12 &getQ() { return _q; }
 
-    const Vec12& getDq() { return _dq; }
+    const Vec12 &getDq() { return _dq; }
 
-    const Vec12& getTau() { return _tau; }
+    const Vec12 &getTau() { return _tau; }
 
     // imu
-    const Vec3& getRpy() { return _rpy_filtered; }
+    const Vec3 &getRpy() { return _rpy_filtered; }
 
-    const RotMat& getRotMat() { return _rot_mat; }
+    const RotMat &getRotMat() { return _rot_mat; }
 
-    const Vec3& getEulerAngularVelocity() { return _euler_angular_velocity; }
+    const Vec3 &getEulerAngularVelocity() { return _euler_angular_velocity; }
 
-    const Vec3& getAngularVelocity() { return _angular_velocity; }
+    const Vec3 &getAngularVelocity() { return _angular_velocity; }
 
-    const Vec3& getAngularVelocity_inWorld() { return _angular_velocity_in_world; }
+    const Vec3 &getAngularVelocity_inWorld() { return _angular_velocity_in_world; }
 
-    const Vec3& getLinearAccelerometer() { return _linear_accelerometer; }
+    const Vec3 &getLinearAccelerometer() { return _linear_accelerometer; }
 
-    const Vec3& getLinearAccelerometer_inWorld() { return _linear_accelerometer_in_world; }
+    const Vec3 &getLinearAccelerometer_inWorld() { return _linear_accelerometer_in_world; }
 
-    const Quat& getQuaternion() { return _quat; }
+    const Quat &getQuaternion() { return _quat; }
 
     // gps
-    const Vec3& getGpsVel() { return _gps_vel; }
+    const Vec3 &getGpsVel() { return _gps_vel; }
 
-  private:
+private:
     std::thread _recv_thread;
     // lcm
     lcm::LCM _lcm;
@@ -105,7 +103,7 @@ class LowState {
         }
     }
 
-    void handleImuMsg(const lcm::ReceiveBuffer*, const std::string&, const doglcm::ImuData_t* msg) {
+    void handleImuMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::ImuData_t *msg) {
         // rpy
         static double last_yaw = 0.0;
         double delta_yaw = msg->rpy[2] - last_yaw;
@@ -139,7 +137,7 @@ class LowState {
 #endif
     }
 
-    void handleLegMsg(const lcm::ReceiveBuffer*, const std::string&, const doglcm::LegData_t* msg) {
+    void handleLegMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::LegData_t *msg) {
         for (int i = 0; i < ONE_LEG_DOF_NUM; ++i) {
             _q[3 * msg->leg_id + i] = msg->joint_data[i].Pos;
             _dq[3 * msg->leg_id + i] = msg->joint_data[i].W;
@@ -147,11 +145,12 @@ class LowState {
         }
     }
 
-    void handleUserCmdMsg(const lcm::ReceiveBuffer*, const std::string&, const doglcm::UserCmd_t* msg) {
+    void handleUserCmdMsg(const lcm::ReceiveBuffer *, const std::string &, const doglcm::UserCmd_t *msg) {
         memcpy(_user_cmd.get(), msg, sizeof(*_user_cmd));
         _user_cmd->cmd_linear_velocity[0] = clip(msg->cmd_linear_velocity[0], Vec2(BASE_MAX_CMD_VX, BASE_MIN_CMD_VX));
         _user_cmd->cmd_linear_velocity[1] = clip(msg->cmd_linear_velocity[1], Vec2(BASE_MAX_CMD_VY, -BASE_MAX_CMD_VY));
-        _user_cmd->cmd_angular_velocity[2] = clip(msg->cmd_angular_velocity[2], Vec2(BASE_MAX_CMD_DYAW, -BASE_MAX_CMD_DYAW));
+        _user_cmd->cmd_angular_velocity[2] = clip(msg->cmd_angular_velocity[2],
+                                                  Vec2(BASE_MAX_CMD_DYAW, -BASE_MAX_CMD_DYAW));
     }
 };
 
