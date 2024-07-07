@@ -33,8 +33,8 @@ void VmcController::step() {
         _vmc_data->curr_foot_pos_in_world.col(i) << _robot->getFootPosition_inWorld(i);
         _vmc_data->curr_foot_vel_in_world.col(i) << _estimator->getLpVelocity() +
                 _robot->getRotMat() * (_vmc_data->curr_foot_vel.col(i) +
-                                      skew(_robot->getAngularVelocity()) *
-                                      _vmc_data->curr_foot_pos.col(i));
+                                       skew(_robot->getAngularVelocity()) *
+                                       _vmc_data->curr_foot_pos.col(i));
         _vmc_data->std_foot_pos_in_world.col(i) << _estimator->getLpPosition() +
                 _robot->getRotMat() * _vmc_data->std_foot_pos.col(i);
     }
@@ -97,6 +97,20 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
                         getTswing() + 0.5 * v[1] * gait->getTstance() + ky * (
                             estimator->getLpVelocity()[1] - cmd_vel_in_world[1]);
                 _vmc_data->end_foot_pos_in_world(2, i) = 0.0;
+            }
+            // 地形适应摆动腿落足点高度
+            static double x_distance = _vmc_data->std_foot_pos.col(0)[0] - _vmc_data->std_foot_pos.col(3)[0];
+            double dh = tan(estimator->getFakePitch()) * x_distance;
+            if (estimator->getFakePitch() >= 0.0) {
+                _vmc_data->end_foot_pos_in_world(2, 0) = 0.0;
+                _vmc_data->end_foot_pos_in_world(2, 1) = 0.0;
+                _vmc_data->end_foot_pos_in_world(2, 2) = dh;
+                _vmc_data->end_foot_pos_in_world(2, 3) = dh;
+            } else {
+                _vmc_data->end_foot_pos_in_world(2, 0) = dh;
+                _vmc_data->end_foot_pos_in_world(2, 1) = dh;
+                _vmc_data->end_foot_pos_in_world(2, 2) = 0.0;
+                _vmc_data->end_foot_pos_in_world(2, 3) = 0.0;
             }
         }
         break;

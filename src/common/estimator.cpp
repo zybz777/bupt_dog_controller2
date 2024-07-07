@@ -110,6 +110,7 @@ void Estimator::fakePitch() {
     }
     double fake_pitch = atan2(P_Hz - P_Fz, P_Fx - P_Hx);
     _fake_pitch_filter->addValue(fake_pitch);
+    // 地形适应 高度最低的足端高度为0 其余足端高度抬高
     double min_foot_pos = min(P_Hz, P_Fz);
     for (int i = 0; i < LEG_NUM; ++i) {
         _feetH_inWorld[i] = foot_pos_2com_inWorld.col(i)[2] - min_foot_pos;

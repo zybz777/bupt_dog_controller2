@@ -49,7 +49,6 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
             resetXtraj(_X);
             break;
         case GaitType::TROTTING: {
-
             Vec12 last_X_traj = _X_traj[1];
             for (int i = 0; i < HORIZON; ++i) {
                 Vec3 cmd_vel(user_cmd->cmd_linear_velocity[0], user_cmd->cmd_linear_velocity[1],
@@ -57,7 +56,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
                 cmd_vel = robot->getRotMat() * cmd_vel;
                 // 角度 位置 角速度 速度
                 _X_traj[i][0] = 0.0;
-                _X_traj[i][1] = 0.0;
+                _X_traj[i][1] = estimator->getFakePitch();
                 _X_traj[i][2] = last_X_traj[2] + user_cmd->cmd_angular_velocity[2] * i * _dt;
 
                 _X_traj[i][3] = last_X_traj[3] + cmd_vel[0] * i * _dt;
@@ -74,41 +73,25 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
                 _X_traj[i][11] = 0.0;
             }
         }
-            break;
+        break;
         case GaitType::FREESTAND: {
-            Vec12 last_X_traj = _X_traj[1];
+            // Vec12 last_X_traj = _X_traj[1];
             for (int i = 0; i < HORIZON; ++i) {
                 // 角度 位置 角速度 速度
                 // _X_traj[i][0] = 0.0;
-                // _X_traj[i][1] = 0.0;
+                _X_traj[i][1] = estimator->getFakePitch();
                 // yaw 角
-                _X_traj[i][2] = last_X_traj[2] + user_cmd->cmd_angular_velocity[2] * i * _dt;
-//                _X_traj[i][2] = clip(_X_traj[i][2], Vec2(-0.25, 0.25));
 
-                _X_traj[i].segment<3>(6) << rotMatW(robot->getRpy()) * Vec3(0, 0, user_cmd->cmd_angular_velocity[2]);
-                if (fabs(_X_traj[i][2]) >= 0.245) {
-                    _X_traj[i].segment<3>(6).setZero();
-                }
                 // H 高度
-                Vec3 cmd_vel(user_cmd->cmd_linear_velocity[0], user_cmd->cmd_linear_velocity[1],
-                             user_cmd->cmd_linear_velocity[2]);
-                cmd_vel = robot->getRotMat() * cmd_vel;
-                _X_traj[i][5] = last_X_traj[5] + cmd_vel[2] * i * _dt;
-                _X_traj[i][5] = clip(_X_traj[i][5], Vec2(0.25, 0.32));
-                if (_X_traj[i][5] < 0.245 || _X_traj[i][5] > 0.315) {
-                    _X_traj[i][11] = 0.0;
-                } else {
-                    _X_traj[i][11] = cmd_vel[2];
-                }
+
 
                 // _X_traj[i][6] = 0.0;
                 // _X_traj[i][7] = 0.0;
                 // _X_traj[i][8] = _user_cmd->cmd_angular_velocity[2];
             }
         }
-            break;
+        break;
         default:
             break;
     }
 }
-
