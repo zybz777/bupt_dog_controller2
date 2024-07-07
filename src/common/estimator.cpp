@@ -81,8 +81,40 @@ void Estimator::init() {
     _px_filter = std::make_shared<LPFilter>(_dt, 3.0);
     _py_filter = std::make_shared<LPFilter>(_dt, 3.0);
     _pz_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _fake_pitch_filter = std::make_shared<LPFilter>(_dt, 3.0);
     // lcm
     _es_data_topic_name = "es_data";
+}
+
+void Estimator::fakePitch() {
+    RotMat R = rotMatRy(_robot->getRpy()[1]); // or Ry * Rx
+    Vec34 foot_pos_2com_inWorld;
+    for (int i = 0; i < LEG_NUM; ++i) {
+        foot_pos_2com_inWorld.col(i) = R * _robot->getFootPosition_inBody(i);
+    }
+    static double P_Fx = _robot->getRobotStdFootPos_inBody().col(0)[0];
+    static double P_Fz = _robot->getRobotStdFootPos_inBody().col(0)[2];
+    static double P_Hx = _robot->getRobotStdFootPos_inBody().col(3)[0];
+    static double P_Hz = _robot->getRobotStdFootPos_inBody().col(3)[2];
+    for (int i = 0; i < 2; ++i) {
+        if (_gait->getContact(i) == CONTACT) {
+            P_Fx = foot_pos_2com_inWorld.col(i)[0];
+            P_Fz = foot_pos_2com_inWorld.col(i)[2];
+        }
+    }
+    for (int i = 2; i < 4; ++i) {
+        if (_gait->getContact(i) == CONTACT) {
+            P_Hx = foot_pos_2com_inWorld.col(i)[0];
+            P_Hz = foot_pos_2com_inWorld.col(i)[2];
+        }
+    }
+    double fake_pitch = atan2(P_Hz - P_Fz, P_Fx - P_Hx);
+    _fake_pitch_filter->addValue(fake_pitch);
+    double min_foot_pos = min(P_Hz, P_Fz);
+    for (int i = 0; i < LEG_NUM; ++i) {
+        _feetH_inWorld[i] = foot_pos_2com_inWorld.col(i)[2] - min_foot_pos;
+    }
+    // std::cout << foot_pos_2com_inWorld << std::endl;
 }
 #ifdef USE_ES_THREAD
 void Estimator::begin() {
@@ -103,6 +135,7 @@ void Estimator::begin() {
 
 void Estimator::step() {
     const RotMat &R = _robot->getRotMat();
+    fakePitch();
     /* 观测量更新 */
     for (int i = 0; i < 4; ++i) {
         _feetPos2Body_inWorld.segment<3>(3 * i) = R * _robot->getFootPosition_inBody(i);
@@ -171,6 +204,7 @@ void Estimator::publishEsData() {
     memcpy(_es_data.pos, getPosition().data(), sizeof(_es_data.pos));
     memcpy(_es_data.vel, getVelocity().data(), sizeof(_es_data.vel));
     memcpy(_es_data.lp_vel, getLpVelocity().data(), sizeof(_es_data.lp_vel));
+    // _es_data.lp_vel[2] = getFakePitch();
     _lcm.publish(_es_data_topic_name, &_es_data);
 }
 

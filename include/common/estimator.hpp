@@ -42,8 +42,12 @@ public:
 
     Vec3 getFootPos_inWorld(int leg_id) { return _xhat.segment<3>(6 + 3 * leg_id); }
 
+    double getFakePitch() { return _fake_pitch_filter->getValue(); }
+
 private:
     void init();
+
+    void fakePitch();
 
     void publishEsData();
 
@@ -96,6 +100,7 @@ private:
     // Low pass filter
     std::shared_ptr<LPFilter> _vx_filter, _vy_filter, _vz_filter;
     std::shared_ptr<LPFilter> _px_filter, _py_filter, _pz_filter;
+    std::shared_ptr<LPFilter> _fake_pitch_filter;
     // lcm
     lcm::LCM _lcm;
     std::string _es_data_topic_name;
