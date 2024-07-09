@@ -11,6 +11,7 @@ enum class FSMStateName {
     FIXEDDOWN,  // 固定趴下
     FREESTAND,  // 自由站立
     TROTTING,   // 2+2
+    BRIDGETROTING, // 双木桥2+2
     TEST        // 测试
 };
 

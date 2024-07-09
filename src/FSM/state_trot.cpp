@@ -14,15 +14,16 @@
 
 #include "FSM/state_trot.hpp"
 
-State_Trot::State_Trot(const std::shared_ptr<CtrlComponents>& ctrl_comp) :
-    FSMState(ctrl_comp, FSMStateName::TROTTING,
-             "trotting") {}
+State_Trot::State_Trot(const std::shared_ptr<CtrlComponents> &ctrl_comp) :
+        FSMState(ctrl_comp, FSMStateName::TROTTING,
+                 "trotting") {}
 
 void State_Trot::enter() {
     _cmd_q = _ctrl_comp->getLowState()->getQ();
     _cmd_dq.setZero();
     _cmd_tau.setZero();
     _delta_q.setZero();
+    _ctrl_comp->getVmcController()->setHeight(0.085);
 }
 
 void State_Trot::step() {
@@ -35,24 +36,25 @@ void State_Trot::exit() {
 
 FSMStateName State_Trot::checkChange() {
     switch (_ctrl_comp->getGait()->getGaitType()) {
-    case GaitType::PASSIVE:
-        return FSMStateName::PASSIVE;
-    case GaitType::FIXEDDOWN:
-        return FSMStateName::FIXEDDOWN;
-    case GaitType::FIXEDSTAND:
-        return FSMStateName::FIXEDSTAND;
-    case GaitType::FREESTAND:
-        return FSMStateName::FREESTAND;
-    default:
-        return FSMStateName::TROTTING;
+        case GaitType::PASSIVE:
+            return FSMStateName::PASSIVE;
+        case GaitType::FIXEDDOWN:
+            return FSMStateName::FIXEDDOWN;
+        case GaitType::FIXEDSTAND:
+            return FSMStateName::FIXEDSTAND;
+        case GaitType::FREESTAND:
+            return FSMStateName::FREESTAND;
+        default:
+            return FSMStateName::TROTTING;
     }
 }
 
 void State_Trot::swingGainMpcTrot() {
     Vec18 cmd_tau;
 #ifdef USE_MPC1
-    cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() +
-              _ctrl_comp->getRobot()->getNoLinearTorque();
+    cmd_tau =
+            -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() +
+            _ctrl_comp->getRobot()->getNoLinearTorque();
 #endif
 #ifdef USE_MPC2
     cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController2()->getContactForce() +

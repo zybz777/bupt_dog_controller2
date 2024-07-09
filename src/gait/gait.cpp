@@ -82,6 +82,7 @@ void Gait::setGaitType(GaitType gait_type, double T) {
             _st_ratio = 1.0;
             _bias << 0, 0, 0, 0;
             break;
+        case GaitType::BRIDGETROTING:
         case GaitType::TROTTING:
             _wave = WaveStatus::WAVE_ALL;
             _st_ratio = 0.5;

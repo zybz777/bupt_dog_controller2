@@ -10,7 +10,8 @@ enum class GaitType {
     FIXEDDOWN = 0x02,
     TROTTING = 0x03,
     FREESTAND = 0x04,
-    PASSIVE = 0x05
+    PASSIVE = 0x05,
+    BRIDGETROTING = 0x06
 };
 
 enum class WaveStatus {

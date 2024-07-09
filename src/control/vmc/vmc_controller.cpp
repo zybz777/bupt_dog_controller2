@@ -16,6 +16,7 @@ VmcController::VmcController(const std::shared_ptr<Robot> &robot, const std::sha
     _vmc_data->std_foot_pos = _robot->getRobotStdFootPos_inBody();
     _vmc_data->start_foot_pos = _vmc_data->std_foot_pos;
     _vmc_data->end_foot_pos = _vmc_data->std_foot_pos;
+    _h = 0.05;
     // theta0
     for (int i = 0; i < 4; ++i) {
         _theta0[i] = atan2(_vmc_data->std_foot_pos(1, i), _vmc_data->std_foot_pos(0, i));
@@ -42,13 +43,12 @@ void VmcController::step() {
     updateStartFeetPos_inWorld(_gait, _estimator);
     updateEndFeetPos_inWorld(_robot, _gait, _estimator, _user_cmd);
     // 计算轨迹
-    double h = 0.05;
     for (int i = 0; i < 4; ++i) {
         SwingLegPolynomialCurve_inWorld(i,
                                         _gait->getContact(i),
                                         _gait->getPhase(i),
                                         _gait->getTswing(),
-                                        h);
+                                        _h);
     }
 }
 

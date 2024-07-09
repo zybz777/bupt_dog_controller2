@@ -56,9 +56,6 @@ void State_FixedStand::exit() {
 }
 
 FSMStateName State_FixedStand::checkChange() {
-    if (_ctrl_comp->getUserCmd()->test_mode == 1) {
-        return FSMStateName::TEST;
-    }
     switch (_ctrl_comp->getGait()->getGaitType()) {
     case GaitType::PASSIVE:
         return FSMStateName::PASSIVE;
