@@ -94,6 +94,8 @@ add_executable(${PROJECT_NAME}
         src/control/wbc/wbc_optimizer.cpp
         src/FSM/state_bridge_trot.cpp
         include/FSM/state_bridge_trot.hpp
+        src/FSM/state_bridge_slow_trot.cpp
+        include/FSM/state_bridge_slow_trot.hpp
 )
 # 动态库路径
 link_directories(

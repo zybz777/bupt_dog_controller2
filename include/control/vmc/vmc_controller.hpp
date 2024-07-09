@@ -65,6 +65,15 @@ public:
         _h_vec = h;
     }
 
+    void setHeursticRatio(double k) {
+        if (k < 0.0 || k > 1.0) {
+            return;
+        }
+        _k = k;
+    }
+
+    void updateStdFootPos(double lx, double ly, double lz);
+
     Vec3 getCmdFootPos_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_pos_in_world.col(leg_id); }
 
     Vec3 getCmdFootVel_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_vel_in_world.col(leg_id); }
@@ -90,6 +99,7 @@ private:
     std::shared_ptr<Estimator> _estimator;
     std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
     Vec4 _h_vec;
+    double _k; // heurstic 根据实际速度计算落足点位置比例 =1表示完全使用实际速度
 };
 
 

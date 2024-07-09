@@ -14,13 +14,10 @@ VmcController::VmcController(const std::shared_ptr<Robot> &robot, const std::sha
     _vmc_data = std::make_shared<VmcData>();
     _vmc_cmd = std::make_shared<VmcCmd>();
     _vmc_data->std_foot_pos = _robot->getRobotStdFootPos_inBody();
-    _vmc_data->std_foot_pos.col(0)[1] += 0.04;
-    _vmc_data->std_foot_pos.col(1)[1] += -0.04;
-    _vmc_data->std_foot_pos.col(2)[1] += 0.04;
-    _vmc_data->std_foot_pos.col(3)[1] += -0.04;
     _vmc_data->start_foot_pos = _vmc_data->std_foot_pos;
     _vmc_data->end_foot_pos = _vmc_data->std_foot_pos;
     _h_vec << 0.05, 0.05, 0.05, 0.05;
+    _k = 1.0;
     // theta0
     for (int i = 0; i < 4; ++i) {
         _theta0[i] = atan2(_vmc_data->std_foot_pos(1, i), _vmc_data->std_foot_pos(0, i));
@@ -85,7 +82,7 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
             cmd_vel_in_world = robot->getRotMat() * cmd_vel_in_world;
             cmd_omega_in_world = rotMatW(robot->getRpy()) * cmd_omega_in_world;
             Vec3 omega_in_world = robot->getAngularVelocity_inWorld();
-            double k = 0.0;
+            double k = _k;
             Vec3 v = k * estimator->getLpVelocity() + (1 - k) * cmd_vel_in_world;
             double w = omega_in_world[2];
             for (int i = 0; i < LEG_NUM; ++i) {
@@ -197,4 +194,18 @@ void VmcController::SwingLegPolynomialCurve_inWorld(int leg_id, int contact, dou
          120 * t3 * th2 / T1_5 +
          120 * t4 * th5 / T1_6 +
          21504 * t6 * (z0 - 2 * H + z1) / T1_8;
+}
+
+void VmcController::updateStdFootPos(double lx, double ly, double lz) {
+    _vmc_data->std_foot_pos = _robot->getRobotStdFootPos_inBody();
+    _vmc_data->std_foot_pos.col(0)[1] += ly;
+    _vmc_data->std_foot_pos.col(1)[1] += -ly;
+    _vmc_data->std_foot_pos.col(2)[1] += ly;
+    _vmc_data->std_foot_pos.col(3)[1] += -ly;
+    // theta0
+    for (int i = 0; i < 4; ++i) {
+        _theta0[i] = atan2(_vmc_data->std_foot_pos(1, i), _vmc_data->std_foot_pos(0, i));
+    }
+    _r = sqrt(_vmc_data->std_foot_pos(0, 0) * _vmc_data->std_foot_pos(0, 0) +
+              _vmc_data->std_foot_pos(1, 0) * _vmc_data->std_foot_pos(1, 0));
 }

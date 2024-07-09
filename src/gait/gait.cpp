@@ -62,6 +62,9 @@ void Gait::checkGaitChange() {
         case GaitType::BRIDGETROTING:
             setGaitType(GaitType::BRIDGETROTING, 0.6);
             break;
+        case GaitType::BRIDGESLOWTROTING:
+            setGaitType(GaitType::BRIDGESLOWTROTING, 0.6);
+            break;
         case GaitType::FREESTAND:
             setGaitType(GaitType::FREESTAND, 0.6);
             break;
@@ -85,6 +88,7 @@ void Gait::setGaitType(GaitType gait_type, double T) {
             _st_ratio = 1.0;
             _bias << 0, 0, 0, 0;
             break;
+        case GaitType::BRIDGESLOWTROTING:
         case GaitType::BRIDGETROTING:
         case GaitType::TROTTING:
             _wave = WaveStatus::WAVE_ALL;

@@ -15,6 +15,7 @@ FSM::FSM(const std::shared_ptr<CtrlComponents> &ctrl_comp, int ms) {
     _state_list.trotting = std::make_shared<State_Trot>(_ctrl_comp);
     _state_list.free_stand = std::make_shared<State_FreeStand>(_ctrl_comp);
     _state_list.bridge_trotting = std::make_shared<State_BridgeTrot>(_ctrl_comp);
+    _state_list.bridge_slow_trotting = std::make_shared<State_BridgeSlowTrot>(_ctrl_comp);
     // init
     _current_state = _state_list.passive;
     _current_state->enter();
@@ -93,6 +94,8 @@ std::shared_ptr<FSMState> FSM::getNextState(FSMStateName state_name) const {
             return _state_list.free_stand;
         case FSMStateName::BRIDGETROTING:
             return _state_list.bridge_trotting;
+        case FSMStateName::BRIDGESLOWTROTING:
+            return _state_list.bridge_slow_trotting;
             //        case FSMStateName::TEST:
             //            return _state_list.test;
         default:
@@ -104,7 +107,8 @@ bool FSM::checkSafety() {
     // 仅在力矩控制状态下检查
     if (_current_state->_state_name != FSMStateName::FREESTAND &&
         _current_state->_state_name != FSMStateName::TROTTING &&
-        _current_state->_state_name != FSMStateName::BRIDGETROTING) {
+        _current_state->_state_name != FSMStateName::BRIDGETROTING &&
+            _current_state->_state_name != FSMStateName::BRIDGESLOWTROTING) {
         return true;
     }
     // 检查质心角度，判断机器人是否失去平衡姿态

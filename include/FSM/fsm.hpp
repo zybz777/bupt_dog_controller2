@@ -11,6 +11,7 @@
 #include "state_trot.hpp"
 #include "state_free_stand.hpp"
 #include "state_bridge_trot.hpp"
+#include "state_bridge_slow_trot.hpp"
 #include "common/safety_param.hpp"
 
 struct FSMStateList {
@@ -21,6 +22,7 @@ struct FSMStateList {
     std::shared_ptr<State_Trot> trotting;
     std::shared_ptr<State_FreeStand> free_stand;
     std::shared_ptr<State_BridgeTrot> bridge_trotting;
+    std::shared_ptr<State_BridgeSlowTrot> bridge_slow_trotting;
 //    State_FreeStand *free_stand;
 //    State_Test *test;
 };

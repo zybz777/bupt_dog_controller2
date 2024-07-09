@@ -14,6 +14,8 @@ void State_BridgeTrot::enter() {
     _cmd_tau.setZero();
     _delta_q.setZero();
     _ctrl_comp->getVmcController()->setHeight(0.085);
+    _ctrl_comp->getVmcController()->setHeursticRatio(0.0);
+    _ctrl_comp->getVmcController()->updateStdFootPos(0, 0.04, 0);
 }
 
 void State_BridgeTrot::step() {
@@ -37,6 +39,8 @@ FSMStateName State_BridgeTrot::checkChange() {
             return FSMStateName::FREESTAND;
         case GaitType::TROTTING:
             return FSMStateName::TROTTING;
+        case GaitType::BRIDGESLOWTROTING:
+            return FSMStateName::BRIDGESLOWTROTING;
         default:
             return FSMStateName::BRIDGETROTING;
     }

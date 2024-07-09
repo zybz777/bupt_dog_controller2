@@ -67,6 +67,8 @@ FSMStateName State_FixedStand::checkChange() {
             return FSMStateName::FREESTAND;
         case GaitType::BRIDGETROTING:
             return FSMStateName::BRIDGETROTING;
+        case GaitType::BRIDGESLOWTROTING:
+            return FSMStateName::BRIDGESLOWTROTING;
         default:
             return FSMStateName::FIXEDSTAND;
     }
