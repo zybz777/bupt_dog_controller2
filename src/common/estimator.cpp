@@ -113,10 +113,16 @@ void Estimator::fakePitch() {
     // 地形适应 高度最低的足端高度为0 其余足端高度抬高
     double min_foot_pos = min(P_Hz, P_Fz);
     for (int i = 0; i < LEG_NUM; ++i) {
-        _feetH_inWorld[i] = foot_pos_2com_inWorld.col(i)[2] - min_foot_pos;
+        if (_gait->getContact(i) == CONTACT) {
+            _feetH_inWorld[i] = foot_pos_2com_inWorld.col(i)[2] - min_foot_pos;
+        } else {
+            _feetH_inWorld[i] = 0.0;
+        }
+
     }
     // std::cout << foot_pos_2com_inWorld << std::endl;
 }
+
 #ifdef USE_ES_THREAD
 void Estimator::begin() {
     while (!_thread.joinable()) {}

@@ -107,8 +107,8 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
                 _vmc_data->end_foot_pos_in_world(2, 2) = dh;
                 _vmc_data->end_foot_pos_in_world(2, 3) = dh;
             } else {
-                _vmc_data->end_foot_pos_in_world(2, 0) = dh;
-                _vmc_data->end_foot_pos_in_world(2, 1) = dh;
+                _vmc_data->end_foot_pos_in_world(2, 0) = -dh;
+                _vmc_data->end_foot_pos_in_world(2, 1) = -dh;
                 _vmc_data->end_foot_pos_in_world(2, 2) = 0.0;
                 _vmc_data->end_foot_pos_in_world(2, 3) = 0.0;
             }
