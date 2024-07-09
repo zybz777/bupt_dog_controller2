@@ -120,8 +120,8 @@ bool FSM::checkSafety() {
         return false;
     }
     // 检查电机角度是否超出限位
-    static Vec3 q_max(0.95 * MOTOR0_MAX_POS, 0.95 * MOTOR1_MAX_POS, 0.95 * MOTOR2_MAX_POS);
-    static Vec3 q_min(0.95 * MOTOR0_MIN_POS, 0.95 * MOTOR1_MIN_POS, 0.95 * MOTOR2_MIN_POS); // 关节限位最小值
+    static Vec3 q_max(0.98 * MOTOR0_MAX_POS, 0.98 * MOTOR1_MAX_POS, 0.98 * MOTOR2_MAX_POS);
+    static Vec3 q_min(0.98 * MOTOR0_MIN_POS, 0.98 * MOTOR1_MIN_POS, 0.98 * MOTOR2_MIN_POS); // 关节限位最小值
     Vec12 q = _ctrl_comp->getLowState()->getQ();
     for (int i = 0; i < LEG_NUM; ++i) {
         // 位置检测
