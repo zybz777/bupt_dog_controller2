@@ -18,6 +18,7 @@ void State_BridgeTrot::enter() {
 
 void State_BridgeTrot::step() {
     swingGainMpcWbcTrot();
+//    swingGainMpcTrot();
 }
 
 void State_BridgeTrot::exit() {
@@ -62,6 +63,37 @@ void State_BridgeTrot::swingGainMpcWbcTrot() {
         _cmd_tau[2 + 3 * i] = _cmd_tau[2 + 3 * i] / pow(sin(_ctrl_comp->getLowState()->getQ()[2 + 3 * i]), 2);
 #endif
     }
+    _ctrl_comp->getLowCmd()->setQ(_cmd_q);
+    _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
+    _ctrl_comp->getLowCmd()->setTau(_cmd_tau);
+    _ctrl_comp->getLowCmd()->publishLegCmd();
+}
+
+void State_BridgeTrot::swingGainMpcTrot() {
+    Vec18 cmd_tau;
+#ifdef USE_MPC1
+    cmd_tau =
+            -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() +
+            _ctrl_comp->getRobot()->getNoLinearTorque();
+#endif
+#ifdef USE_MPC2
+    cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController2()->getContactForce() +
+              _ctrl_comp->getRobot()->getNoLinearTorque();
+#endif
+    for (int i = 0; i < 4; ++i) {
+        _ctrl_comp->getLowCmd()->setSimSwingGain(i);
+        if (_ctrl_comp->getGait()->getContact(i) == SWING) {
+            _cmd_tau.segment<3>(3 * i) = _ctrl_comp->getRobot()->getLegNoLinearTorque().segment<3>(3 * i);
+        } else {
+            _ctrl_comp->getLowCmd()->setSimFreeStanceGain(i);
+            _cmd_tau.segment<3>(3 * i) = cmd_tau.segment<3>(6 + 3 * i);
+        }
+#ifdef USE_REAL
+        _cmd_tau[2 + 3 * i] = _cmd_tau[2 + 3 * i] / pow(sin(_ctrl_comp->getLowState()->getQ()[2 + 3 * i]), 2);
+#endif
+    }
+    _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
+    _cmd_dq = _ctrl_comp->getWbcController()->getLegCmdDq();
     _ctrl_comp->getLowCmd()->setQ(_cmd_q);
     _ctrl_comp->getLowCmd()->setDq(_cmd_dq);
     _ctrl_comp->getLowCmd()->setTau(_cmd_tau);

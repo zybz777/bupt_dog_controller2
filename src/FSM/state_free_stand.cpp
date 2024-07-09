@@ -4,8 +4,8 @@
 
 #include "FSM/state_free_stand.hpp"
 
-State_FreeStand::State_FreeStand(const std::shared_ptr<CtrlComponents>& ctrl_comp) :
-    FSMState(ctrl_comp, FSMStateName::FREESTAND, "freestand") {}
+State_FreeStand::State_FreeStand(const std::shared_ptr<CtrlComponents> &ctrl_comp) :
+        FSMState(ctrl_comp, FSMStateName::FREESTAND, "freestand") {}
 
 void State_FreeStand::enter() {
     _cmd_q = _ctrl_comp->getLowState()->getQ();
@@ -27,21 +27,25 @@ void State_FreeStand::exit() {
 
 FSMStateName State_FreeStand::checkChange() {
     switch (_ctrl_comp->getGait()->getGaitType()) {
-    case GaitType::PASSIVE:
-        return FSMStateName::PASSIVE;
-    case GaitType::FIXEDDOWN:
-        return FSMStateName::FIXEDDOWN;
-    case GaitType::FIXEDSTAND:
-        return FSMStateName::FIXEDSTAND;
-    case GaitType::TROTTING:
-        return FSMStateName::TROTTING;
-    default:
-        return FSMStateName::FREESTAND;
+        case GaitType::PASSIVE:
+            return FSMStateName::PASSIVE;
+        case GaitType::FIXEDDOWN:
+            return FSMStateName::FIXEDDOWN;
+        case GaitType::FIXEDSTAND:
+            return FSMStateName::FIXEDSTAND;
+        case GaitType::TROTTING:
+            return FSMStateName::TROTTING;
+        case GaitType::BRIDGETROTING:
+            return FSMStateName::BRIDGETROTING;
+        default:
+            return FSMStateName::FREESTAND;
     }
 }
 
 void State_FreeStand::swingGainStand() {
-    auto cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() + _ctrl_comp->getRobot()->getNoLinearTorque();
+    auto cmd_tau =
+            -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() +
+            _ctrl_comp->getRobot()->getNoLinearTorque();
     //    _cmd_tau = cmd_tau.segment<12>(6);
     _cmd_tau = _ctrl_comp->getRobot()->getLegNoLinearTorque();
     _cmd_q = _ctrl_comp->getWbcController()->getLegCmdQ();
@@ -63,7 +67,9 @@ void State_FreeStand::swingGainStand() {
 void State_FreeStand::zeroGainStand() {
     Vec18 cmd_tau;
 #ifdef USE_MPC1
-    cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() + _ctrl_comp->getRobot()->getNoLinearTorque();
+    cmd_tau =
+            -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController()->getMpcOutput() +
+            _ctrl_comp->getRobot()->getNoLinearTorque();
 #endif
 #ifdef USE_MPC2
     cmd_tau = -_ctrl_comp->getRobot()->getJ_FeetPosition().transpose() * _ctrl_comp->getMpcController2()->getContactForce() + _ctrl_comp->getRobot()->getNoLinearTorque();

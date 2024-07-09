@@ -53,7 +53,16 @@ public:
         if (h < 0.03 || h > 0.15) {
             return;
         }
-        _h = h;
+        _h_vec << h, h, h, h;
+    }
+
+    void setHeight(Vec4 h) {
+        for (int i = 0; i < 4; ++i) {
+            if (h[i] < 0.03 || h[i] > 0.15) {
+                return;
+            }
+        }
+        _h_vec = h;
     }
 
     Vec3 getCmdFootPos_inWorld(int leg_id) { return _vmc_cmd->cmd_foot_pos_in_world.col(leg_id); }
@@ -80,7 +89,7 @@ private:
     std::shared_ptr<Gait> _gait;
     std::shared_ptr<Estimator> _estimator;
     std::shared_ptr<doglcm::UserCmd_t> _user_cmd;
-    double _h;
+    Vec4 _h_vec;
 };
 
 

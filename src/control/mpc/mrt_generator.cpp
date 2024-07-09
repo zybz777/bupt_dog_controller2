@@ -48,6 +48,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
         case GaitType::FIXEDSTAND:
             resetXtraj(_X);
             break;
+        case GaitType::BRIDGETROTING:
         case GaitType::TROTTING: {
             Vec12 last_X_traj = _X_traj[1];
             for (int i = 0; i < HORIZON; ++i) {
@@ -73,7 +74,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
                 _X_traj[i][11] = 0.0;
             }
         }
-        break;
+            break;
         case GaitType::FREESTAND: {
             // Vec12 last_X_traj = _X_traj[1];
             for (int i = 0; i < HORIZON; ++i) {
@@ -90,7 +91,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
                 // _X_traj[i][8] = _user_cmd->cmd_angular_velocity[2];
             }
         }
-        break;
+            break;
         default:
             break;
     }

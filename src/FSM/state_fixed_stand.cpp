@@ -14,10 +14,10 @@
 
 #include "FSM/state_fixed_stand.hpp"
 
-State_FixedStand::State_FixedStand(const std::shared_ptr<CtrlComponents>& ctrl_comp) :
-    FSMState(ctrl_comp,
-             FSMStateName::FIXEDSTAND,
-             "fixed stand") {
+State_FixedStand::State_FixedStand(const std::shared_ptr<CtrlComponents> &ctrl_comp) :
+        FSMState(ctrl_comp,
+                 FSMStateName::FIXEDSTAND,
+                 "fixed stand") {
     _freq = 1.0 / (CONTROL_DT_MS / 1000.0);
     _percent = 0;
     _duration = FIXEDSTAND_T;
@@ -41,7 +41,7 @@ void State_FixedStand::enter() {
 }
 
 void State_FixedStand::step() {
-    _percent += (double)1.0 / (_duration * _freq);
+    _percent += (double) 1.0 / (_duration * _freq);
     _percent = clip(_percent, Vec2(0.0, 1.0));
     Vec12 cmd_q = Vec12::Zero();
     for (int i = 0; i < 12; ++i) {
@@ -57,15 +57,17 @@ void State_FixedStand::exit() {
 
 FSMStateName State_FixedStand::checkChange() {
     switch (_ctrl_comp->getGait()->getGaitType()) {
-    case GaitType::PASSIVE:
-        return FSMStateName::PASSIVE;
-    case GaitType::FIXEDDOWN:
-        return FSMStateName::FIXEDDOWN;
-    case GaitType::TROTTING:
-        return FSMStateName::TROTTING;
-    case GaitType::FREESTAND:
-        return FSMStateName::FREESTAND;
-    default:
-        return FSMStateName::FIXEDSTAND;
+        case GaitType::PASSIVE:
+            return FSMStateName::PASSIVE;
+        case GaitType::FIXEDDOWN:
+            return FSMStateName::FIXEDDOWN;
+        case GaitType::TROTTING:
+            return FSMStateName::TROTTING;
+        case GaitType::FREESTAND:
+            return FSMStateName::FREESTAND;
+        case GaitType::BRIDGETROTING:
+            return FSMStateName::BRIDGETROTING;
+        default:
+            return FSMStateName::FIXEDSTAND;
     }
 }

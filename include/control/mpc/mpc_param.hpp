@@ -15,7 +15,7 @@
 #ifndef BUPT_DOG_CONTROLLER2_MPC_PARAM_HPP
 #define BUPT_DOG_CONTROLLER2_MPC_PARAM_HPP
 #define MPC_FREQUENCY 100
-#define HORIZON 60
+#define HORIZON 80
 
 const double inf = 1e6;
 const double mu = 0.5;

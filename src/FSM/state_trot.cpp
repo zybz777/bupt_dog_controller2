@@ -23,7 +23,7 @@ void State_Trot::enter() {
     _cmd_dq.setZero();
     _cmd_tau.setZero();
     _delta_q.setZero();
-    _ctrl_comp->getVmcController()->setHeight(0.085);
+    _ctrl_comp->getVmcController()->setHeight(0.005);
 }
 
 void State_Trot::step() {
@@ -44,6 +44,8 @@ FSMStateName State_Trot::checkChange() {
             return FSMStateName::FIXEDSTAND;
         case GaitType::FREESTAND:
             return FSMStateName::FREESTAND;
+        case GaitType::BRIDGETROTING:
+            return FSMStateName::BRIDGETROTING;
         default:
             return FSMStateName::TROTTING;
     }

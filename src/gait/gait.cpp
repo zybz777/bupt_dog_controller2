@@ -59,6 +59,9 @@ void Gait::checkGaitChange() {
         case GaitType::TROTTING:
             setGaitType(GaitType::TROTTING, 0.6);
             break;
+        case GaitType::BRIDGETROTING:
+            setGaitType(GaitType::BRIDGETROTING, 0.6);
+            break;
         case GaitType::FREESTAND:
             setGaitType(GaitType::FREESTAND, 0.6);
             break;
