@@ -38,6 +38,8 @@ FSMStateName State_BridgeSlowTrot::checkChange() {
             return FSMStateName::FREESTAND;
         case GaitType::TROTTING:
             return FSMStateName::TROTTING;
+        case GaitType::BRIDGETROTING:
+            return FSMStateName::BRIDGETROTING;
         default:
             return FSMStateName::BRIDGESLOWTROTING;
     }

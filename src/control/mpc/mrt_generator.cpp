@@ -48,6 +48,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
         case GaitType::FIXEDSTAND:
             resetXtraj(_X);
             break;
+        case GaitType::BRIDGESLOWTROTING:
         case GaitType::BRIDGETROTING:
         case GaitType::TROTTING: {
             Vec12 last_X_traj = _X_traj[1];
