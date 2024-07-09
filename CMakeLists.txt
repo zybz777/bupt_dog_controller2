@@ -9,8 +9,8 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 ######### OPTION #########
 ##########################
 # 设置 仿真模式(ON)或实物模式(OFF)
-set(SIM_MODE ON)# 设置为 ON 或者 OFF
-set(REAL_MODE OFF)
+set(SIM_MODE OFF)# 设置为 ON 或者 OFF
+set(REAL_MODE ON)
 # 设置 状态估计标定噪声(ON OFF)
 set(CALIBRATE_MODE OFF)
 # 设置 MPC1 MPC2

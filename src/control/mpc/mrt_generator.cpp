@@ -56,7 +56,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
                 cmd_vel = robot->getRotMat() * cmd_vel;
                 // 角度 位置 角速度 速度
                 _X_traj[i][0] = 0.0;
-                _X_traj[i][1] = estimator->getFakePitch();
+                _X_traj[i][1] = 0.5 * estimator->getFakePitch();
                 _X_traj[i][2] = last_X_traj[2] + user_cmd->cmd_angular_velocity[2] * i * _dt;
 
                 _X_traj[i][3] = last_X_traj[3] + cmd_vel[0] * i * _dt;
@@ -79,7 +79,7 @@ void MrtGenerator::step(const std::shared_ptr<Robot> &robot, const std::shared_p
             for (int i = 0; i < HORIZON; ++i) {
                 // 角度 位置 角速度 速度
                 // _X_traj[i][0] = 0.0;
-                _X_traj[i][1] = estimator->getFakePitch();
+                _X_traj[i][1] = 0.5 * estimator->getFakePitch();
                 // yaw 角
 
                 // H 高度
