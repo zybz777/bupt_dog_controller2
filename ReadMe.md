@@ -70,7 +70,7 @@ sudo make install -j
    3. export LD_LIBRARY_PATH=/opt/libtorch/lib:$LD_LIBRARY_PATH
 6. bupt_dog_msg
 ```bash
-git clone https://github.com/zybz777/bupt_dog_msg.git
+git clone git@github.com:zybz777/bupt_dog_msg.git
 cd bupt_dog_msg
 sudo chmod +x lcm_gen.sh
 sudo ./lcm_gen.sh
@@ -79,7 +79,7 @@ echo 'export CLASSPATH=~/bupt_dog_msg/java/my_types.jar' >> ~/.bashrc
 7. bupt_dog_controller2
 ```bash
 sudo apt install libarmadillo-dev
-git clone https://github.com/zybz777/bupt_dog_controller2.git
+git clone git@github.com:zybz777/bupt_dog_controller2.git
 cd ~/bupt_dog_controller2
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -104,4 +104,8 @@ sudo ln -s ~/bupt_dog_controller2/build/bupt_dog_controller2 /usr/local/bin/
 ```bash
 sudo ln -s /opt/blasfeo/lib/libblasfeo.so /usr/local/lib/
 sudo ldconfig
+```
+3. 运行
+```bash
+sudo bupt_dog_controller2
 ```
