@@ -5,11 +5,13 @@
 #include "control/wbc/wbc_optimizer.hpp"
 #include "control/mpc/mpc_param.hpp"
 
-WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot>& robot, const std::shared_ptr<Gait>& gait) {
+WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,const std::shared_ptr<Estimator> &estimator) {
     _robot = robot;
     _gait = gait;
+    _estimator = estimator;
     _qp_solver = std::make_shared<DenseQpSolver>(_nv, _ne, _ng);
     _cmd_tau = VecX::Zero(18);
+    _tau = VecX::Zero(18);
     _last_contact_force.setZero();
     _last_float_ddq.setZero();
     /* 二次型矩阵 */
@@ -25,8 +27,8 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot>& robot, const std::share
     _Q3 << 1e-3, 1e-3, 1e-7, 1e-3, 1e-3, 1e-7, 1e-3, 1e-3, 1e-7, 1e-3, 1e-3, 1e-7;
     _Q4 << 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4;
     _H.diagonal()
-        << _Q1 + _Q4,
-        _Q2 + _Q3;
+            << _Q1 + _Q4,
+            _Q2 + _Q3;
     _g = VecX::Zero(_nv);
     _g.setZero();
     /* 等式约束 */
@@ -47,10 +49,10 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot>& robot, const std::share
     _C = MatX::Zero(_ng, _nv);
     MatX C_leg = MatX::Zero(5, 3); // 一条腿
     C_leg << 1, 0, -_mu,
-        1, 0, _mu,
-        0, 1, -_mu,
-        0, 1, _mu,
-        0, 0, 1;
+            1, 0, _mu,
+            0, 1, -_mu,
+            0, 1, _mu,
+            0, 0, 1;
     for (int i = 0; i < 4; ++i) {
         _C.block<5, 3>(0 + 5 * i, 6 + 3 * i) << C_leg;
     }
@@ -64,7 +66,7 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot>& robot, const std::share
     _mpc_topic_name = "wbc_mpc_output";
 }
 
-const VecX& WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
+const VecX &WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
     Vec12 df = f_mpc - _last_contact_force;
     Vec6 delta_ddq = cmd_ddq.segment<6>(0) - _last_float_ddq;
     updateDenseQpEqualityConstraints(cmd_ddq, f_mpc);
@@ -75,7 +77,7 @@ const VecX& WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
     _qp_solver->DenseQpSolve();
     cmd_ddq.segment<6>(0) += _qp_solver->getOutput().segment<6>(0);
     for (int i = 0; i < LEG_NUM; ++i) {
-        if (_gait->getContact(i) == SWING) {
+        if (_estimator->getContact(i) == SWING) {
             f_mpc.segment<3>(3 * i).setZero();
         } else {
             f_mpc.segment<3>(3 * i) += _qp_solver->getOutput().segment<3>(6 + 3 * i);
@@ -90,15 +92,17 @@ const VecX& WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
     _cmd_tau = -_robot->getJ_FeetPosition().transpose() * f_mpc +
                _robot->getNoLinearTorque() +
                _robot->getMassMat() * cmd_ddq; // WBC优化后的力矩
+    _tau = _cmd_tau + _robot->getJ_FeetPosition().transpose() * f_mpc;
     return _cmd_tau;
 }
 
 void WbcOptimizer::updateDenseQpEqualityConstraints(Vec18 cmd_ddq, Vec12 f_mpc) {
-    const MatX& M = _robot->getMassMat();
-    const Vec18& nle = _robot->getNoLinearTorque();
+    const MatX &M = _robot->getMassMat();
+    const Vec18 &nle = _robot->getNoLinearTorque();
     MatX J = _robot->getJ_FeetPosition();
     for (int i = 0; i < LEG_NUM; ++i) {
-        if (_gait->getContact(i) == SWING) { // 过滤摆动项
+        if (_estimator->getContact(i) == SWING) {
+            // 过滤摆动项
             J.block<3, 18>(0 + 3 * i, 0).setZero();
         }
     }

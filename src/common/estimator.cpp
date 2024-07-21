@@ -84,6 +84,53 @@ void Estimator::init() {
     _fake_pitch_filter = std::make_shared<LPFilter>(_dt, 3.0);
     // lcm
     _es_data_topic_name = "es_data";
+    // 碰撞检测
+    for (int i = 0; i < 4; ++i) {
+        _feet_filter[i] = std::make_shared<HPFilter>(_dt, 5);
+    }
+    _p.setZero();
+    _last_p.setZero();
+    _cmd_tau.setZero();
+    _r.setZero();
+    _last_r.setZero();
+}
+
+void Estimator::collisionDetection() {
+    static double k = 1000;
+    const VecX &dq = _robot->getFloatBaseDq();
+    const MatX &C = _robot->getCoriolisMat();
+    const VecX &g = _robot->getGravityVec();
+    _last_p = _p;
+    _p = _robot->getMassMat() * dq;
+    _last_r = _r;
+    _r = 1 / (1 + k) * _last_r + k / (1 + k) * (
+             _p - _last_p - _cmd_tau - C.transpose() * dq + g);
+    for (int i = 0; i < 4; ++i) {
+        _feet_filter[i]->addValue(_r[8 + 3 * i]);
+    }
+}
+
+int Estimator::getContact(int leg_id) {
+    // return _gait->getContact(leg_id);
+    switch (_gait->getContact(leg_id)) {
+        case SWING:
+            if (_gait->getPhase(leg_id) <= 0.7) {
+                return SWING;
+            }
+        // if (_feet_filter[leg_id]->getValue() > 1e-4) {
+        //     // 提前触地
+        //     return CONTACT;
+        // }
+            return SWING;
+        case CONTACT:
+            // 仅考虑前30%相位会踩空的情况
+            // if (_feet_filter[leg_id]->getValue() > 1e-5) {
+            //     return CONTACT;
+            // }
+            return CONTACT;
+        default:
+            return _gait->getContact(leg_id);
+    }
 }
 
 void Estimator::fakePitch() {
@@ -97,13 +144,13 @@ void Estimator::fakePitch() {
     static double P_Hx = _robot->getRobotStdFootPos_inBody().col(3)[0];
     static double P_Hz = _robot->getRobotStdFootPos_inBody().col(3)[2];
     for (int i = 0; i < 2; ++i) {
-        if (_gait->getContact(i) == CONTACT) {
+        if (getContact(i) == CONTACT) {
             P_Fx = foot_pos_2com_inWorld.col(i)[0];
             P_Fz = foot_pos_2com_inWorld.col(i)[2];
         }
     }
     for (int i = 2; i < 4; ++i) {
-        if (_gait->getContact(i) == CONTACT) {
+        if (getContact(i) == CONTACT) {
             P_Hx = foot_pos_2com_inWorld.col(i)[0];
             P_Hz = foot_pos_2com_inWorld.col(i)[2];
         }
@@ -113,12 +160,11 @@ void Estimator::fakePitch() {
     // 地形适应 高度最低的足端高度为0 其余足端高度抬高
     double min_foot_pos = min(P_Hz, P_Fz);
     for (int i = 0; i < LEG_NUM; ++i) {
-        if (_gait->getContact(i) == CONTACT) {
+        if (getContact(i) == CONTACT) {
             _feetH_inWorld[i] = foot_pos_2com_inWorld.col(i)[2] - min_foot_pos;
         } else {
             _feetH_inWorld[i] = 0.0;
         }
-
     }
     // std::cout << foot_pos_2com_inWorld << std::endl;
 }
@@ -141,8 +187,9 @@ void Estimator::begin() {
 #endif
 
 void Estimator::step() {
-    const RotMat &R = _robot->getRotMat();
+    collisionDetection();
     fakePitch();
+    const RotMat &R = _robot->getRotMat();
     /* 观测量更新 */
     for (int i = 0; i < 4; ++i) {
         _feetPos2Body_inWorld.segment<3>(3 * i) = R * _robot->getFootPosition_inBody(i);
@@ -160,7 +207,7 @@ void Estimator::step() {
     _Q = _Q_init;
     _R = _R_init;
     for (int i = 0; i < 4; ++i) {
-        if (_gait->getContact(i) == SWING) {
+        if (getContact(i) == SWING) {
             _Q.block<3, 3>(6 + 3 * i, 6 + 3 * i) = _large_variance * _I3; // 摆动腿位置估计 大噪声
             _R.block<3, 3>(12 + 3 * i, 12 + 3 * i) = _large_variance * _I3; // 摆动腿速度测量 大噪声
             _R(24 + i, 24 + i) = _large_variance; // 摆动腿高度测量 大噪声
@@ -211,6 +258,8 @@ void Estimator::publishEsData() {
     memcpy(_es_data.pos, getPosition().data(), sizeof(_es_data.pos));
     memcpy(_es_data.vel, getVelocity().data(), sizeof(_es_data.vel));
     memcpy(_es_data.lp_vel, getLpVelocity().data(), sizeof(_es_data.lp_vel));
+    _es_data.pos[0] = _feet_filter[0]->getValue();
+    _es_data.pos[1] = getContact(0);
     // _es_data.lp_vel[2] = getFakePitch();
     _lcm.publish(_es_data_topic_name, &_es_data);
 }

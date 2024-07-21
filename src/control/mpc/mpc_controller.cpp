@@ -181,7 +181,18 @@ void MpcController::updateMat() {
 
 void MpcController::updateConstraint() {
     const std::vector<Vec4_i8> &gait_list = _gait->getGaitList();
-    for (int i = 0; i < HORIZON; ++i) {
+    for (int leg_id = 0; leg_id < 4; ++leg_id) {
+        if (_estimator->getContact(leg_id) == CONTACT) {
+            _D[0].block<4, 1>(5 * leg_id + 0, 3 * leg_id + 2) << -_mu, -_mu, -_mu, -_mu;
+            _D_min[0].segment<5>(5 * leg_id) << -inf, -inf, -inf, -inf, _f_min;
+            _D_max[0](5 * leg_id + 4) = _f_max;
+        } else {
+            _D[0].block<4, 1>(5 * leg_id + 0, 3 * leg_id + 2) << 0, 0, 0, 0;
+            _D_min[0].segment<5>(5 * leg_id) << 0., 0., 0., 0., 0.;
+            _D_max[0](5 * leg_id + 4) = 0.;
+        }
+    }
+    for (int i = 1; i < HORIZON; ++i) {
         for (int leg_id = 0; leg_id < 4; ++leg_id) {
             if (gait_list[i](leg_id) == CONTACT) {
                 _D[i].block<4, 1>(5 * leg_id + 0, 3 * leg_id + 2) << -_mu, -_mu, -_mu, -_mu;

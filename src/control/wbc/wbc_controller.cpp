@@ -52,7 +52,7 @@ WbcController::WbcController(int ms, const std::shared_ptr<Robot> &robot, const 
     _feet_positions_inBody.setZero();
     _f_mpc.setZero();
     // qp solver
-    _optimizer = std::make_shared<WbcOptimizer>(_robot, _gait);
+    _optimizer = std::make_shared<WbcOptimizer>(_robot, _gait, _estimator);
 
     _ms = ms;
 #ifdef USE_WBC_THREAD
@@ -242,6 +242,7 @@ void WbcController::solve() {
         _cmd_ddq[i] = _cmd_ddq_filter[i]->getValue();
     }
     _cmd_tau = _optimizer->calcCmdTau(_cmd_ddq, _f_mpc);
+    _estimator->updateCmdTau(_optimizer->getCollisionTau());
 }
 #ifdef USE_WBC_THREAD
 [[noreturn]] void WbcController::run(int ms) {

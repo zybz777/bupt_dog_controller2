@@ -15,7 +15,8 @@ Robot::Robot(const std::shared_ptr<LowState> &low_state, int ms) {
 }
 #ifdef USE_PIN_THREAD
 void Robot::begin() {
-    while (!_robot_thread.joinable()) {}
+    while (!_robot_thread.joinable()) {
+    }
     _robot_thread.join();
 }
 #endif
@@ -80,6 +81,8 @@ void Robot::init() {
     _nle = VecX::Zero(_robot_model->nv);
     _J_contact = MatX::Zero(12, _robot_model->nv);
     _friction_torque.setZero();
+    _C = MatX::Zero(_robot_model->nv, _robot_model->nv);
+    _g = VecX::Zero(_robot_model->nv);
     // WBC
     _J_Body_Orientation = MatX::Zero(3, _robot_model->nv);
     // _J_Body_Orientation.block<3, 3>(0, 3) << _I3;
@@ -196,4 +199,6 @@ void Robot::inverseDynamics() {
     _nle << _robot_data->nle;
     _M << _robot_data->M;
     _M_inv << _robot_data->Minv;
+    _C << _robot_data->C;
+    _g << _robot_data->g;
 }

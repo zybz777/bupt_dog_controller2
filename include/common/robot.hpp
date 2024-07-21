@@ -32,7 +32,7 @@ public:
 #endif
     void step();
 
-    const std::shared_ptr<LowState> &getLowState() { return _low_state; };
+    const std::shared_ptr<LowState> &getLowState() { return _low_state; }
 
     // 关节数据
     const Vec12 &getQ() { return _low_state->getQ(); }
@@ -97,6 +97,9 @@ public:
 
     const MatX &getMassMatInv() { return _M_inv; }
 
+    const MatX &getCoriolisMat() { return _C; }
+
+    const VecX &getGravityVec() { return _g; }
     // WBC雅可比矩阵
     const MatX &getJ_BodyOrientation() { return _J_Body_Orientation; }
 
@@ -174,6 +177,8 @@ private:
     MatX _M_inv;
     MatX _J_contact; // 足端雅可比矩阵 12x18
     Vec12 _friction_torque; // 摩擦力矩
+    MatX _C; // 科氏力矩阵
+    VecX _g; // 广义重力向量
     // WBC 雅可比矩阵
     MatX _J_Body_Orientation;
     MatX _J_Body_Position;

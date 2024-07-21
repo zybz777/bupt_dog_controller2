@@ -32,6 +32,8 @@ public:
 
     void step();
 
+    // 位置速度估计
+
     Vec3 getPosition() { return _xhat.segment<3>(0); }
 
     Vec3 getLpPosition() { return Vec3(_px_filter->getValue(), _py_filter->getValue(), _pz_filter->getValue()); }
@@ -42,10 +44,20 @@ public:
 
     Vec3 getFootPos_inWorld(int leg_id) { return _xhat.segment<3>(6 + 3 * leg_id); }
 
+    // 地形估计
+
     double getFakePitch() { return _fake_pitch_filter->getValue(); }
+
+    // 碰撞估计
+
+    void updateCmdTau(const Vec18 &cmd_tau) { _cmd_tau = cmd_tau; }
+
+    int getContact(int leg_id);
 
 private:
     void init();
+
+    void collisionDetection();
 
     void fakePitch();
 
@@ -105,7 +117,12 @@ private:
     lcm::LCM _lcm;
     std::string _es_data_topic_name;
     doglcm::EstimatorData_t _es_data{};
-
+    // 足端碰撞检测
+    std::shared_ptr<HPFilter> _feet_filter[4];
+    Vec18 _p, _last_p; // 广义动量
+    Vec18 _cmd_tau; // 期望力矩
+    Vec18 _r, _last_r; // 碰撞信号量
+    // 多线程
     int _ms;
 #ifdef USE_ES_THREAD
     std::thread _thread;

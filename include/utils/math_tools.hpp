@@ -132,7 +132,7 @@ inline T windowFunc(const T x, const T windowRatio, const T xRange = 1.0, const 
     }
     if ((windowRatio <= 0) || (windowRatio >= 0.5)) {
         std::cout << "[ERROR][windowFunc] The windowRatio=" << windowRatio << ", which should between [0, 0.5]"
-                  << std::endl;
+                << std::endl;
     }
 
     if (x / xRange < windowRatio) {
@@ -143,8 +143,9 @@ inline T windowFunc(const T x, const T windowRatio, const T xRange = 1.0, const 
         return yRange;
     }
 }
+
 template<typename T>
-inline T windowFunc2(const T x, const T leftRatio, const T RightRatio,const T xRange = 1.0, const T yRange = 1.0) {
+inline T windowFunc2(const T x, const T leftRatio, const T RightRatio, const T xRange = 1.0, const T yRange = 1.0) {
     if ((x < 0) || (x > xRange)) {
         std::cout << "[ERROR][windowFunc] The x=" << x << ", which should between [0, xRange]" << std::endl;
     }
@@ -217,9 +218,9 @@ public:
             updateAvgCov(_cov, _exp, newValue, _measureCount - _waitCount);
             if (_measureCount % _showPeriod == 0) {
                 std::cout << "******" << _valueName << " measured count: " << _measureCount - _waitCount << "******"
-                          << std::endl;
+                        << std::endl;
                 std::cout << _zoomFactor << " Times Average of " << _valueName << std::endl
-                          << (_zoomFactor * _exp).transpose() << std::endl;
+                        << (_zoomFactor * _exp).transpose() << std::endl;
                 if (!_avgOnly) {
                     // std::cout << _zoomFactor << " Times Covariance of " << _valueName << std::endl
                     //           << _zoomFactor * _cov << std::endl;
@@ -305,4 +306,38 @@ private:
     bool _start;
 };
 
+class HPFilter {
+public:
+    HPFilter(double samplePeriod, double cutFrequency) {
+        _weight = (2.0 * M_PI * cutFrequency * samplePeriod) / (1.0 + 2.0 * M_PI * cutFrequency * samplePeriod);
+        _start = false;
+    }
+
+    void addValue(double newValue) {
+        if (!_start) {
+            _start = true;
+            _pastInput = newValue;
+            _pastOutput = 0.0;
+            return;
+        }
+        // 使用高通滤波器公式
+        double output = _weight * (_pastOutput + newValue - _pastInput);
+        _pastInput = newValue;
+        _pastOutput = output;
+    }
+
+    double getValue() {
+        return _pastOutput;
+    }
+
+    void clear() {
+        _start = false;
+    }
+
+private:
+    double _weight;
+    double _pastInput;
+    double _pastOutput;
+    bool _start;
+};
 #endif //BUPT_DOG_CONTROLLER2_MATH_TOOLS_HPP
