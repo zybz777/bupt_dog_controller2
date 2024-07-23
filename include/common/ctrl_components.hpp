@@ -28,7 +28,7 @@ public:
         _gait = std::make_shared<Gait>(_user_cmd);
         _estimator = std::make_shared<Estimator>(ms, _gait, _robot);
         // control
-        _vmc = std::make_shared<VmcController>(_robot, _gait, _estimator, _user_cmd);
+        _vmc = std::make_shared<VmcController>(_robot, _gait, _estimator);
         _mpc = std::make_shared<MpcController>(_robot, _gait, _estimator);
         _mpc2 = std::make_shared<MpcController2>(_robot, _gait, _estimator);
         _wbc = std::make_shared<WbcController>(ms, _robot, _gait, _estimator, _mpc, _mpc2, _vmc);

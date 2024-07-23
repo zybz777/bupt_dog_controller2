@@ -44,8 +44,7 @@ typedef struct VmcCmd {
 class VmcController {
 public:
     VmcController(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
-                  const std::shared_ptr<Estimator> &estimator,
-                  const std::shared_ptr<doglcm::UserCmd_t> &user_cmd);
+                  const std::shared_ptr<Estimator> &estimator);
 
     void step();
 
@@ -89,6 +88,9 @@ private:
                                   const std::shared_ptr<doglcm::UserCmd_t> &user_cmd);
 
     void SwingLegPolynomialCurve_inWorld(int leg_id, int contact, double phase, double swing_T, double h = 0.05);
+
+    void calcEndFootPos_inWorld(int leg_id, const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
+                                const std::shared_ptr<Estimator> &estimator);
 
     std::shared_ptr<VmcData> _vmc_data;
     std::shared_ptr<VmcCmd> _vmc_cmd;

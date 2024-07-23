@@ -18,8 +18,6 @@ public:
 
     const VecX &calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc);
 
-    const VecX &getCollisionTau() { return _tau; }
-
 private:
     void updateDenseQpEqualityConstraints(Vec18 cmd_ddq, Vec12 f_mpc);
 
@@ -53,7 +51,6 @@ private:
     VecX _ug_mask;
     // output
     VecX _cmd_tau;
-    VecX _tau; // _cmd_tau+J.TxF 碰撞检测用
     Vec12 _last_contact_force;
     Vec6 _last_float_ddq;
     lcm::LCM _lcm;

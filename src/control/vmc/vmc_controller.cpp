@@ -5,12 +5,11 @@
 #include "control/vmc/vmc_controller.hpp"
 
 VmcController::VmcController(const std::shared_ptr<Robot> &robot, const std::shared_ptr<Gait> &gait,
-                             const std::shared_ptr<Estimator> &estimator,
-                             const std::shared_ptr<doglcm::UserCmd_t> &user_cmd) {
+                             const std::shared_ptr<Estimator> &estimator) {
     _robot = robot;
     _gait = gait;
     _estimator = estimator;
-    _user_cmd = user_cmd;
+    _user_cmd = robot->getLowState()->getUserCmd();
     _vmc_data = std::make_shared<VmcData>();
     _vmc_cmd = std::make_shared<VmcCmd>();
     _vmc_data->std_foot_pos = _robot->getRobotStdFootPos_inBody();
@@ -34,11 +33,11 @@ void VmcController::step() {
     for (int i = 0; i < 4; ++i) {
         _vmc_data->curr_foot_pos_in_world.col(i) << _robot->getFootPosition_inWorld(i);
         _vmc_data->curr_foot_vel_in_world.col(i) << _estimator->getLpVelocity() +
-                                                    _robot->getRotMat() * (_vmc_data->curr_foot_vel.col(i) +
-                                                                           skew(_robot->getAngularVelocity()) *
-                                                                           _vmc_data->curr_foot_pos.col(i));
+                _robot->getRotMat() * (_vmc_data->curr_foot_vel.col(i) +
+                                       skew(_robot->getAngularVelocity()) *
+                                       _vmc_data->curr_foot_pos.col(i));
         _vmc_data->std_foot_pos_in_world.col(i) << _estimator->getLpPosition() +
-                                                   _robot->getRotMat() * _vmc_data->std_foot_pos.col(i);
+                _robot->getRotMat() * _vmc_data->std_foot_pos.col(i);
     }
     // 记录足端起点 终点
     updateStartFeetPos_inWorld(_gait, _estimator);
@@ -56,12 +55,7 @@ void VmcController::step() {
 void VmcController::updateStartFeetPos_inWorld(const std::shared_ptr<Gait> &gait,
                                                const std::shared_ptr<Estimator> &estimator) {
     for (int i = 0; i < 4; ++i) {
-        if (gait->getGaitType() != GaitType::TROTTING) {
-            // 初始化一下start_foot_pos_in_world
-            _vmc_data->start_foot_pos_in_world.col(i) = _vmc_data->curr_foot_pos_in_world.col(i);
-        }
-        if (gait->getContact(i) == CONTACT && gait->getPhase(i) > 0.95) {
-            // 记录摆动项起点位置
+        if (gait->getContact(i) == CONTACT) {
             _vmc_data->start_foot_pos_in_world.col(i) = _vmc_data->curr_foot_pos_in_world.col(i);
         }
     }
@@ -72,32 +66,8 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
                                              const std::shared_ptr<doglcm::UserCmd_t> &user_cmd) {
     switch (gait->getGaitType()) {
         case GaitType::TROTTING: {
-            double kx = 0.005;
-            double ky = 0.005;
-            double kw = 0.005;
-            Vec3 cmd_vel_in_world(user_cmd->cmd_linear_velocity[0], user_cmd->cmd_linear_velocity[1],
-                                  user_cmd->cmd_linear_velocity[2]);
-            Vec3 cmd_omega_in_world(user_cmd->cmd_angular_velocity[0], user_cmd->cmd_angular_velocity[1],
-                                    user_cmd->cmd_angular_velocity[2]);
-            cmd_vel_in_world = robot->getRotMat() * cmd_vel_in_world;
-            cmd_omega_in_world = rotMatW(robot->getRpy()) * cmd_omega_in_world;
-            Vec3 omega_in_world = robot->getAngularVelocity_inWorld();
-            double k = _k;
-            Vec3 v = k * estimator->getLpVelocity() + (1 - k) * cmd_vel_in_world;
-            double w = omega_in_world[2];
             for (int i = 0; i < LEG_NUM; ++i) {
-                double theta_f = robot->getRpy()[2] + _theta0[i] + w * (1 - gait->getPhase(i)) * gait->getTswing() +
-                                 0.5 * w * gait->getTstance() + kw * (w - cmd_omega_in_world[2]);
-                // x y
-                _vmc_data->end_foot_pos_in_world(0, i) =
-                        estimator->getLpPosition()[0] + _r * cos(theta_f) + v[0] * (1 - gait->getPhase(i)) * gait->
-                                getTswing() + 0.5 * v[0] * gait->getTstance() + kx * (
-                                estimator->getLpVelocity()[0] - cmd_vel_in_world[0]);
-                _vmc_data->end_foot_pos_in_world(1, i) =
-                        estimator->getLpPosition()[1] + _r * sin(theta_f) + v[1] * (1 - gait->getPhase(i)) * gait->
-                                getTswing() + 0.5 * v[1] * gait->getTstance() + ky * (
-                                estimator->getLpVelocity()[1] - cmd_vel_in_world[1]);
-                _vmc_data->end_foot_pos_in_world(2, i) = 0.0;
+                calcEndFootPos_inWorld(i, robot, gait, estimator);
             }
             // 地形适应摆动腿落足点高度
             static double x_distance = _vmc_data->std_foot_pos.col(0)[0] - _vmc_data->std_foot_pos.col(3)[0];
@@ -114,7 +84,7 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
                 _vmc_data->end_foot_pos_in_world(2, 3) = 0.0;
             }
         }
-            break;
+        break;
         default:
             _vmc_data->end_foot_pos_in_world = _vmc_data->std_foot_pos_in_world;
             _vmc_data->end_foot_pos_in_world(2, 0) = 0;
@@ -123,6 +93,33 @@ void VmcController::updateEndFeetPos_inWorld(const std::shared_ptr<Robot> &robot
             _vmc_data->end_foot_pos_in_world(2, 3) = 0;
             break;
     }
+}
+
+void VmcController::calcEndFootPos_inWorld(int leg_id, const std::shared_ptr<Robot> &robot,
+                                           const std::shared_ptr<Gait> &gait,
+                                           const std::shared_ptr<Estimator> &estimator) {
+    constexpr double kx = 0.005, ky = 0.005, kw = 0.005;
+    const std::shared_ptr<doglcm::UserCmd_t> &user_cmd = robot->getLowState()->getUserCmd();
+    Vec3 cmd_vel_in_world = robot->getRotMat() * Vec3(user_cmd->cmd_linear_velocity[0],
+                                                      user_cmd->cmd_linear_velocity[1],
+                                                      user_cmd->cmd_linear_velocity[2]);
+    Vec3 cmd_omega_in_world = robot->getRotMat() * Vec3(user_cmd->cmd_angular_velocity[0],
+                                                        user_cmd->cmd_angular_velocity[1],
+                                                        user_cmd->cmd_angular_velocity[2]);
+    Vec3 omega_in_world = robot->getAngularVelocity_inWorld();
+    Vec3 v = _k * estimator->getLpVelocity() + (1 - _k) * cmd_vel_in_world;
+    double w = omega_in_world[2];
+    double theta_f = robot->getRpy()[2] + _theta0[leg_id] + w * (1 - gait->getPhase(leg_id)) * gait->getTswing() +
+                     0.5 * w * gait->getTstance() + kw * (w - cmd_omega_in_world[2]);
+    _vmc_data->end_foot_pos_in_world(0, leg_id) =
+            estimator->getLpPosition()[0] + _r * cos(theta_f) + v[0] * (1 - gait->getPhase(leg_id)) * gait->
+            getTswing() + 0.5 * v[0] * gait->getTstance() + kx * (
+                estimator->getLpVelocity()[0] - cmd_vel_in_world[0]);
+    _vmc_data->end_foot_pos_in_world(1, leg_id) =
+            estimator->getLpPosition()[1] + _r * sin(theta_f) + v[1] * (1 - gait->getPhase(leg_id)) * gait->
+            getTswing() + 0.5 * v[1] * gait->getTstance() + ky * (
+                estimator->getLpVelocity()[1] - cmd_vel_in_world[1]);
+    _vmc_data->end_foot_pos_in_world(2, leg_id) = 0.0;
 }
 
 void VmcController::SwingLegPolynomialCurve_inWorld(int leg_id, int contact, double phase, double swing_T, double h) {

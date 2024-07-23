@@ -75,62 +75,20 @@ void Estimator::init() {
     // std::cout << "R init " << std::endl
     //           << _R_init << std::endl;
     // LP filter
-    _vx_filter = std::make_shared<LPFilter>(_dt, 3.0);
-    _vy_filter = std::make_shared<LPFilter>(_dt, 3.0);
-    _vz_filter = std::make_shared<LPFilter>(_dt, 3.0);
+    _vx_filter = std::make_shared<LPFilter>(_dt, 20.0);
+    _vy_filter = std::make_shared<LPFilter>(_dt, 20.0);
+    _vz_filter = std::make_shared<LPFilter>(_dt, 10.0);
     _px_filter = std::make_shared<LPFilter>(_dt, 3.0);
     _py_filter = std::make_shared<LPFilter>(_dt, 3.0);
     _pz_filter = std::make_shared<LPFilter>(_dt, 3.0);
     _fake_pitch_filter = std::make_shared<LPFilter>(_dt, 3.0);
     // lcm
     _es_data_topic_name = "es_data";
-    // 碰撞检测
-    for (int i = 0; i < 4; ++i) {
-        _feet_filter[i] = std::make_shared<HPFilter>(_dt, 5);
-    }
-    _p.setZero();
-    _last_p.setZero();
-    _cmd_tau.setZero();
-    _r.setZero();
-    _last_r.setZero();
 }
 
-void Estimator::collisionDetection() {
-    static double k = 1000;
-    const VecX &dq = _robot->getFloatBaseDq();
-    const MatX &C = _robot->getCoriolisMat();
-    const VecX &g = _robot->getGravityVec();
-    _last_p = _p;
-    _p = _robot->getMassMat() * dq;
-    _last_r = _r;
-    _r = 1 / (1 + k) * _last_r + k / (1 + k) * (
-             _p - _last_p - _cmd_tau - C.transpose() * dq + g);
-    for (int i = 0; i < 4; ++i) {
-        _feet_filter[i]->addValue(_r[8 + 3 * i]);
-    }
-}
 
 int Estimator::getContact(int leg_id) {
-    // return _gait->getContact(leg_id);
-    switch (_gait->getContact(leg_id)) {
-        case SWING:
-            if (_gait->getPhase(leg_id) <= 0.7) {
-                return SWING;
-            }
-        // if (_feet_filter[leg_id]->getValue() > 1e-4) {
-        //     // 提前触地
-        //     return CONTACT;
-        // }
-            return SWING;
-        case CONTACT:
-            // 仅考虑前30%相位会踩空的情况
-            // if (_feet_filter[leg_id]->getValue() > 1e-5) {
-            //     return CONTACT;
-            // }
-            return CONTACT;
-        default:
-            return _gait->getContact(leg_id);
-    }
+    return _gait->getContact(leg_id);
 }
 
 void Estimator::fakePitch() {
@@ -187,7 +145,6 @@ void Estimator::begin() {
 #endif
 
 void Estimator::step() {
-    collisionDetection();
     fakePitch();
     const RotMat &R = _robot->getRotMat();
     /* 观测量更新 */
@@ -221,9 +178,6 @@ void Estimator::step() {
                     (1 + (1 - _trust) * _large_variance) * _R_init.block<3, 3>(12 + 3 * i, 12 + 3 * i);
             // 摆动腿高度测量噪声随触地相位增大而变小
             _R(24 + i, 24 + i) = (1 + (1 - _trust) * _large_variance) * _R_init(24 + i, 24 + i);
-            // 平滑摆动腿速度测量值
-            _y.segment<3>(12 + 3 * i) =
-                    (1 - _trust) * _xhat.segment<3>(3) + _trust * _feetVel2Body_inWorld.segment<3>(3 * i);
         }
     }
     /* kalman */
@@ -255,12 +209,11 @@ void Estimator::step() {
 }
 
 void Estimator::publishEsData() {
-    memcpy(_es_data.pos, getPosition().data(), sizeof(_es_data.pos));
+    _es_data.pos[0] = getLpPosition()[0];
+    _es_data.pos[1] = getLpPosition()[1];
+    _es_data.pos[2] = getLpPosition()[2];
     memcpy(_es_data.vel, getVelocity().data(), sizeof(_es_data.vel));
     memcpy(_es_data.lp_vel, getLpVelocity().data(), sizeof(_es_data.lp_vel));
-    _es_data.pos[0] = _feet_filter[0]->getValue();
-    _es_data.pos[1] = getContact(0);
-    // _es_data.lp_vel[2] = getFakePitch();
     _lcm.publish(_es_data_topic_name, &_es_data);
 }
 

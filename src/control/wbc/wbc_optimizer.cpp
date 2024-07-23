@@ -11,7 +11,6 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot> &robot, const std::share
     _estimator = estimator;
     _qp_solver = std::make_shared<DenseQpSolver>(_nv, _ne, _ng);
     _cmd_tau = VecX::Zero(18);
-    _tau = VecX::Zero(18);
     _last_contact_force.setZero();
     _last_float_ddq.setZero();
     /* 二次型矩阵 */
@@ -24,8 +23,8 @@ WbcOptimizer::WbcOptimizer(const std::shared_ptr<Robot> &robot, const std::share
     _Q2 << 0.01, 0.01, 0.001, 0.01, 0.01, 0.001, 0.01, 0.01, 0.001, 0.01, 0.01, 0.001;
     // _Q3.setOnes(); // 两相邻时刻优化后足端力突变减小
     // _Q3 = 0.001 * _Q3;
-    _Q3 << 1e-3, 1e-3, 1e-7, 1e-3, 1e-3, 1e-7, 1e-3, 1e-3, 1e-7, 1e-3, 1e-3, 1e-7;
-    _Q4 << 1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4;
+    _Q3 << 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7, 1e-4, 1e-4, 5e-7;
+    _Q4 << 1e-5, 1e-5, 1e-7, 1e-5, 1e-5, 1e-5;
     _H.diagonal()
             << _Q1 + _Q4,
             _Q2 + _Q3;
@@ -92,7 +91,6 @@ const VecX &WbcOptimizer::calcCmdTau(Vec18 cmd_ddq, Vec12 f_mpc) {
     _cmd_tau = -_robot->getJ_FeetPosition().transpose() * f_mpc +
                _robot->getNoLinearTorque() +
                _robot->getMassMat() * cmd_ddq; // WBC优化后的力矩
-    _tau = _cmd_tau + _robot->getJ_FeetPosition().transpose() * f_mpc;
     return _cmd_tau;
 }
 

@@ -242,7 +242,6 @@ void WbcController::solve() {
         _cmd_ddq[i] = _cmd_ddq_filter[i]->getValue();
     }
     _cmd_tau = _optimizer->calcCmdTau(_cmd_ddq, _f_mpc);
-    _estimator->updateCmdTau(_optimizer->getCollisionTau());
 }
 #ifdef USE_WBC_THREAD
 [[noreturn]] void WbcController::run(int ms) {

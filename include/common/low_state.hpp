@@ -19,6 +19,7 @@
 #include "utils/timer.hpp"
 
 class LowState {
+    //brief 包含低级状态信息：关节信息、IMU信息、用户输入指令
 public:
     LowState() {
         // lcm
